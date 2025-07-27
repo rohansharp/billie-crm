@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     customers: Customer;
     conversations: Conversation;
+    applications: Application;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -81,6 +82,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
     conversations: ConversationsSelect<false> | ConversationsSelect<true>;
+    applications: ApplicationsSelect<false> | ApplicationsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -171,44 +173,206 @@ export interface Media {
 export interface Customer {
   id: string;
   customerId: string;
-  fullName: string;
-  email?: string | null;
+  /**
+   * Mr, Mrs, Ms, Dr, etc.
+   */
+  title?: string | null;
+  /**
+   * Name customer prefers to be called
+   */
+  preferredName?: string | null;
+  firstName?: string | null;
+  middleName?: string | null;
+  lastName?: string | null;
+  fullName?: string | null;
+  emailAddress?: string | null;
+  mobilePhoneNumber?: string | null;
   dateOfBirth?: string | null;
-  phone?: string | null;
   residentialAddress?: {
     street?: string | null;
     city?: string | null;
     state?: string | null;
     postcode?: string | null;
+    country?: string | null;
   };
-  applications?: (string | Conversation)[] | null;
+  /**
+   * Address for mail delivery (e.g., cards)
+   */
+  mailingAddress?: {
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postcode?: string | null;
+    country?: string | null;
+  };
+  /**
+   * Indicates if customer is a staff member
+   */
+  staffFlag?: boolean | null;
+  /**
+   * Indicates if customer is an investor
+   */
+  investorFlag?: boolean | null;
+  /**
+   * Indicates if customer is a founder
+   */
+  founderFlag?: boolean | null;
+  /**
+   * eKYC identifier from Frankie
+   */
+  ekycEntityId?: string | null;
+  /**
+   * Status of eKYC attempt
+   */
+  ekycStatus?: ('successful' | 'failed' | 'pending') | null;
+  /**
+   * Lifecycle status of the individual
+   */
+  individualStatus?: ('LIVING' | 'DECEASED' | 'MISSING') | null;
+  identityDocuments?:
+    | {
+        documentType: 'DRIVERS_LICENCE' | 'PASSPORT' | 'MEDICARE';
+        /**
+         * e.g., Medicare Card Colour
+         */
+        documentSubtype?: string | null;
+        documentNumber: string;
+        expiryDate?: string | null;
+        stateOfIssue?: string | null;
+        countryOfIssue?: string | null;
+        /**
+         * Additional document information as key-value pairs
+         */
+        additionalInfo?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  applications?: (string | Application)[] | null;
+  conversations?: (string | Conversation)[] | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "conversations".
+ * via the `definition` "applications".
  */
-export interface Conversation {
+export interface Application {
   id: string;
   applicationNumber: string;
+  customerId: string | Customer;
+  loanPurpose?: string | null;
+  loanAmount?: number | null;
   /**
-   * Unique identifier from the chat system
+   * Calculated at 5% of loan amount
    */
-  conversationId?: string | null;
-  customerId?: (string | null) | Customer;
-  status?: ('active' | 'paused' | 'soft_end' | 'hard_end' | 'approved' | 'declined') | null;
-  startTime?: string | null;
-  lastUtteranceTime?: string | null;
-  messages?:
-    | {
-        sender: 'customer' | 'assistant';
-        utterance: string;
-        timestamp: string;
-        id?: string | null;
-      }[]
-    | null;
+  loanFee?: number | null;
+  /**
+   * Loan amount + fee
+   */
+  loanTotalPayable?: number | null;
+  /**
+   * Loan term in days/months
+   */
+  loanTerm?: number | null;
+  customerAttestationAcceptance?: boolean | null;
+  statementCaptureConsentProvided?: boolean | null;
+  statementCaptureCompleted?: boolean | null;
+  productOfferAcceptance?: boolean | null;
+  applicationOutcome?: ('pending' | 'approved' | 'declined' | 'withdrawn') | null;
+  applicationProcess?: {
+    /**
+     * Current stage in the application process
+     */
+    currentProcessStage?: string | null;
+    /**
+     * Current step within the stage
+     */
+    currentProcessStep?: string | null;
+    startedAt?: string | null;
+    updatedAt?: string | null;
+    applicationProcessState?:
+      | {
+          stageName: string;
+          complete?: boolean | null;
+          prompt?: string | null;
+          steps?:
+            | {
+                stepName: string;
+                description?: string | null;
+                complete?: boolean | null;
+                type?: ('llm' | 'business_logic' | 'user_input') | null;
+                completionEventName?: string | null;
+                /**
+                 * Frontend input type hint
+                 */
+                answerInputType?: string | null;
+                prompts?: {
+                  main?: string | null;
+                  completenessCheck?: string | null;
+                  confirmation?: string | null;
+                  outputJson?: string | null;
+                  mappingOut?:
+                    | {
+                        [k: string]: unknown;
+                      }
+                    | unknown[]
+                    | string
+                    | number
+                    | boolean
+                    | null;
+                };
+                businessLogic?: {
+                  moduleName?: string | null;
+                  methodName?: string | null;
+                  mappingIn?:
+                    | {
+                        [k: string]: unknown;
+                      }
+                    | unknown[]
+                    | string
+                    | number
+                    | boolean
+                    | null;
+                  mappingOut?:
+                    | {
+                        [k: string]: unknown;
+                      }
+                    | unknown[]
+                    | string
+                    | number
+                    | boolean
+                    | null;
+                };
+                id?: string | null;
+              }[]
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+    conversation?:
+      | {
+          role?: ('user' | 'assistant' | 'system') | null;
+          content?: string | null;
+          timestamp?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Risk and serviceability assessments
+   */
   assessments?: {
+    /**
+     * Identity risk assessment results
+     */
     identityRisk?:
       | {
           [k: string]: unknown;
@@ -218,6 +382,9 @@ export interface Conversation {
       | number
       | boolean
       | null;
+    /**
+     * Serviceability assessment results
+     */
     serviceability?:
       | {
           [k: string]: unknown;
@@ -227,6 +394,9 @@ export interface Conversation {
       | number
       | boolean
       | null;
+    /**
+     * Fraud check results
+     */
     fraudCheck?:
       | {
           [k: string]: unknown;
@@ -237,6 +407,9 @@ export interface Conversation {
       | boolean
       | null;
   };
+  /**
+   * Agent notes and updates
+   */
   noticeboard?:
     | {
         agentName: string;
@@ -252,9 +425,75 @@ export interface Conversation {
         id?: string | null;
       }[]
     | null;
-  finalDecision?: ('APPROVED' | 'DECLINED') | null;
+  conversations?: (string | Conversation)[] | null;
   version?: number | null;
   updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conversations".
+ */
+export interface Conversation {
+  id: string;
+  conversationId: string;
+  applicationNumber: string;
+  customerId: string | Customer;
+  applicationId: string | Application;
+  status?: ('active' | 'paused' | 'soft_end' | 'hard_end' | 'approved' | 'declined') | null;
+  startedAt: string;
+  updatedAt: string;
+  utterances?:
+    | {
+        /**
+         * Usually "customer" or "assistant"
+         */
+        username?: string | null;
+        utterance: string;
+        /**
+         * Internal reasoning for assistant responses
+         */
+        rationale?: string | null;
+        createdAt: string;
+        updatedAt?: string | null;
+        /**
+         * Frontend input type hint (e.g. address, email)
+         */
+        answerInputType?: string | null;
+        /**
+         * Previous sequence number in conversation
+         */
+        prevSeq?: number | null;
+        endConversation?: boolean | null;
+        /**
+         * Additional data for frontend enrichment
+         */
+        additionalData?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Conversation purpose from summary
+   */
+  purpose?: string | null;
+  /**
+   * Key facts from conversation summary
+   */
+  facts?:
+    | {
+        fact?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  version?: number | null;
   createdAt: string;
 }
 /**
@@ -279,6 +518,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'conversations';
         value: string | Conversation;
+      } | null)
+    | ({
+        relationTo: 'applications';
+        value: string | Application;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -372,10 +615,15 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface CustomersSelect<T extends boolean = true> {
   customerId?: T;
+  title?: T;
+  preferredName?: T;
+  firstName?: T;
+  middleName?: T;
+  lastName?: T;
   fullName?: T;
-  email?: T;
+  emailAddress?: T;
+  mobilePhoneNumber?: T;
   dateOfBirth?: T;
-  phone?: T;
   residentialAddress?:
     | T
     | {
@@ -383,8 +631,37 @@ export interface CustomersSelect<T extends boolean = true> {
         city?: T;
         state?: T;
         postcode?: T;
+        country?: T;
+      };
+  mailingAddress?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        state?: T;
+        postcode?: T;
+        country?: T;
+      };
+  staffFlag?: T;
+  investorFlag?: T;
+  founderFlag?: T;
+  ekycEntityId?: T;
+  ekycStatus?: T;
+  individualStatus?: T;
+  identityDocuments?:
+    | T
+    | {
+        documentType?: T;
+        documentSubtype?: T;
+        documentNumber?: T;
+        expiryDate?: T;
+        stateOfIssue?: T;
+        countryOfIssue?: T;
+        additionalInfo?: T;
+        id?: T;
       };
   applications?: T;
+  conversations?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -393,19 +670,105 @@ export interface CustomersSelect<T extends boolean = true> {
  * via the `definition` "conversations_select".
  */
 export interface ConversationsSelect<T extends boolean = true> {
-  applicationNumber?: T;
   conversationId?: T;
+  applicationNumber?: T;
   customerId?: T;
+  applicationId?: T;
   status?: T;
-  startTime?: T;
-  lastUtteranceTime?: T;
-  messages?:
+  startedAt?: T;
+  updatedAt?: T;
+  utterances?:
     | T
     | {
-        sender?: T;
+        username?: T;
         utterance?: T;
-        timestamp?: T;
+        rationale?: T;
+        createdAt?: T;
+        updatedAt?: T;
+        answerInputType?: T;
+        prevSeq?: T;
+        endConversation?: T;
+        additionalData?: T;
         id?: T;
+      };
+  purpose?: T;
+  facts?:
+    | T
+    | {
+        fact?: T;
+        id?: T;
+      };
+  version?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "applications_select".
+ */
+export interface ApplicationsSelect<T extends boolean = true> {
+  applicationNumber?: T;
+  customerId?: T;
+  loanPurpose?: T;
+  loanAmount?: T;
+  loanFee?: T;
+  loanTotalPayable?: T;
+  loanTerm?: T;
+  customerAttestationAcceptance?: T;
+  statementCaptureConsentProvided?: T;
+  statementCaptureCompleted?: T;
+  productOfferAcceptance?: T;
+  applicationOutcome?: T;
+  applicationProcess?:
+    | T
+    | {
+        currentProcessStage?: T;
+        currentProcessStep?: T;
+        startedAt?: T;
+        updatedAt?: T;
+        applicationProcessState?:
+          | T
+          | {
+              stageName?: T;
+              complete?: T;
+              prompt?: T;
+              steps?:
+                | T
+                | {
+                    stepName?: T;
+                    description?: T;
+                    complete?: T;
+                    type?: T;
+                    completionEventName?: T;
+                    answerInputType?: T;
+                    prompts?:
+                      | T
+                      | {
+                          main?: T;
+                          completenessCheck?: T;
+                          confirmation?: T;
+                          outputJson?: T;
+                          mappingOut?: T;
+                        };
+                    businessLogic?:
+                      | T
+                      | {
+                          moduleName?: T;
+                          methodName?: T;
+                          mappingIn?: T;
+                          mappingOut?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+            };
+        conversation?:
+          | T
+          | {
+              role?: T;
+              content?: T;
+              timestamp?: T;
+              id?: T;
+            };
       };
   assessments?:
     | T
@@ -429,7 +792,7 @@ export interface ConversationsSelect<T extends boolean = true> {
             };
         id?: T;
       };
-  finalDecision?: T;
+  conversations?: T;
   version?: T;
   updatedAt?: T;
   createdAt?: T;

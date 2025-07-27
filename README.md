@@ -19,6 +19,8 @@ This application implements an **Event Sourcing with Projections** pattern:
 - ✅ Comprehensive unit testing
 - ✅ MongoDB persistence layer
 - ✅ Role-based access control
+- ✅ Complete Payload CMS collections (Applications, Customers, Conversations)
+- ✅ Event-driven data model with read-only projections
 
 ## Quick start
 
@@ -78,6 +80,20 @@ pnpm worker
 
 This starts the background worker that consumes events from the `chatLedger` Redis stream and updates the Payload collections in real-time.
 
+### Payload Collections
+
+The system includes comprehensive Payload CMS collections designed for event sourcing:
+
+#### Admin Panel Access
+
+Visit `http://localhost:3000/admin` to access the supervisor dashboard with:
+- **Applications**: View loan applications with complete process tracking
+- **Customers**: Comprehensive customer profiles with identity verification
+- **Conversations**: Real-time chat monitoring with utterances and summaries
+- **Users**: User management with supervisor/admin roles
+
+All collection data is **read-only** in the admin panel and updated exclusively through Redis stream events.
+
 ### Testing
 
 The project includes comprehensive unit tests for all core functionality:
@@ -105,9 +121,13 @@ This runs both unit tests and integration tests.
 #### Test Structure
 
 - `tests/unit/` - Unit tests with mocked dependencies
+  - `redis-client.test.ts` - Redis stream client functionality
+  - `collections.test.ts` - Payload CMS collections configuration
 - `tests/int/` - Integration tests against real services
 - `tests/e2e/` - End-to-end tests using Playwright
 - `tests/utils/` - Shared test utilities and mocks
+  - `mocks/redis-mock.ts` - Mock Redis client for testing
+  - `test-helpers.ts` - Common test utilities and helpers
 
 #### Docker (Optional)
 
@@ -136,16 +156,16 @@ All business events are stored in Redis streams as the single source of truth:
 Optimized for supervisor monitoring and admin operations:
 
 - #### Users (Authentication)
-  Enhanced with supervisor roles and access control for the admin panel.
-
-- #### Conversations
-  Real-time conversation monitoring with full chat transcripts, status tracking, and assessment data.
-
-- #### Customers  
-  Comprehensive customer profiles with identity documents, addresses, and application history.
+  Enhanced with supervisor and admin roles for access control to the admin panel.
 
 - #### Applications
-  Complete application lifecycle tracking with risk assessments, noticeboard notes, and decision outcomes.
+  **NEW**: Complete application lifecycle tracking with loan details, application process state, risk assessments, and noticeboard notes. All fields are read-only and populated via events from the `applicationDetail_changed` stream.
+
+- #### Customers  
+  **ENHANCED**: Comprehensive customer profiles with identity documents, residential/mailing addresses, eKYC status, and application history. Features automatic full name generation and complete mapping from the customer.py model.
+
+- #### Conversations
+  **ENHANCED**: Real-time conversation monitoring with utterances array (not messages), conversation summaries, and proper relationships to applications and customers. Maps from chat.py models for user_input and assistant_response events.
 
 - #### Media
   Standard uploads collection for document storage and avatars.

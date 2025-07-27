@@ -149,6 +149,23 @@ export const eventToStreamFields = (event: any): string[] => {
 }
 
 /**
+ * Creates a mock Payload request object for testing access control
+ */
+export const createMockPayloadRequest = (user: { role?: string; id?: string } = {}) => {
+  return {
+    req: {
+      user: {
+        role: user.role || 'user',
+        id: user.id || 'test-user-id',
+        email: 'test@example.com',
+        ...user
+      }
+    },
+    id: user.id || 'test-user-id'
+  }
+}
+
+/**
  * Environment variable mocking utilities
  */
 export const mockEnvVars = (vars: Record<string, string>) => {
