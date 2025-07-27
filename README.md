@@ -1,28 +1,113 @@
-# Payload Blank Template
+# Billie Realtime Supervisor Dashboard
 
-This template comes configured with the bare minimum to get started on anything you need.
+This project implements an event-sourcing architecture with Payload CMS for the Billie Realtime Supervisor Dashboard. It includes Redis streams for event processing and real-time updates for monitoring customer conversations and applications.
+
+## Architecture Overview
+
+This application implements an **Event Sourcing with Projections** pattern:
+
+- **Event Store**: Redis streams serve as the single source of truth for all business events
+- **Supervisor Dashboard Projection**: Payload CMS collections optimized for admin interface
+- **Customer Portal Projection**: Optimized API for fast customer queries (future)
+- **Event Processing Workers**: Resilient processors ensuring cross-projection consistency
+
+### Key Features
+
+- ✅ Redis streams for event sourcing
+- ✅ Real-time supervisor dashboard
+- ✅ Event-driven data updates
+- ✅ Comprehensive unit testing
+- ✅ MongoDB persistence layer
+- ✅ Role-based access control
 
 ## Quick start
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+This project can be deployed with MongoDB and Redis for complete event sourcing functionality.
 
 ## Quick Start - local setup
 
-To spin up this template locally, follow these steps:
+To spin up this project locally, follow these steps:
+
+### Prerequisites
+
+- Node.js 18+ and pnpm
+- MongoDB instance running
+- Redis instance running
 
 ### Clone
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+Clone this repository to your local machine.
 
 ### Development
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URI` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+1. **Install dependencies**:
+   ```bash
+   pnpm install
+   ```
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+2. **Set up environment variables**:
+   Ensure your `.env.local` file includes:
+   ```env
+   PAYLOAD_SECRET=your-secret-key
+   DATABASE_URI=mongodb://localhost:27017/billie-crm
+   REDIS_URL=redis://localhost:6383
+   ENABLE_EVENT_PROCESSING=true
+   WORKER_ID=1
+   ```
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+3. **Test Redis connection**:
+   ```bash
+   pnpm exec tsx src/server/test-redis-connection.ts
+   ```
+
+4. **Start the development server**:
+   ```bash
+   pnpm dev
+   ```
+
+5. **Open the application**:
+   Navigate to `http://localhost:3000` to access the admin panel.
+
+### Event Processing
+
+To enable event processing from Redis streams:
+
+```bash
+pnpm worker
+```
+
+This starts the background worker that consumes events from the `chatLedger` Redis stream and updates the Payload collections in real-time.
+
+### Testing
+
+The project includes comprehensive unit tests for all core functionality:
+
+#### Run Unit Tests
+
+```bash
+cd tests && ./run_unit_tests.sh
+```
+
+Or manually:
+
+```bash
+pnpm exec vitest run tests/unit --config ./vitest.config.mts
+```
+
+#### Run All Tests
+
+```bash
+pnpm test
+```
+
+This runs both unit tests and integration tests.
+
+#### Test Structure
+
+- `tests/unit/` - Unit tests with mocked dependencies
+- `tests/int/` - Integration tests against real services
+- `tests/e2e/` - End-to-end tests using Playwright
+- `tests/utils/` - Shared test utilities and mocks
 
 #### Docker (Optional)
 
@@ -36,21 +121,45 @@ To do so, follow these steps:
 
 ## How it works
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+The system is built on an **Event Sourcing** architecture with multiple projections optimized for different use cases.
 
-### Collections
+### Event Store (Redis Streams)
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+All business events are stored in Redis streams as the single source of truth:
+
+- **Stream**: `chatLedger` contains all conversation and application events
+- **Consumer Groups**: Enable scalable, fault-tolerant event processing
+- **Event Types**: `conversation_started`, `user_input`, `assistant_response`, `applicationDetail_changed`, etc.
+
+### Payload Collections (Supervisor Dashboard Projection)
+
+Optimized for supervisor monitoring and admin operations:
 
 - #### Users (Authentication)
+  Enhanced with supervisor roles and access control for the admin panel.
 
-  Users are auth-enabled collections that have access to the admin panel.
+- #### Conversations
+  Real-time conversation monitoring with full chat transcripts, status tracking, and assessment data.
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/main/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+- #### Customers  
+  Comprehensive customer profiles with identity documents, addresses, and application history.
+
+- #### Applications
+  Complete application lifecycle tracking with risk assessments, noticeboard notes, and decision outcomes.
 
 - #### Media
+  Standard uploads collection for document storage and avatars.
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+### Event Processing
+
+The `RedisStreamClient` provides robust stream operations:
+
+- Consumer group management
+- Event publishing and consumption  
+- Pending message recovery
+- Stream monitoring and health checks
+
+See the [Implementation Plan](Requirements/IMPLEMENTATION_PLAN.md) for detailed architecture documentation.
 
 ### Docker
 

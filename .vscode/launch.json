@@ -34,7 +34,7 @@
         "name": "Debug Worker",
         "type": "node",
         "request": "launch",
-        "args": ["scripts/worker.ts"],
+        "args": ["src/server/worker.ts"],
         "runtimeArgs": ["--import", "tsx"],
         "cwd": "${workspaceFolder}",
         "console": "integratedTerminal"

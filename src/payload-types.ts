@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    customers: Customer;
+    conversations: Conversation;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -77,6 +79,8 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
+    conversations: ConversationsSelect<false> | ConversationsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -119,6 +123,10 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  role: 'admin' | 'supervisor';
+  firstName: string;
+  lastName: string;
+  avatar?: (string | null) | Media;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -158,6 +166,99 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: string;
+  customerId: string;
+  fullName: string;
+  email?: string | null;
+  dateOfBirth?: string | null;
+  phone?: string | null;
+  residentialAddress?: {
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postcode?: string | null;
+  };
+  applications?: (string | Conversation)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conversations".
+ */
+export interface Conversation {
+  id: string;
+  applicationNumber: string;
+  /**
+   * Unique identifier from the chat system
+   */
+  conversationId?: string | null;
+  customerId?: (string | null) | Customer;
+  status?: ('active' | 'paused' | 'soft_end' | 'hard_end' | 'approved' | 'declined') | null;
+  startTime?: string | null;
+  lastUtteranceTime?: string | null;
+  messages?:
+    | {
+        sender: 'customer' | 'assistant';
+        utterance: string;
+        timestamp: string;
+        id?: string | null;
+      }[]
+    | null;
+  assessments?: {
+    identityRisk?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    serviceability?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    fraudCheck?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  noticeboard?:
+    | {
+        agentName: string;
+        content: string;
+        timestamp: string;
+        versions?:
+          | {
+              content?: string | null;
+              timestamp?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  finalDecision?: ('APPROVED' | 'DECLINED') | null;
+  version?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -170,6 +271,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: string | Customer;
+      } | null)
+    | ({
+        relationTo: 'conversations';
+        value: string | Conversation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -218,6 +327,10 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
+  firstName?: T;
+  lastName?: T;
+  avatar?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -252,6 +365,74 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  customerId?: T;
+  fullName?: T;
+  email?: T;
+  dateOfBirth?: T;
+  phone?: T;
+  residentialAddress?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        state?: T;
+        postcode?: T;
+      };
+  applications?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "conversations_select".
+ */
+export interface ConversationsSelect<T extends boolean = true> {
+  applicationNumber?: T;
+  conversationId?: T;
+  customerId?: T;
+  status?: T;
+  startTime?: T;
+  lastUtteranceTime?: T;
+  messages?:
+    | T
+    | {
+        sender?: T;
+        utterance?: T;
+        timestamp?: T;
+        id?: T;
+      };
+  assessments?:
+    | T
+    | {
+        identityRisk?: T;
+        serviceability?: T;
+        fraudCheck?: T;
+      };
+  noticeboard?:
+    | T
+    | {
+        agentName?: T;
+        content?: T;
+        timestamp?: T;
+        versions?:
+          | T
+          | {
+              content?: T;
+              timestamp?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  finalDecision?: T;
+  version?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
