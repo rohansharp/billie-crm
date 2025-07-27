@@ -1,5 +1,4 @@
-import type { CollectionConfig, Access, CollectionAfterChangeHook } from 'payload'
-import { User, Conversation } from '../payload-types'
+import type { CollectionConfig, Access } from 'payload'
 
 const supervisorOrAdmin: Access = ({ req: { user } }) => {
   if (user?.role === 'admin') {
@@ -8,19 +7,13 @@ const supervisorOrAdmin: Access = ({ req: { user } }) => {
   return user?.role === 'supervisor'
 }
 
-const triggerRealTimeUpdateHook: CollectionAfterChangeHook = async ({
-  doc,
-  operation,
-}) => {
-  // Trigger real-time updates to connected clients
-  // await triggerRealTimeUpdate('conversation', doc);
-}
+
 
 export const Conversations: CollectionConfig = {
   slug: 'conversations',
   admin: {
     useAsTitle: 'applicationNumber',
-    defaultColumns: ['applicationNumber', 'conversationId', 'status', 'startTime'],
+    defaultColumns: ['applicationNumber', 'customerId', 'status', 'startedAt'],
     group: 'Supervisor Dashboard',
   },
   access: {
@@ -31,50 +24,84 @@ export const Conversations: CollectionConfig = {
   },
   fields: [
     {
-      name: 'applicationNumber',
+      name: 'conversationId',
       type: 'text',
       required: true,
       unique: true,
+      admin: {
+        readOnly: true,
+      },
     },
     {
-      name: 'conversationId',
+      name: 'applicationNumber',
       type: 'text',
-      required: false,
-      unique: true,
+      required: true,
+      index: true,
       admin: {
-        description: 'Unique identifier from the chat system',
+        readOnly: true,
       },
     },
     {
       name: 'customerId',
       type: 'relationship',
       relationTo: 'customers',
-      required: false, // Allow null initially, will be populated when customer data is available
+      required: true,
+      admin: {
+        readOnly: true,
+      },
+    },
+    {
+      name: 'applicationId',
+      type: 'relationship',
+      relationTo: 'applications',
+      required: true,
+      admin: {
+        readOnly: true,
+      },
     },
     {
       name: 'status',
       type: 'select',
-      options: ['active', 'paused', 'soft_end', 'hard_end', 'approved', 'declined'],
+      options: [
+        { label: 'Active', value: 'active' },
+        { label: 'Paused', value: 'paused' },
+        { label: 'Soft End', value: 'soft_end' },
+        { label: 'Hard End', value: 'hard_end' },
+        { label: 'Approved', value: 'approved' },
+        { label: 'Declined', value: 'declined' },
+      ],
       defaultValue: 'active',
+      index: true,
     },
     {
-      name: 'startTime',
+      name: 'startedAt',
       type: 'date',
-      required: false, // Allow null initially, will be set when conversation starts
+      required: true,
+      admin: {
+        readOnly: true,
+      },
     },
     {
-      name: 'lastUtteranceTime',
+      name: 'updatedAt',
       type: 'date',
+      admin: {
+        readOnly: true,
+      },
     },
     {
-      name: 'messages',
+      name: 'utterances',
       type: 'array',
+      label: 'Conversation Messages',
+      admin: {
+        readOnly: true,
+      },
       fields: [
         {
-          name: 'sender',
-          type: 'select',
-          options: ['customer', 'assistant'],
-          required: true,
+          name: 'username',
+          type: 'text',
+          admin: {
+            description: 'Usually "customer" or "assistant"',
+          },
         },
         {
           name: 'utterance',
@@ -82,77 +109,79 @@ export const Conversations: CollectionConfig = {
           required: true,
         },
         {
-          name: 'timestamp',
-          type: 'date',
-          required: true,
-        },
-      ],
-    },
-    {
-      name: 'assessments',
-      type: 'group',
-      fields: [
-        {
-          name: 'identityRisk',
-          type: 'json',
-        },
-        {
-          name: 'serviceability',
-          type: 'json',
-        },
-        {
-          name: 'fraudCheck',
-          type: 'json',
-        },
-      ],
-    },
-    {
-      name: 'noticeboard',
-      type: 'array',
-      fields: [
-        {
-          name: 'agentName',
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'content',
+          name: 'rationale',
           type: 'textarea',
-          required: true,
+          admin: {
+            description: 'Internal reasoning for assistant responses',
+          },
         },
         {
-          name: 'timestamp',
+          name: 'createdAt',
           type: 'date',
           required: true,
         },
         {
-          name: 'versions',
-          type: 'array',
-          fields: [
-            {
-              name: 'content',
-              type: 'textarea',
-            },
-            {
-              name: 'timestamp',
-              type: 'date',
-            },
-          ],
+          name: 'updatedAt',
+          type: 'date',
+        },
+        {
+          name: 'answerInputType',
+          type: 'text',
+          admin: {
+            description: 'Frontend input type hint (e.g. address, email)',
+          },
+        },
+        {
+          name: 'prevSeq',
+          type: 'number',
+          admin: {
+            description: 'Previous sequence number in conversation',
+          },
+        },
+        {
+          name: 'endConversation',
+          type: 'checkbox',
+          defaultValue: false,
+        },
+        {
+          name: 'additionalData',
+          type: 'json',
+          admin: {
+            description: 'Additional data for frontend enrichment',
+          },
         },
       ],
     },
     {
-      name: 'finalDecision',
-      type: 'select',
-      options: ['APPROVED', 'DECLINED'],
+      name: 'purpose',
+      type: 'text',
+      admin: {
+        description: 'Conversation purpose from summary',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'facts',
+      type: 'array',
+      admin: {
+        description: 'Key facts from conversation summary',
+        readOnly: true,
+      },
+      fields: [
+        {
+          name: 'fact',
+          type: 'text',
+        },
+      ],
     },
     {
       name: 'version',
       type: 'number',
       defaultValue: 1,
+      admin: {
+        readOnly: true,
+      },
     },
   ],
-  hooks: {
-    afterChange: [triggerRealTimeUpdateHook],
-  },
+
 } 

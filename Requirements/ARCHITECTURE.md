@@ -292,7 +292,7 @@ export const Conversations: CollectionConfig = {
     },
     {
       name: 'purpose',
-      type: 'text',
+          type: 'text',
       admin: {
         description: 'Conversation purpose from summary',
         readOnly: true,
@@ -300,13 +300,13 @@ export const Conversations: CollectionConfig = {
     },
     {
       name: 'facts',
-      type: 'array',
+          type: 'array',
       admin: {
         description: 'Key facts from conversation summary',
         readOnly: true,
       },
-      fields: [
-        {
+          fields: [
+            {
           name: 'fact',
           type: 'text',
         },
@@ -450,9 +450,9 @@ export const Customers: CollectionConfig = {
       fields: [
         {
           name: 'street',
-          type: 'text',
-        },
-        {
+      type: 'text',
+    },
+    {
           name: 'city',
           type: 'text',
         },
@@ -1427,30 +1427,30 @@ const processBrokerEvent = async (payload: Payload, event: ChatLedgerEvent, mess
   console.log(`Processing event: ${event.typ} for conversation: ${event.cid}`);
   
   try {
-    switch (event.typ) {
-      case 'conversation_started':
-        await handleConversationStarted(payload, event);
-        break;
-      case 'user_input':
+  switch (event.typ) {
+    case 'conversation_started':
+      await handleConversationStarted(payload, event);
+      break;
+    case 'user_input':
         await handleUserInput(payload, event);
         break;
-      case 'assistant_response':
+    case 'assistant_response':
         await handleAssistantResponse(payload, event);
-        break;
-      case 'applicationDetail_changed':
-        await handleApplicationDetailChanged(payload, event);
-        break;
-      case 'identityRisk_assessment':
-      case 'serviceability_assessment_results':
+      break;
+    case 'applicationDetail_changed':
+      await handleApplicationDetailChanged(payload, event);
+      break;
+    case 'identityRisk_assessment':
+    case 'serviceability_assessment_results':
       case 'fraudCheck_results':
-        await handleAssessmentEvent(payload, event);
-        break;
-      case 'noticeboard_updated':
-        await handleNoticeboardUpdate(payload, event);
-        break;
-      case 'final_decision':
-        await handleFinalDecision(payload, event);
-        break;
+      await handleAssessmentEvent(payload, event);
+      break;
+    case 'noticeboard_updated':
+      await handleNoticeboardUpdate(payload, event);
+      break;
+    case 'final_decision':
+      await handleFinalDecision(payload, event);
+      break;
       case 'conversation_summary':
         await handleConversationSummary(payload, event);
         break;
