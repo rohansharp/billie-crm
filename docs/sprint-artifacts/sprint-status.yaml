@@ -41,7 +41,7 @@ story_location: docs/sprint-artifacts
 development_status:
   # Epic 1: Global Search & Foundation
   epic-1: in-progress
-  1-1-technical-foundation-setup: ready-for-dev
+  1-1-technical-foundation-setup: done
   1-2-command-palette-ui-component: backlog
   1-3-customer-search-api-results: backlog
   1-4-loan-account-transaction-search: backlog

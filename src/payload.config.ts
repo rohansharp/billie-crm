@@ -23,6 +23,9 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      providers: ['@/providers'],
+    },
   },
   collections: [Users, Media, Customers, Conversations, Applications, LoanAccounts],
   editor: lexicalEditor(),

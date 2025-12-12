@@ -134,7 +134,7 @@ export const WriteOffModal: React.FC<WriteOffModalProps> = ({
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>
-                    Type "WRITE OFF" to confirm *
+                    Type &quot;WRITE OFF&quot; to confirm *
                   </label>
                   <input
                     type="text"

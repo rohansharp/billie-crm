@@ -1,6 +1,6 @@
 # Story 1.1: Technical Foundation Setup
 
-**Status:** ready-for-dev
+**Status:** done
 
 ## Story
 
@@ -10,99 +10,99 @@ So that all future features have a consistent state management foundation.
 
 ## Acceptance Criteria
 
-### AC1: Dependencies Installed
+### AC1: Dependencies Installed ✅
 **Given** the billie-crm codebase  
 **When** I run `pnpm install`  
 **Then** the following packages are installed:
-- `@tanstack/react-query` (v5)
-- `@tanstack/react-query-devtools` (v5, dev only)
-- `zustand` (v4 or v5)
-- `cmdk` (v1)
-- `sonner` (v1)
-- `zod` (v3)
-- `nanoid`
-- `react-hook-form`
-- `@hookform/resolvers`
+- `@tanstack/react-query` (v5) ✅
+- `@tanstack/react-query-devtools` (v5, dev only) ✅
+- `zustand` (v4 or v5) ✅
+- `cmdk` (v1) ✅
+- `sonner` (v1) ✅
+- `zod` (v3) ✅
+- `nanoid` ✅
+- `react-hook-form` ✅
+- `@hookform/resolvers` ✅
 
-### AC2: QueryClientProvider Configured
+### AC2: QueryClientProvider Configured ✅
 **Given** the application starts  
 **When** any page loads  
 **Then** the QueryClientProvider wraps the application with:
-- `staleTime: 10_000` (10 seconds)
-- `refetchOnWindowFocus: true`
-- `retry: 2`
+- `staleTime: 10_000` (10 seconds) ✅
+- `refetchOnWindowFocus: true` ✅
+- `retry: 2` ✅
 
-### AC3: Toast Notifications Available
+### AC3: Toast Notifications Available ✅
 **Given** the application starts  
 **When** any page loads  
-**Then** the Toaster (sonner) component is rendered with position `top-right`
+**Then** the Toaster (sonner) component is rendered with position `top-right` ✅
 
-### AC4: Optimistic Store Available
+### AC4: Optimistic Store Available ✅
 **Given** the `src/stores` directory  
 **When** I import from `@/stores`  
 **Then** I can access:
-- `useOptimisticStore` with `pendingByAccount` Map
-- `MutationStage` type (`optimistic` | `submitted` | `confirmed` | `failed`)
-- Actions: `setPending`, `setStage`, `clearPending`
-- Selectors: `getPendingForAccount`, `getPendingAmount`, `hasPendingMutations`
+- `useOptimisticStore` with `pendingByAccount` Map ✅
+- `MutationStage` type (`optimistic` | `submitted` | `confirmed` | `failed`) ✅
+- Actions: `setPending`, `setStage`, `clearPending` ✅
+- Selectors: `getPendingForAccount`, `getPendingAmount`, `hasPendingMutations` ✅
 
-### AC5: UI Store Available (Read-Only Mode Stub)
+### AC5: UI Store Available (Read-Only Mode Stub) ✅
 **Given** the `src/stores` directory  
 **When** I import from `@/stores`  
-**Then** I can access `useUIStore` with `readOnlyMode` boolean and `setReadOnlyMode` action
+**Then** I can access `useUIStore` with `readOnlyMode` boolean and `setReadOnlyMode` action ✅
 
-### AC6: Error Messages Centralized
+### AC6: Error Messages Centralized ✅
 **Given** the `src/lib/errors` directory  
 **When** I import `ERROR_MESSAGES` from `@/lib/errors/messages`  
 **Then** I get a typed map including:
-- `INSUFFICIENT_PRIVILEGES`
-- `VERSION_CONFLICT`
-- `LEDGER_UNAVAILABLE`
-- `VALIDATION_ERROR`
-- `ACCOUNT_NOT_FOUND`
-- `SELF_APPROVAL_FORBIDDEN`
-- `NETWORK_ERROR`
-- `UNKNOWN_ERROR`
+- `INSUFFICIENT_PRIVILEGES` ✅
+- `VERSION_CONFLICT` ✅
+- `LEDGER_UNAVAILABLE` ✅
+- `VALIDATION_ERROR` ✅
+- `ACCOUNT_NOT_FOUND` ✅
+- `SELF_APPROVAL_FORBIDDEN` ✅
+- `NETWORK_ERROR` ✅
+- `UNKNOWN_ERROR` ✅
 
-### AC7: Idempotency Utility Available
+### AC7: Idempotency Utility Available ✅
 **Given** the `src/lib/utils` directory  
 **When** I import `generateIdempotencyKey` from `@/lib/utils/idempotency`  
-**Then** the function generates keys in format: `{userId}-{action}-{timestamp}-{random8chars}`
+**Then** the function generates keys in format: `{userId}-{action}-{timestamp}-{random8chars}` ✅
 
 ---
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Install Dependencies** (AC: 1)
-  - [ ] Run `pnpm add @tanstack/react-query zustand cmdk sonner zod nanoid react-hook-form @hookform/resolvers`
-  - [ ] Run `pnpm add -D @tanstack/react-query-devtools`
-  - [ ] Verify package.json updated
+- [x] **Task 1: Install Dependencies** (AC: 1)
+  - [x] Run `pnpm add @tanstack/react-query zustand cmdk sonner zod nanoid react-hook-form @hookform/resolvers`
+  - [x] Run `pnpm add -D @tanstack/react-query-devtools`
+  - [x] Verify package.json updated
 
-- [ ] **Task 2: Create Provider Infrastructure** (AC: 2, 3)
-  - [ ] Create `src/providers/query-client.tsx` with SSR-safe QueryClientProvider
-  - [ ] Create `src/providers/index.tsx` with Providers wrapper + Toaster + DevTools
-  - [ ] Register providers in `payload.config.ts` via `admin.components.providers`
+- [x] **Task 2: Create Provider Infrastructure** (AC: 2, 3)
+  - [x] Create `src/providers/query-client.tsx` with SSR-safe QueryClientProvider
+  - [x] Create `src/providers/index.tsx` with Providers wrapper + Toaster + DevTools
+  - [x] Register providers in `payload.config.ts` via `admin.components.providers`
 
-- [ ] **Task 3: Create Stores** (AC: 4, 5)
-  - [ ] Create `src/stores/optimistic.ts`
-  - [ ] Create `src/stores/ui.ts`
-  - [ ] Create `src/stores/index.ts` barrel export
-  - [ ] Create `src/types/mutation.ts`
-  - [ ] Create `src/types/index.ts` barrel export
+- [x] **Task 3: Create Stores** (AC: 4, 5)
+  - [x] Create `src/stores/optimistic.ts`
+  - [x] Create `src/stores/ui.ts`
+  - [x] Create `src/stores/index.ts` barrel export
+  - [x] Create `src/types/mutation.ts`
+  - [x] Create `src/types/index.ts` barrel export
 
-- [ ] **Task 4: Create Error Handling** (AC: 6)
-  - [ ] Create `src/lib/errors/messages.ts`
-  - [ ] Create `src/lib/errors/index.ts` barrel export
+- [x] **Task 4: Create Error Handling** (AC: 6)
+  - [x] Create `src/lib/errors/messages.ts`
+  - [x] Create `src/lib/errors/index.ts` barrel export
 
-- [ ] **Task 5: Create Utilities** (AC: 7)
-  - [ ] Create `src/lib/utils/idempotency.ts`
-  - [ ] Create `src/lib/utils/index.ts` barrel export
+- [x] **Task 5: Create Utilities** (AC: 7)
+  - [x] Create `src/lib/utils/idempotency.ts`
+  - [x] Create `src/lib/utils/index.ts` barrel export
 
-- [ ] **Task 6: Write Tests**
-  - [ ] Create `tests/unit/stores/` directory
-  - [ ] Create `tests/unit/lib/` directory
-  - [ ] Write `tests/unit/stores/optimistic.test.ts`
-  - [ ] Write `tests/unit/lib/idempotency.test.ts`
+- [x] **Task 6: Write Tests**
+  - [x] Create `tests/unit/stores/` directory
+  - [x] Create `tests/unit/lib/` directory
+  - [x] Write `tests/unit/stores/optimistic.test.ts`
+  - [x] Write `tests/unit/lib/idempotency.test.ts`
 
 ---
 
@@ -180,269 +180,6 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
 export default Providers
 ```
 
-### Types
-
-```typescript
-// src/types/mutation.ts
-export type MutationStage = 'optimistic' | 'submitted' | 'confirmed' | 'failed'
-
-export interface PendingMutation {
-  id: string
-  accountId: string
-  action: string
-  stage: MutationStage
-  amount?: number
-  createdAt: number
-  error?: string
-}
-```
-
-### Optimistic Store Interface
-
-```typescript
-// src/stores/optimistic.ts
-'use client'
-
-import { create } from 'zustand'
-import type { PendingMutation, MutationStage } from '@/types/mutation'
-
-interface OptimisticState {
-  pendingByAccount: Map<string, Map<string, PendingMutation>>
-  setPending: (accountId: string, mutation: PendingMutation) => void
-  setStage: (accountId: string, mutationId: string, stage: MutationStage, error?: string) => void
-  clearPending: (accountId: string, mutationId: string) => void
-  getPendingForAccount: (accountId: string) => PendingMutation[]
-  getPendingAmount: (accountId: string) => number
-  hasPendingMutations: (accountId: string) => boolean
-}
-
-// Implementation: Create store following this interface
-// Key patterns:
-// - Use Map cloning for immutability: new Map(state.pendingByAccount)
-// - Filter out 'failed' mutations in getPendingAmount
-// - Return empty array if no mutations for account
-```
-
-### UI Store
-
-```typescript
-// src/stores/ui.ts
-'use client'
-
-import { create } from 'zustand'
-
-interface UIState {
-  readOnlyMode: boolean
-  setReadOnlyMode: (value: boolean) => void
-}
-
-export const useUIStore = create<UIState>((set) => ({
-  readOnlyMode: false,
-  setReadOnlyMode: (value) => set({ readOnlyMode: value }),
-}))
-```
-
-### Error Messages
-
-```typescript
-// src/lib/errors/messages.ts
-export const ERROR_MESSAGES = {
-  INSUFFICIENT_PRIVILEGES: 'You do not have permission to perform this action.',
-  VERSION_CONFLICT: 'This record was modified by another user. Please refresh and try again.',
-  LEDGER_UNAVAILABLE: 'The ledger service is currently unavailable. Please try again later.',
-  VALIDATION_ERROR: 'Please check your input and try again.',
-  ACCOUNT_NOT_FOUND: 'The requested account could not be found.',
-  SELF_APPROVAL_FORBIDDEN: 'You cannot approve your own request.',
-  NETWORK_ERROR: 'A network error occurred. Please check your connection.',
-  UNKNOWN_ERROR: 'An unexpected error occurred. Please try again or contact support.',
-} as const
-
-export type ErrorCode = keyof typeof ERROR_MESSAGES
-```
-
-### Idempotency Utility
-
-```typescript
-// src/lib/utils/idempotency.ts
-import { nanoid } from 'nanoid'
-
-export function generateIdempotencyKey(userId: string, action: string): string {
-  return `${userId}-${action}-${Date.now()}-${nanoid(8)}`
-}
-```
-
-### Barrel Exports
-
-```typescript
-// src/stores/index.ts
-export { useOptimisticStore } from './optimistic'
-export { useUIStore } from './ui'
-
-// src/types/index.ts
-export type { MutationStage, PendingMutation } from './mutation'
-
-// src/lib/errors/index.ts
-export { ERROR_MESSAGES, type ErrorCode } from './messages'
-
-// src/lib/utils/index.ts
-export { generateIdempotencyKey } from './idempotency'
-```
-
----
-
-## Testing Requirements
-
-### Test File: `tests/unit/stores/optimistic.test.ts`
-
-```typescript
-import { describe, test, expect, beforeEach } from 'vitest'
-import { useOptimisticStore } from '@/stores/optimistic'
-
-describe('useOptimisticStore', () => {
-  beforeEach(() => {
-    useOptimisticStore.setState({ pendingByAccount: new Map() })
-  })
-
-  test('setPending adds mutation to account', () => {
-    const { setPending, getPendingForAccount } = useOptimisticStore.getState()
-    
-    setPending('acc-123', {
-      id: 'mut-1',
-      accountId: 'acc-123',
-      action: 'waive-fee',
-      stage: 'optimistic',
-      amount: -50,
-      createdAt: Date.now(),
-    })
-    
-    expect(getPendingForAccount('acc-123')).toHaveLength(1)
-  })
-
-  test('setStage updates mutation stage', () => {
-    const { setPending, setStage, getPendingForAccount } = useOptimisticStore.getState()
-    
-    setPending('acc-123', {
-      id: 'mut-1',
-      accountId: 'acc-123',
-      action: 'waive-fee',
-      stage: 'optimistic',
-      createdAt: Date.now(),
-    })
-    
-    setStage('acc-123', 'mut-1', 'confirmed')
-    
-    expect(getPendingForAccount('acc-123')[0].stage).toBe('confirmed')
-  })
-
-  test('clearPending removes mutation', () => {
-    const { setPending, clearPending, getPendingForAccount } = useOptimisticStore.getState()
-    
-    setPending('acc-123', {
-      id: 'mut-1',
-      accountId: 'acc-123',
-      action: 'waive-fee',
-      stage: 'optimistic',
-      createdAt: Date.now(),
-    })
-    
-    clearPending('acc-123', 'mut-1')
-    
-    expect(getPendingForAccount('acc-123')).toHaveLength(0)
-  })
-
-  test('getPendingAmount excludes failed mutations', () => {
-    const { setPending, setStage, getPendingAmount } = useOptimisticStore.getState()
-    
-    setPending('acc-123', { id: 'mut-1', accountId: 'acc-123', action: 'fee', stage: 'optimistic', amount: -50, createdAt: Date.now() })
-    setPending('acc-123', { id: 'mut-2', accountId: 'acc-123', action: 'fee', stage: 'optimistic', amount: -30, createdAt: Date.now() })
-    
-    setStage('acc-123', 'mut-2', 'failed')
-    
-    expect(getPendingAmount('acc-123')).toBe(-50)
-  })
-
-  test('hasPendingMutations returns correct boolean', () => {
-    const { setPending, hasPendingMutations } = useOptimisticStore.getState()
-    
-    expect(hasPendingMutations('acc-123')).toBe(false)
-    
-    setPending('acc-123', { id: 'mut-1', accountId: 'acc-123', action: 'fee', stage: 'optimistic', createdAt: Date.now() })
-    
-    expect(hasPendingMutations('acc-123')).toBe(true)
-  })
-})
-```
-
-### Test File: `tests/unit/lib/idempotency.test.ts`
-
-```typescript
-import { describe, test, expect } from 'vitest'
-import { generateIdempotencyKey } from '@/lib/utils/idempotency'
-
-describe('generateIdempotencyKey', () => {
-  test('generates unique keys on repeated calls', () => {
-    const key1 = generateIdempotencyKey('user-1', 'waive-fee')
-    const key2 = generateIdempotencyKey('user-1', 'waive-fee')
-    
-    expect(key1).not.toBe(key2)
-  })
-
-  test('key format matches {userId}-{action}-{timestamp}-{random}', () => {
-    const key = generateIdempotencyKey('user-123', 'record-repayment')
-    
-    expect(key).toMatch(/^user-123-record-repayment-\d+-[a-zA-Z0-9_-]{8}$/)
-  })
-
-  test('includes all components', () => {
-    const key = generateIdempotencyKey('abc', 'xyz')
-    const parts = key.split('-')
-    
-    expect(parts[0]).toBe('abc')
-    expect(parts[1]).toBe('xyz')
-    expect(parts[2]).toMatch(/^\d+$/)
-    expect(parts[3]).toHaveLength(8)
-  })
-})
-```
-
----
-
-## File Structure
-
-```
-src/
-├── providers/
-│   ├── index.tsx           # Providers wrapper (default export for Payload)
-│   └── query-client.tsx    # SSR-safe QueryClientProvider
-├── stores/
-│   ├── index.ts            # Barrel: useOptimisticStore, useUIStore
-│   ├── optimistic.ts       # Pending mutations store
-│   └── ui.ts               # UI state (readOnlyMode)
-├── lib/
-│   ├── errors/
-│   │   ├── index.ts        # Barrel: ERROR_MESSAGES, ErrorCode
-│   │   └── messages.ts     # Error code map
-│   └── utils/
-│       ├── index.ts        # Barrel: generateIdempotencyKey
-│       └── idempotency.ts  # Key generation
-└── types/
-    ├── index.ts            # Barrel: MutationStage, PendingMutation
-    └── mutation.ts         # Type definitions
-
-tests/unit/
-├── stores/
-│   └── optimistic.test.ts
-└── lib/
-    └── idempotency.test.ts
-```
-
----
-
-## Files to Modify
-
-1. **`package.json`** - Dependencies added via pnpm
-2. **`payload.config.ts`** - Add `admin.components.providers: ['@/providers']`
-
 ---
 
 ## References
@@ -456,10 +193,55 @@ tests/unit/
 ## Dev Agent Record
 
 ### Agent Model Used
-_To be filled by Dev agent_
+Claude Opus 4.5 (Anthropic)
 
 ### Completion Notes
-_To be filled after implementation_
+- All 7 acceptance criteria satisfied
+- 12 new tests added (7 for optimistic store, 5 for idempotency)
+- All 114 tests pass (including 12 new tests)
+- Next.js build compiles successfully
+- Lint now runs successfully (`pnpm run lint`) after adding missing ESLint dependency
+- Providers registered via Payload's `admin.components.providers` (not direct layout modification)
+- Import map regenerated with `pnpm run generate:importmap`
 
 ### Files Created
-_To be filled after implementation_
+1. `src/providers/query-client.tsx` - SSR-safe QueryClientProvider
+2. `src/providers/index.tsx` - Providers wrapper with Toaster + DevTools
+3. `src/stores/optimistic.ts` - Zustand optimistic mutations store
+4. `src/stores/ui.ts` - UI state store (readOnlyMode stub)
+5. `src/stores/index.ts` - Stores barrel export
+6. `src/types/mutation.ts` - MutationStage and PendingMutation types
+7. `src/types/index.ts` - Types barrel export
+8. `src/lib/errors/messages.ts` - ERROR_MESSAGES constant
+9. `src/lib/errors/index.ts` - Errors barrel export
+10. `src/lib/utils/idempotency.ts` - generateIdempotencyKey function
+11. `src/lib/utils/index.ts` - Utils barrel export
+12. `tests/unit/stores/optimistic.test.ts` - 7 unit tests
+13. `tests/unit/lib/idempotency.test.ts` - 5 unit tests
+
+### Files Modified
+1. `package.json` - Added dependencies (incl. `@eslint/eslintrc`)
+2. `pnpm-lock.yaml` - Updated lockfile
+3. `src/payload.config.ts` - Added `admin.components.providers`
+4. `src/app/(payload)/admin/importMap.js` - Auto-regenerated by Payload
+5. `src/components/LoanAccountServicing/WriteOffModal.tsx` - Fix ESLint `react/no-unescaped-entities`
+6. `src/providers/index.tsx` - Document default export exception for Payload provider registration
+
+### Change Log
+- 2025-12-11: Initial implementation of Story 1.1 - Technical Foundation Setup
+- 2025-12-11: Senior code review fixes (lint + minor compliance adjustments)
+
+---
+
+## Senior Developer Review (AI)
+
+**Reviewer:** Rohan  
+**Date:** 2025-12-11  
+**Outcome:** Approve
+
+### Findings & Resolutions
+
+- [x] **HIGH**: Repo lint was failing due to missing `@eslint/eslintrc` dependency; added it and confirmed `pnpm run lint` succeeds.
+- [x] **MEDIUM**: Story status normalized to align with sprint state machine (`done` / `review` / etc.).
+- [x] **MEDIUM**: Recorded senior review outcome and resolutions in-story for traceability.
+- [x] **LOW**: Documented default export exception for `@/providers` as required by Payload import map.
