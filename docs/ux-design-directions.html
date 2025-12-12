@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billie CRM - Design Directions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --primary: #00A3FF;
+            --primary-foreground: #FFFFFF;
+            --background: #FFFFFF;
+            --foreground: #0F172A;
+            --muted: #F1F5F9;
+            --muted-foreground: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: var(--foreground);
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Payload CMS Admin Shell Simulation */
+        .payload-shell {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .payload-sidebar {
+            background-color: #0F172A; /* Dark Navy like Payload default */
+            color: #94A3B8;
+            padding: 1rem;
+            border-right: 1px solid #1E293B;
+        }
+
+        .payload-sidebar .logo {
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .payload-nav-item {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .payload-nav-item:hover {
+            background-color: #1E293B;
+            color: white;
+        }
+
+        .payload-nav-item.active {
+            background-color: #1E293B;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .payload-main {
+            background-color: #F8FAFC;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Billie Custom View */
+        .command-bar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            background: #F8FAFC;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.1);
+        }
+
+        .kbd-shortcut {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+            background: white;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            border: 1px solid var(--border);
+        }
+
+        .content-area {
+            padding: 1.5rem;
+            overflow-y: auto;
+            height: calc(100vh - 64px);
+        }
+
+        .customer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--foreground);
+        }
+
+        /* High Density Table */
+        .dense-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .dense-table th {
+            text-align: left;
+            padding: 0.5rem 1rem;
+            color: var(--muted-foreground);
+            font-weight: 500;
+            border-bottom: 1px solid var(--border);
+            background: #F8FAFC;
+        }
+
+        .dense-table td {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--foreground);
+            height: 40px; /* Standard Payload is ~50px */
+        }
+
+        .dense-table tr:hover {
+            background-color: #F8FAFC;
+        }
+
+        .dense-table tr:hover .hover-actions {
+            opacity: 1;
+        }
+
+        .hover-actions {
+            opacity: 0;
+            transition: opacity 0.1s;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .status-badge {
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-success { background: #DCFCE7; color: #166534; }
+        .status-warning { background: #FEF3C7; color: #92400E; }
+        .status-error { background: #FEE2E2; color: #991B1B; }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted-foreground);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .btn-ghost:hover {
+            background: var(--muted);
+            color: var(--foreground);
+        }
+
+        /* Toast Simulation */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 50;
+        }
+
+        .toast {
+            background: #1E293B;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.3s ease-out;
+            margin-top: 0.5rem;
+        }
+
+        .undo-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            padding-bottom: 0.75rem;
+            color: var(--muted-foreground);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="payload-shell">
+    <!-- Sidebar (Payload Native) -->
+    <div class="payload-sidebar">
+        <div class="logo">
+            <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center text-xs">B</div>
+            Billie CRM
+        </div>
+        
+        <div class="text-xs font-semibold uppercase tracking-wider mb-2 opacity-50">Collections</div>
+        <div class="payload-nav-item active">
+            <span class="opacity-50">👥</span> Customers
+        </div>
+        <div class="payload-nav-item">
+            <span class="opacity-50">💰</span> Loan Accounts
+        </div>
+        <div class="payload-nav-item">
+            <span class="opacity-50">💬</span> Conversations
+        </div>
+        <div class="payload-nav-item">
+            <span class="opacity-50">📝</span> Applications
+        </div>
+
+        <div class="text-xs font-semibold uppercase tracking-wider mb-2 mt-6 opacity-50">Admin</div>
+        <div class="payload-nav-item">
+            <span class="opacity-50">👤</span> Users
+        </div>
+    </div>
+
+    <!-- Main Content (Custom View) -->
+    <div class="payload-main">
+        <!-- Command Bar -->
+        <div class="command-bar">
+            <div class="flex items-center gap-4">
+                <h2 class="font-semibold text-sm text-slate-500">Customers / CUS-12345</h2>
+            </div>
+            
+            <div class="search-input-wrapper">
+                <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" class="search-input" placeholder="Search customers, accounts, or transactions...">
+                <span class="kbd-shortcut font-mono">⌘K</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium text-slate-600">RS</div>
+            </div>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="content-area">
+            
+            <!-- Customer Header -->
+            <div class="customer-header">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 mb-1">John Smith</h1>
+                    <div class="flex items-center gap-3 text-sm text-slate-500">
+                        <span class="font-mono bg-slate-100 px-1.5 py-0.5 rounded">CUS-12345</span>
+                        <span>•</span>
+                        <span>john.smith@example.com</span>
+                        <span>•</span>
+                        <span>0412 345 678</span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded uppercase tracking-wide">Staff</span>
+                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded uppercase tracking-wide">Investor</span>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active">Overview</div>
+                <div class="tab">Details</div>
+                <div class="tab">Documents</div>
+                <div class="tab">Audit Log</div>
+            </div>
+
+            <div class="dashboard-grid">
+                
+                <!-- Left Column: Key Info & Actions -->
+                <div class="space-y-6">
+                    <!-- Balance Card -->
+                    <div class="card relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                        <h3 class="card-title text-slate-500 mb-4">Total Outstanding</h3>
+                        <div class="text-4xl font-bold text-slate-900 mb-1">$450.00</div>
+                        <div class="text-sm text-slate-500 mb-6">Next payment: $50.00 due tomorrow</div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors">
+                                Pay Now
+                            </button>
+                            <button class="w-full py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-md text-sm font-medium transition-colors">
+                                Actions
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Account Details -->
+                    <div class="card">
+                        <h3 class="card-title mb-4">Account Details</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Status</span>
+                                <span class="status-badge status-success">Active</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Product</span>
+                                <span class="font-medium">Personal Loan</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Opened</span>
+                                <span class="font-medium">Dec 12, 2024</span>
+                            </div>
+                            <div class="flex justify-between border-t pt-3 mt-3">
+                                <span class="text-slate-500">Principal</span>
+                                <span class="font-medium">$2,000.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Paid to date</span>
+                                <span class="font-medium text-green-600">$1,550.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Transactions -->
+                <div class="card h-full min-h-[600px]">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Activity</h3>
+                        <div class="flex gap-2">
+                            <button class="text-xs font-medium text-slate-500 hover:text-slate-900">Filter</button>
+                            <button class="text-xs font-medium text-slate-500 hover:text-slate-900">Export</button>
+                        </div>
+                    </div>
+
+                    <table class="dense-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th class="text-right">Amount</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Row 1 -->
+                            <tr class="group">
+                                <td class="text-slate-500 font-mono text-xs">Today, 9:41 AM</td>
+                                <td>
+                                    <div class="font-medium">Late Fee</div>
+                                    <div class="text-xs text-slate-400">System Applied</div>
+                                </td>
+                                <td><span class="status-badge status-warning">Fee</span></td>
+                                <td class="text-right font-medium text-slate-900">$15.00</td>
+                                <td>
+                                    <div class="hover-actions">
+                                        <button class="btn-ghost text-blue-600 hover:text-blue-700 hover:bg-blue-50" onclick="showToast()">Waive</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Row 2 -->
+                            <tr>
+                                <td class="text-slate-500 font-mono text-xs">Dec 15, 2024</td>
+                                <td>
+                                    <div class="font-medium">Repayment</div>
+                                    <div class="text-xs text-slate-400">Direct Debit •••• 4242</div>
+                                </td>
+                                <td><span class="status-badge status-success">Payment</span></td>
+                                <td class="text-right font-medium text-green-600">-$50.00</td>
+                                <td>
+                                    <div class="hover-actions">
+                                        <button class="btn-ghost">View</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Row 3 -->
+                            <tr>
+                                <td class="text-slate-500 font-mono text-xs">Dec 01, 2024</td>
+                                <td>
+                                    <div class="font-medium">Repayment</div>
+                                    <div class="text-xs text-slate-400">Direct Debit •••• 4242</div>
+                                </td>
+                                <td><span class="status-badge status-success">Payment</span></td>
+                                <td class="text-right font-medium text-green-600">-$50.00</td>
+                                <td>
+                                    <div class="hover-actions">
+                                        <button class="btn-ghost">View</button>
+                                    </div>
+                                </td>
+                            </tr>
+                             <!-- Row 4 -->
+                             <tr>
+                                <td class="text-slate-500 font-mono text-xs">Nov 15, 2024</td>
+                                <td>
+                                    <div class="font-medium">Dishonour Fee</div>
+                                    <div class="text-xs text-slate-400">Failed Direct Debit</div>
+                                </td>
+                                <td><span class="status-badge status-error">Failed</span></td>
+                                <td class="text-right font-medium text-slate-900">$10.00</td>
+                                <td>
+                                    <div class="hover-actions">
+                                        <button class="btn-ghost text-blue-600 hover:text-blue-700 hover:bg-blue-50" onclick="showToast()">Waive</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification (Hidden by default) -->
+    <div id="toast" class="toast-container hidden">
+        <div class="toast">
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <div class="text-sm font-medium">Fee Waived Successfully</div>
+            <button class="undo-btn">Undo</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showToast() {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 4000);
+    }
+</script>
+
+</body>
+</html>

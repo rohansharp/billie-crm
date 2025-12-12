@@ -99,51 +99,22 @@ describe('Payload Collections Configuration', () => {
       expect(mailingField?.admin?.readOnly).toBe(true)
     })
 
-    test('should have fullName generation hook', () => {
+    test('should have fullName field as readOnly text', () => {
       const fields = Customers.fields || []
       const fullNameField = fields.find(f => f.name === 'fullName')
       
-      expect(fullNameField?.hooks?.beforeChange).toBeDefined()
-      expect(fullNameField?.hooks?.beforeChange).toHaveLength(1)
+      // fullName is now set directly by the event processor, no hook needed
+      expect(fullNameField?.type).toBe('text')
+      expect(fullNameField?.admin?.readOnly).toBe(true)
     })
 
-    test('fullName hook should construct name correctly', () => {
+    test('fullName should be set by event processor (no client-side hook)', () => {
       const fields = Customers.fields || []
       const fullNameField = fields.find(f => f.name === 'fullName')
-      const hook = fullNameField?.hooks?.beforeChange?.[0]
       
-      if (hook) {
-        // Test with full name parts
-        const result1 = hook({
-          data: {
-            firstName: 'John',
-            middleName: 'David',
-            lastName: 'Doe'
-          }
-        })
-        expect(result1).toBe('John David Doe')
-
-        // Test with missing middle name
-        const result2 = hook({
-          data: {
-            firstName: 'Jane',
-            lastName: 'Smith'
-          }
-        })
-        expect(result2).toBe('Jane Smith')
-
-        // Test with preferred name fallback
-        const result3 = hook({
-          data: {
-            preferredName: 'Johnny'
-          }
-        })
-        expect(result3).toBe('Johnny')
-
-        // Test with no data
-        const result4 = hook({ data: null })
-        expect(result4).toBe('')
-      }
+      // The hook was removed - fullName is now populated by Python event processor
+      // This is intentional as data comes from customer.changed.v1 events
+      expect(fullNameField?.hooks?.beforeChange).toBeUndefined()
     })
 
     test('should have relationships to applications and conversations', () => {
@@ -220,14 +191,21 @@ describe('Payload Collections Configuration', () => {
   })
 
   describe('Users Collection', () => {
-    test('should have supervisor and admin roles', () => {
+    test('should have all staff roles (admin, supervisor, operations, readonly)', () => {
       const fields = Users.fields || []
       const roleField = fields.find(f => f.name === 'role')
       
       expect(roleField?.type).toBe('select')
-      expect(roleField?.options).toContain('admin')
-      expect(roleField?.options).toContain('supervisor')
       expect(roleField?.defaultValue).toBe('supervisor')
+      
+      // Roles are now objects with label/value
+      const options = roleField?.options as Array<{ label: string; value: string }>
+      const roleValues = options?.map((opt) => opt.value) || []
+      
+      expect(roleValues).toContain('admin')
+      expect(roleValues).toContain('supervisor')
+      expect(roleValues).toContain('operations')
+      expect(roleValues).toContain('readonly')
     })
 
     test('should have proper access control', () => {

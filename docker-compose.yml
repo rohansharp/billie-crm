@@ -12,11 +12,15 @@ services:
     command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm dev"
     depends_on:
       - mongo
-      # - postgres
+      - redis
     env_file:
       - .env
+    environment:
+      - DATABASE_URI=mongodb://mongo:27017/billie-servicing
+      - REDIS_URL=redis://redis:6379
+      - LEDGER_SERVICE_URL=${LEDGER_SERVICE_URL:-ledger-service:50051}
 
-  # Ensure your DATABASE_URI uses 'mongo' as the hostname ie. mongodb://mongo/my-db-name
+  # MongoDB for Payload CMS collections
   mongo:
     image: mongo:latest
     ports:
@@ -28,16 +32,32 @@ services:
     logging:
       driver: none
 
-  # Uncomment the following to use postgres
-  # postgres:
-  #   restart: always
-  #   image: postgres:latest
-  #   volumes:
-  #     - pgdata:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
+  # Redis for event inbox stream
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+  # Python Event Processor - consumes events from Redis inbox
+  event-processor:
+    build:
+      context: ./event-processor
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URL=mongodb://mongo:27017
+      - DB_NAME=billie-servicing
+      - LOG_LEVEL=INFO
+    depends_on:
+      - redis
+      - mongo
+    restart: unless-stopped
 
 volumes:
   data:
-  # pgdata:
+  redis-data:
   node_modules:

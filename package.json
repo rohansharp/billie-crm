@@ -15,11 +15,11 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test",
-    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
-    "worker": "cross-env NODE_OPTIONS=--no-deprecation tsx src/server/worker.ts",
-    "test:worker": "cross-env NODE_OPTIONS=--no-deprecation tsx src/server/test-worker.ts"
+    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.14.1",
+    "@grpc/proto-loader": "^0.7.15",
     "@payloadcms/db-mongodb": "3.45.0",
     "@payloadcms/next": "3.45.0",
     "@payloadcms/payload-cloud": "3.45.0",

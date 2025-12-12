@@ -1,0 +1,331 @@
+syntax = "proto3";
+
+package billie.ledger.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// =============================================================================
+// Service Definition
+// =============================================================================
+
+service AccountingLedgerService {
+  // Get transaction history for a loan account
+  rpc GetTransactions(GetTransactionsRequest) returns (GetTransactionsResponse);
+  
+  // Get current balance for a loan account
+  rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse);
+  
+  // Get ledger record (full account details)
+  rpc GetLedgerRecord(GetLedgerRecordRequest) returns (LedgerRecordResponse);
+  
+  // Get customer statement for a period
+  rpc GetStatement(GetStatementRequest) returns (StatementResponse);
+  
+  // Server streaming: Watch for new transactions in real-time
+  rpc WatchTransactions(WatchTransactionsRequest) returns (stream Transaction);
+  
+  // Get portfolio summary - receivables/balance sheet items (point-in-time)
+  rpc GetPortfolioSummary(GetPortfolioSummaryRequest) returns (PortfolioSummaryResponse);
+  
+  // Get GL reconciliation - period-based income statement for reconciliation
+  rpc GetGLReconciliation(GetGLReconciliationRequest) returns (GLReconciliationResponse);
+  
+  // ==========================================================================
+  // Write Operations (Event-Sourced)
+  // Each write records the transaction, publishes an event, then returns.
+  // ==========================================================================
+  
+  // Record a repayment with automatic fee-first allocation
+  rpc RecordRepayment(RecordRepaymentRequest) returns (TransactionResponse);
+  
+  // Apply a late fee to an account
+  rpc ApplyLateFee(ApplyLateFeeRequest) returns (TransactionResponse);
+  
+  // Waive fees on an account
+  rpc WaiveFee(WaiveFeeRequest) returns (TransactionResponse);
+  
+  // Write off an account balance
+  rpc WriteOff(WriteOffRequest) returns (TransactionResponse);
+  
+  // Make a manual adjustment
+  rpc MakeAdjustment(MakeAdjustmentRequest) returns (TransactionResponse);
+}
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+enum TransactionType {
+  TRANSACTION_TYPE_UNSPECIFIED = 0;
+  DISBURSEMENT = 1;
+  ESTABLISHMENT_FEE = 2;
+  REPAYMENT = 3;
+  LATE_FEE = 4;
+  DISHONOUR_FEE = 5;
+  FEE_WAIVER = 6;
+  ADJUSTMENT = 7;
+  WRITE_OFF = 8;
+}
+
+// =============================================================================
+// Transaction Messages
+// =============================================================================
+
+message Transaction {
+  string transaction_id = 1;
+  string loan_account_id = 2;
+  TransactionType type = 3;
+  google.protobuf.Timestamp transaction_date = 4;
+  string effective_date = 5;  // YYYY-MM-DD format
+  string principal_delta = 6;  // Decimal as string for precision
+  string fee_delta = 7;
+  string principal_after = 8;
+  string fee_after = 9;
+  string total_delta = 10;
+  string total_after = 11;
+  string description = 12;
+  string reference_type = 13;
+  string reference_id = 14;
+  map<string, string> metadata = 15;
+  string created_by = 16;
+  google.protobuf.Timestamp created_at = 17;
+  string portfolio_entry_id = 18;
+}
+
+message GetTransactionsRequest {
+  string loan_account_id = 1;
+  optional int32 limit = 2;
+  optional string from_date = 3;  // YYYY-MM-DD
+  optional string to_date = 4;    // YYYY-MM-DD
+  optional TransactionType type_filter = 5;
+}
+
+message GetTransactionsResponse {
+  string loan_account_id = 1;
+  repeated Transaction transactions = 2;
+  int32 total_count = 3;
+}
+
+// =============================================================================
+// Balance Messages
+// =============================================================================
+
+message GetBalanceRequest {
+  string loan_account_id = 1;
+}
+
+message GetBalanceResponse {
+  string loan_account_id = 1;
+  string principal_balance = 2;
+  string fee_balance = 3;
+  string total_outstanding = 4;
+  google.protobuf.Timestamp as_of = 5;
+}
+
+// =============================================================================
+// Ledger Record Messages
+// =============================================================================
+
+message GetLedgerRecordRequest {
+  string loan_account_id = 1;
+}
+
+message LedgerRecordResponse {
+  string loan_account_id = 1;
+  string account_number = 2;
+  string customer_id = 3;
+  string application_number = 4;
+  string disbursed_principal = 5;
+  string establishment_fee = 6;
+  string total_repayable = 7;
+  string principal_balance = 8;
+  string fee_balance = 9;
+  string total_outstanding = 10;
+  string total_paid = 11;
+  int32 transaction_count = 12;
+  optional string last_transaction_id = 13;
+  optional string schedule_id = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp updated_at = 16;
+}
+
+// =============================================================================
+// Statement Messages
+// =============================================================================
+
+message GetStatementRequest {
+  string loan_account_id = 1;
+  string period_start = 2;  // YYYY-MM-DD
+  string period_end = 3;    // YYYY-MM-DD
+}
+
+message StatementLine {
+  string date = 1;
+  string transaction_id = 2;
+  string description = 3;
+  optional string charge = 4;
+  optional string payment = 5;
+  string balance = 6;
+}
+
+message StatementResponse {
+  string loan_account_id = 1;
+  string account_number = 2;
+  string customer_id = 3;
+  string period_start = 4;
+  string period_end = 5;
+  string disbursed_principal = 6;
+  string establishment_fee = 7;
+  string total_repayable = 8;
+  string opening_balance = 9;
+  string fees_charged = 10;
+  string payments_received = 11;
+  string closing_balance = 12;
+  repeated StatementLine lines = 13;
+  google.protobuf.Timestamp generated_at = 14;
+}
+
+// =============================================================================
+// Watch/Streaming Messages
+// =============================================================================
+
+message WatchTransactionsRequest {
+  string loan_account_id = 1;
+  optional string from_transaction_id = 2;  // Resume from this transaction
+}
+
+// =============================================================================
+// Portfolio Summary Messages (Balance Sheet - Point-in-Time)
+// =============================================================================
+
+message GetPortfolioSummaryRequest {
+  optional string as_of_date = 1;  // YYYY-MM-DD, defaults to today
+}
+
+message PortfolioSummaryResponse {
+  string as_of_date = 1;
+  int32 total_active_accounts = 2;
+  
+  // Receivables (Balance Sheet items - point-in-time)
+  string principal_receivable = 3;
+  string fees_receivable = 4;
+  string total_receivables = 5;
+  
+  google.protobuf.Timestamp generated_at = 6;
+}
+
+// =============================================================================
+// GL Reconciliation Messages (Income Statement - Period-Based)
+// =============================================================================
+
+message GetGLReconciliationRequest {
+  string period_start = 1;  // YYYY-MM-DD (required)
+  string period_end = 2;    // YYYY-MM-DD (required)
+}
+
+// Account movements for a period
+message AccountMovements {
+  string account_code = 1;
+  string account_name = 2;
+  string opening_balance = 3;
+  string disbursements = 4;
+  string establishment_fees = 5;
+  string late_fees = 6;
+  string dishonour_fees = 7;
+  string repayments = 8;
+  string fee_waivers = 9;
+  string write_offs = 10;
+  string adjustments = 11;
+  string closing_balance = 12;
+}
+
+// Integrity check embedded in reconciliation
+message IntegrityCheck {
+  bool principal_match = 1;
+  bool fee_match = 2;
+  string customer_principal_sum = 3;
+  string customer_fee_sum = 4;
+  string portfolio_principal = 5;
+  string portfolio_fees = 6;
+}
+
+message GLReconciliationResponse {
+  string period_start = 1;
+  string period_end = 2;
+  
+  // Balance sheet movements
+  AccountMovements principal_receivable = 3;
+  AccountMovements fees_receivable = 4;
+  
+  // Income statement (period revenue)
+  string establishment_fee_income = 5;
+  string late_fee_income = 6;
+  string dishonour_fee_income = 7;
+  string fee_waivers = 8;
+  string net_fee_income = 9;
+  
+  // Expenses
+  string bad_debt_expense = 10;
+  
+  // Integrity verification
+  IntegrityCheck integrity_check = 11;
+  
+  google.protobuf.Timestamp generated_at = 12;
+}
+
+// =============================================================================
+// Write Operation Messages (Event-Sourced)
+// =============================================================================
+
+// Common response for all write operations
+message TransactionResponse {
+  Transaction transaction = 1;
+  string event_id = 2;  // ID of the published event (for correlation)
+  
+  // Payment allocation details (only for RepaymentResponse)
+  optional string allocated_to_fees = 3;
+  optional string allocated_to_principal = 4;
+  optional string overpayment = 5;
+}
+
+// Record a repayment
+message RecordRepaymentRequest {
+  string loan_account_id = 1;
+  string amount = 2;  // Payment amount (decimal as string)
+  string payment_id = 3;  // External payment reference
+  optional string payment_method = 4;  // e.g., "direct_debit", "card"
+  optional string payment_reference = 5;  // Additional reference
+}
+
+// Apply late fee
+message ApplyLateFeeRequest {
+  string loan_account_id = 1;
+  string fee_amount = 2;  // Fee amount (decimal as string)
+  int32 days_past_due = 3;  // Number of days past due
+  optional string reason = 4;  // Optional reason/notes
+}
+
+// Waive fees
+message WaiveFeeRequest {
+  string loan_account_id = 1;
+  string waiver_amount = 2;  // Amount to waive (decimal as string)
+  string reason = 3;  // Required: reason for waiver
+  string approved_by = 4;  // Required: approver ID
+}
+
+// Write off account
+message WriteOffRequest {
+  string loan_account_id = 1;
+  string reason = 2;  // Required: reason for write-off
+  string approved_by = 3;  // Required: approver ID
+}
+
+// Make adjustment
+message MakeAdjustmentRequest {
+  string loan_account_id = 1;
+  string principal_delta = 2;  // Change to principal (can be negative)
+  string fee_delta = 3;  // Change to fees (can be negative)
+  string reason = 4;  // Required: reason for adjustment
+  string approved_by = 5;  // Required: approver ID
+}
+

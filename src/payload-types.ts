@@ -72,6 +72,7 @@ export interface Config {
     customers: Customer;
     conversations: Conversation;
     applications: Application;
+    'loan-accounts': LoanAccount;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -83,6 +84,7 @@ export interface Config {
     customers: CustomersSelect<false> | CustomersSelect<true>;
     conversations: ConversationsSelect<false> | ConversationsSelect<true>;
     applications: ApplicationsSelect<false> | ApplicationsSelect<true>;
+    'loan-accounts': LoanAccountsSelect<false> | LoanAccountsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -125,7 +127,7 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
-  role: 'admin' | 'supervisor';
+  role: 'admin' | 'supervisor' | 'operations' | 'readonly';
   firstName: string;
   lastName: string;
   avatar?: (string | null) | Media;
@@ -184,16 +186,56 @@ export interface Customer {
   firstName?: string | null;
   middleName?: string | null;
   lastName?: string | null;
+  /**
+   * Full name set by event processor
+   */
   fullName?: string | null;
   emailAddress?: string | null;
   mobilePhoneNumber?: string | null;
   dateOfBirth?: string | null;
+  /**
+   * Set true on customer.verified.v1 event
+   */
+  identityVerified?: boolean | null;
+  /**
+   * From SDK: residential_address
+   */
   residentialAddress?: {
+    /**
+     * From SDK: street_number
+     */
+    streetNumber?: string | null;
+    /**
+     * From SDK: street_name
+     */
+    streetName?: string | null;
+    /**
+     * From SDK: street_type
+     */
+    streetType?: string | null;
+    /**
+     * From SDK: unit_number
+     */
+    unitNumber?: string | null;
+    /**
+     * Computed full street address
+     */
     street?: string | null;
+    /**
+     * From SDK: suburb
+     */
+    suburb?: string | null;
+    /**
+     * Same as suburb (for backward compatibility)
+     */
     city?: string | null;
     state?: string | null;
     postcode?: string | null;
     country?: string | null;
+    /**
+     * From SDK: full_address
+     */
+    fullAddress?: string | null;
   };
   /**
    * Address for mail delivery (e.g., cards)
@@ -257,6 +299,10 @@ export interface Customer {
     | null;
   applications?: (string | Application)[] | null;
   conversations?: (string | Conversation)[] | null;
+  /**
+   * Loan accounts associated with this customer
+   */
+  loanAccounts?: (string | LoanAccount)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -438,8 +484,18 @@ export interface Conversation {
   id: string;
   conversationId: string;
   applicationNumber: string;
-  customerId: string | Customer;
-  applicationId: string | Application;
+  /**
+   * Linked customer (may be null if customer not yet created)
+   */
+  customerId?: (string | null) | Customer;
+  /**
+   * Customer ID string for queries when relationship not yet established
+   */
+  customerIdString?: string | null;
+  /**
+   * Linked application (may be null)
+   */
+  applicationId?: (string | null) | Application;
   status?: ('active' | 'paused' | 'soft_end' | 'hard_end' | 'approved' | 'declined') | null;
   startedAt: string;
   updatedAt: string;
@@ -494,6 +550,202 @@ export interface Conversation {
       }[]
     | null;
   version?: number | null;
+  /**
+   * Timestamp of most recent utterance
+   */
+  lastUtteranceTime?: string | null;
+  /**
+   * Final decision outcome (APPROVED, DECLINED, REFERRED)
+   */
+  finalDecision?: string | null;
+  /**
+   * Risk and serviceability assessments
+   */
+  assessments?: {
+    /**
+     * Identity risk assessment data
+     */
+    identityRisk?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    /**
+     * Serviceability assessment data
+     */
+    serviceability?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    /**
+     * Fraud check assessment data
+     */
+    fraudCheck?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  /**
+   * Agent noticeboard posts
+   */
+  noticeboard?:
+    | {
+        agentName?: string | null;
+        topic?: string | null;
+        content?: string | null;
+        timestamp?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Additional application data from events
+   */
+  applicationData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  createdAt: string;
+}
+/**
+ * Loan accounts projected from ledger events
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "loan-accounts".
+ */
+export interface LoanAccount {
+  id: string;
+  /**
+   * Unique identifier from ledger service (account_id)
+   */
+  loanAccountId: string;
+  /**
+   * Human-readable account number
+   */
+  accountNumber: string;
+  customerId?: (string | null) | Customer;
+  /**
+   * Customer ID string for queries
+   */
+  customerIdString?: string | null;
+  /**
+   * Denormalized for list view performance
+   */
+  customerName?: string | null;
+  /**
+   * Original loan terms at disbursement
+   */
+  loanTerms?: {
+    /**
+     * Original loan amount (from SDK: loan_amount)
+     */
+    loanAmount?: number | null;
+    /**
+     * Fee amount (from SDK: loan_fee)
+     */
+    loanFee?: number | null;
+    /**
+     * Total amount to be repaid (from SDK: loan_total_payable)
+     */
+    totalPayable?: number | null;
+    /**
+     * Account opening date (from SDK: opened_date)
+     */
+    openedDate?: string | null;
+  };
+  /**
+   * Current account balances (updated from events)
+   */
+  balances?: {
+    /**
+     * Current outstanding balance (from SDK: current_balance)
+     */
+    currentBalance?: number | null;
+    /**
+     * Total amount currently owed
+     */
+    totalOutstanding?: number | null;
+    /**
+     * Total amount paid to date
+     */
+    totalPaid?: number | null;
+  };
+  /**
+   * Most recent payment details
+   */
+  lastPayment?: {
+    /**
+     * From SDK: last_payment_date
+     */
+    date?: string | null;
+    /**
+     * From SDK: last_payment_amount
+     */
+    amount?: number | null;
+  };
+  /**
+   * Mapped from SDK AccountStatus enum
+   */
+  accountStatus: 'active' | 'paid_off' | 'in_arrears' | 'written_off';
+  /**
+   * Original status from SDK (PENDING, ACTIVE, SUSPENDED, CLOSED)
+   */
+  sdkStatus?: string | null;
+  /**
+   * Repayment schedule from account.schedule.created.v1
+   */
+  repaymentSchedule?: {
+    /**
+     * Unique schedule identifier
+     */
+    scheduleId?: string | null;
+    /**
+     * Total number of scheduled payments (from SDK: n_payments)
+     */
+    numberOfPayments?: number | null;
+    /**
+     * Payment frequency
+     */
+    paymentFrequency?: ('weekly' | 'fortnightly' | 'monthly') | null;
+    /**
+     * Individual scheduled payments
+     */
+    payments?:
+      | {
+          /**
+           * Payment sequence number (1, 2, 3...)
+           */
+          paymentNumber: number;
+          dueDate: string;
+          amount: number;
+          status?: ('scheduled' | 'paid' | 'missed' | 'partial') | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Schedule creation date
+     */
+    createdDate?: string | null;
+  };
+  updatedAt: string;
   createdAt: string;
 }
 /**
@@ -522,6 +774,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'applications';
         value: string | Application;
+      } | null)
+    | ({
+        relationTo: 'loan-accounts';
+        value: string | LoanAccount;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -624,14 +880,21 @@ export interface CustomersSelect<T extends boolean = true> {
   emailAddress?: T;
   mobilePhoneNumber?: T;
   dateOfBirth?: T;
+  identityVerified?: T;
   residentialAddress?:
     | T
     | {
+        streetNumber?: T;
+        streetName?: T;
+        streetType?: T;
+        unitNumber?: T;
         street?: T;
+        suburb?: T;
         city?: T;
         state?: T;
         postcode?: T;
         country?: T;
+        fullAddress?: T;
       };
   mailingAddress?:
     | T
@@ -662,6 +925,7 @@ export interface CustomersSelect<T extends boolean = true> {
       };
   applications?: T;
   conversations?: T;
+  loanAccounts?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -673,6 +937,7 @@ export interface ConversationsSelect<T extends boolean = true> {
   conversationId?: T;
   applicationNumber?: T;
   customerId?: T;
+  customerIdString?: T;
   applicationId?: T;
   status?: T;
   startedAt?: T;
@@ -699,6 +964,25 @@ export interface ConversationsSelect<T extends boolean = true> {
         id?: T;
       };
   version?: T;
+  lastUtteranceTime?: T;
+  finalDecision?: T;
+  assessments?:
+    | T
+    | {
+        identityRisk?: T;
+        serviceability?: T;
+        fraudCheck?: T;
+      };
+  noticeboard?:
+    | T
+    | {
+        agentName?: T;
+        topic?: T;
+        content?: T;
+        timestamp?: T;
+        id?: T;
+      };
+  applicationData?: T;
   createdAt?: T;
 }
 /**
@@ -794,6 +1078,59 @@ export interface ApplicationsSelect<T extends boolean = true> {
       };
   conversations?: T;
   version?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "loan-accounts_select".
+ */
+export interface LoanAccountsSelect<T extends boolean = true> {
+  loanAccountId?: T;
+  accountNumber?: T;
+  customerId?: T;
+  customerIdString?: T;
+  customerName?: T;
+  loanTerms?:
+    | T
+    | {
+        loanAmount?: T;
+        loanFee?: T;
+        totalPayable?: T;
+        openedDate?: T;
+      };
+  balances?:
+    | T
+    | {
+        currentBalance?: T;
+        totalOutstanding?: T;
+        totalPaid?: T;
+      };
+  lastPayment?:
+    | T
+    | {
+        date?: T;
+        amount?: T;
+      };
+  accountStatus?: T;
+  sdkStatus?: T;
+  repaymentSchedule?:
+    | T
+    | {
+        scheduleId?: T;
+        numberOfPayments?: T;
+        paymentFrequency?: T;
+        payments?:
+          | T
+          | {
+              paymentNumber?: T;
+              dueDate?: T;
+              amount?: T;
+              status?: T;
+              id?: T;
+            };
+        createdDate?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

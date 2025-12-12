@@ -45,18 +45,27 @@ export const Conversations: CollectionConfig = {
       name: 'customerId',
       type: 'relationship',
       relationTo: 'customers',
-      required: true,
       admin: {
         readOnly: true,
+        description: 'Linked customer (may be null if customer not yet created)',
+      },
+    },
+    {
+      name: 'customerIdString',
+      type: 'text',
+      index: true,
+      admin: {
+        readOnly: true,
+        description: 'Customer ID string for queries when relationship not yet established',
       },
     },
     {
       name: 'applicationId',
       type: 'relationship',
       relationTo: 'applications',
-      required: true,
       admin: {
         readOnly: true,
+        description: 'Linked application (may be null)',
       },
     },
     {
@@ -180,6 +189,82 @@ export const Conversations: CollectionConfig = {
       defaultValue: 1,
       admin: {
         readOnly: true,
+      },
+    },
+    // Additional fields written by Python event processor
+    {
+      name: 'lastUtteranceTime',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        description: 'Timestamp of most recent utterance',
+      },
+    },
+    {
+      name: 'finalDecision',
+      type: 'text',
+      admin: {
+        readOnly: true,
+        description: 'Final decision outcome (APPROVED, DECLINED, REFERRED)',
+      },
+    },
+    {
+      name: 'assessments',
+      type: 'group',
+      admin: {
+        readOnly: true,
+        description: 'Risk and serviceability assessments',
+      },
+      fields: [
+        {
+          name: 'identityRisk',
+          type: 'json',
+          admin: { description: 'Identity risk assessment data' },
+        },
+        {
+          name: 'serviceability',
+          type: 'json',
+          admin: { description: 'Serviceability assessment data' },
+        },
+        {
+          name: 'fraudCheck',
+          type: 'json',
+          admin: { description: 'Fraud check assessment data' },
+        },
+      ],
+    },
+    {
+      name: 'noticeboard',
+      type: 'array',
+      admin: {
+        readOnly: true,
+        description: 'Agent noticeboard posts',
+      },
+      fields: [
+        {
+          name: 'agentName',
+          type: 'text',
+        },
+        {
+          name: 'topic',
+          type: 'text',
+        },
+        {
+          name: 'content',
+          type: 'textarea',
+        },
+        {
+          name: 'timestamp',
+          type: 'date',
+        },
+      ],
+    },
+    {
+      name: 'applicationData',
+      type: 'json',
+      admin: {
+        readOnly: true,
+        description: 'Additional application data from events',
       },
     },
   ],

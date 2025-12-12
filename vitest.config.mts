@@ -8,5 +8,11 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     include: ['tests/int/**/*.int.spec.ts', 'tests/unit/**/*.test.ts'],
+    // Run test files sequentially to avoid MongoDB race conditions
+    fileParallelism: false,
+    // Also run tests within files sequentially
+    sequence: {
+      concurrent: false,
+    },
   },
 })

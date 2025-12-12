@@ -1,11 +1,9 @@
 import type { CollectionConfig, Access } from 'payload'
 import type { User, Customer } from '../payload-types'
 
-const supervisorOrAdmin: Access = ({ req: { user } }) => {
-  if (user?.role === 'admin') {
-    return true
-  }
-  return user?.role === 'supervisor'
+const servicingAccess: Access = ({ req: { user } }) => {
+  if (!user) return false
+  return ['admin', 'supervisor', 'operations', 'readonly'].includes(user.role)
 }
 
 export const Customers: CollectionConfig = {
@@ -16,7 +14,7 @@ export const Customers: CollectionConfig = {
     group: 'Supervisor Dashboard',
   },
   access: {
-    read: supervisorOrAdmin,
+    read: servicingAccess,
     create: () => false, // Only created via events
     update: () => false, // Only updated via events
     delete: () => false,
@@ -71,18 +69,9 @@ export const Customers: CollectionConfig = {
     {
       name: 'fullName',
       type: 'text',
-      hooks: {
-        beforeChange: [
-          ({ data }) => {
-            if (!data) return '';
-            // Construct full name from parts
-            const parts = [data.firstName, data.middleName, data.lastName].filter(Boolean);
-            return parts.join(' ') || data.preferredName || '';
-          },
-        ],
-      },
       admin: {
         readOnly: true,
+        description: 'Full name set by event processor',
       },
     },
     {
@@ -111,19 +100,55 @@ export const Customers: CollectionConfig = {
       },
     },
     {
+      name: 'identityVerified',
+      type: 'checkbox',
+      admin: {
+        readOnly: true,
+        description: 'Set true on customer.verified.v1 event',
+      },
+    },
+    {
       name: 'residentialAddress',
       type: 'group',
       admin: {
         readOnly: true,
+        description: 'From SDK: residential_address',
       },
       fields: [
         {
+          name: 'streetNumber',
+          type: 'text',
+          admin: { description: 'From SDK: street_number' },
+        },
+        {
+          name: 'streetName',
+          type: 'text',
+          admin: { description: 'From SDK: street_name' },
+        },
+        {
+          name: 'streetType',
+          type: 'text',
+          admin: { description: 'From SDK: street_type' },
+        },
+        {
+          name: 'unitNumber',
+          type: 'text',
+          admin: { description: 'From SDK: unit_number' },
+        },
+        {
           name: 'street',
           type: 'text',
+          admin: { description: 'Computed full street address' },
+        },
+        {
+          name: 'suburb',
+          type: 'text',
+          admin: { description: 'From SDK: suburb' },
         },
         {
           name: 'city',
           type: 'text',
+          admin: { description: 'Same as suburb (for backward compatibility)' },
         },
         {
           name: 'state',
@@ -137,6 +162,11 @@ export const Customers: CollectionConfig = {
           name: 'country',
           type: 'text',
           defaultValue: 'Australia',
+        },
+        {
+          name: 'fullAddress',
+          type: 'text',
+          admin: { description: 'From SDK: full_address' },
         },
       ],
     },
@@ -301,6 +331,16 @@ export const Customers: CollectionConfig = {
       hasMany: true,
       admin: {
         readOnly: true,
+      },
+    },
+    {
+      name: 'loanAccounts',
+      type: 'relationship',
+      relationTo: 'loan-accounts',
+      hasMany: true,
+      admin: {
+        readOnly: true,
+        description: 'Loan accounts associated with this customer',
       },
     },
   ],

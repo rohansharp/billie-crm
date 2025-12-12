@@ -1,18 +1,17 @@
-import type { CollectionConfig, Access } from 'payload/types'
-import type { User } from '../payload-types'
+import type { CollectionConfig, Access } from 'payload'
 
-const canReadUsers: Access<any, User> = ({ req, id }) => {
-  if (req.user?.role === 'admin') {
+const canReadUsers: Access = ({ req, id }) => {
+  if ((req.user as any)?.role === 'admin') {
     return true
   }
-  return req.user?.id === id
+  return (req.user as any)?.id === id
 }
 
-const canUpdateUsers: Access<any, User> = ({ req, id }) => {
-  if (req.user?.role === 'admin') {
+const canUpdateUsers: Access = ({ req, id }) => {
+  if ((req.user as any)?.role === 'admin') {
     return true
   }
-  return req.user?.id === id
+  return (req.user as any)?.id === id
 }
 
 export const Users: CollectionConfig = {
@@ -36,7 +35,12 @@ export const Users: CollectionConfig = {
     {
       name: 'role',
       type: 'select',
-      options: ['admin', 'supervisor'],
+      options: [
+        { label: 'Admin', value: 'admin' },
+        { label: 'Supervisor', value: 'supervisor' },
+        { label: 'Operations', value: 'operations' },
+        { label: 'Read Only', value: 'readonly' },
+      ],
       defaultValue: 'supervisor',
       required: true,
     },
