@@ -1,0 +1,82 @@
+# generated: 2025-12-11
+# project: billie-crm
+# tracking_system: file-system
+# story_location: docs/sprint-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2025-12-11
+project: billie-crm
+tracking_system: file-system
+story_location: docs/sprint-artifacts
+
+development_status:
+  # Epic 1: Global Search & Foundation
+  epic-1: in-progress
+  1-1-technical-foundation-setup: ready-for-dev
+  1-2-command-palette-ui-component: backlog
+  1-3-customer-search-api-results: backlog
+  1-4-loan-account-transaction-search: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Single Customer View
+  epic-2: backlog
+  2-1-servicingview-custom-payload-view: backlog
+  2-2-customer-profile-identity-flags: backlog
+  2-3-loan-accounts-list-live-balances: backlog
+  2-4-transaction-history-with-filtering: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Financial Actions (Optimistic UI)
+  epic-3: backlog
+  3-1-waive-fee-action-optimistic-ui: backlog
+  3-2-record-repayment-action-optimistic-ui: backlog
+  3-3-idempotency-duplicate-prevention: backlog
+  3-4-bulk-fee-waiver: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Write-Off & Approval Workflow
+  epic-4: backlog
+  4-1-write-off-request-form: backlog
+  4-2-approvalsview-custom-payload-view: backlog
+  4-3-approve-reject-actions-with-comments: backlog
+  4-4-approval-notifications: backlog
+  4-5-audit-log-history: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: System Health & Resilience
+  epic-5: backlog
+  5-1-ledger-health-check-status-indicator: backlog
+  5-2-read-only-mode-activation: backlog
+  5-3-failed-action-notification-center: backlog
+  5-4-version-conflict-detection: backlog
+  5-5-graceful-error-handling: backlog
+  epic-5-retrospective: optional

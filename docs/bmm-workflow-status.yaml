@@ -57,4 +57,4 @@ workflow_status:
   - phase: "Implementation"
     items:
       - id: "sprint-planning"
-        status: "required"
+        status: "docs/sprint-artifacts/sprint-status.yaml"
