@@ -46,7 +46,7 @@ workflow_status:
       - id: "create-architecture"
         status: "docs/architecture.md"
       - id: "create-epics-and-stories"
-        status: "Requirements/v2-servicing-app/IMPLEMENTATION_PLAN.md"
+        status: "docs/epics.md"
       - id: "test-design"
         status: "recommended"
       - id: "validate-architecture"
