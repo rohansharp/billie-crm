@@ -182,6 +182,167 @@
   }
 }
 
+/* Customer Search Result Styles */
+.resultItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.resultItem:hover,
+.resultItem[aria-selected='true'] {
+  background: var(--theme-elevation-50, #f5f5f5);
+}
+
+.resultItem[aria-selected='true'] {
+  background: var(--theme-elevation-100, #eee);
+}
+
+.resultIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--theme-elevation-100, #f0f0f0);
+  color: var(--theme-elevation-600, #666);
+  flex-shrink: 0;
+}
+
+.resultContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.resultMain {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.resultName {
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultId {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+  font-family: monospace;
+}
+
+.resultMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--theme-elevation-600, #666);
+}
+
+.resultEmail {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.badgeVerified {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 4px;
+}
+
+.accountCount {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+/* Group Header for Search Results */
+.resultsGroup {
+  padding-top: 8px;
+}
+
+.resultsGroupHeading {
+  padding: 4px 12px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--theme-elevation-500, #888);
+}
+
+/* Balance display in account results */
+.resultBalance {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.resultCustomerName {
+  color: var(--theme-elevation-600, #666);
+  font-size: 13px;
+}
+
+/* Status badges */
+.badgeActive {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 4px;
+}
+
+.badgePaidOff {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 4px;
+}
+
+.badgeArrears {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 4px;
+}
+
+.badgeWrittenOff {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 4px;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .container {

@@ -13,3 +13,7 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
   disconnect() {}
 }
+
+// Mock scrollIntoView for tests (not available in JSDOM)
+// Required by cmdk for keyboard navigation
+Element.prototype.scrollIntoView = function () {}
