@@ -1,5 +1,8 @@
 export { ServicingView, default } from './ServicingView'
 export type { ServicingViewProps } from './ServicingView'
+export { CustomerProfile } from './CustomerProfile'
+export type { CustomerProfileProps } from './CustomerProfile'
 export { CustomerProfileSkeleton } from './CustomerProfileSkeleton'
 export { LoanAccountsSkeleton } from './LoanAccountsSkeleton'
 export { TransactionsSkeleton } from './TransactionsSkeleton'
+export { VulnerableCustomerBanner } from './VulnerableCustomerBanner'

@@ -50,7 +50,7 @@ development_status:
   # Epic 2: Single Customer View
   epic-2: in-progress
   2-1-servicingview-custom-payload-view: done
-  2-2-customer-profile-identity-flags: backlog
+  2-2-customer-profile-identity-flags: done
   2-3-loan-accounts-list-live-balances: backlog
   2-4-transaction-history-with-filtering: backlog
   epic-2-retrospective: optional

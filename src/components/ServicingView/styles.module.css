@@ -170,6 +170,59 @@
   color: #7c3aed;
 }
 
+.badgeVulnerable {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Vulnerable Customer Banner */
+.vulnerableBanner {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.vulnerableBannerIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #dc2626;
+}
+
+.vulnerableBannerContent {
+  flex: 1;
+}
+
+.vulnerableBannerTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #991b1b;
+  margin: 0 0 8px 0;
+}
+
+.vulnerableBannerText {
+  font-size: 13px;
+  color: #b91c1c;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.vulnerableBannerList {
+  margin: 0;
+  padding: 0 0 0 20px;
+  font-size: 13px;
+  color: #b91c1c;
+  line-height: 1.6;
+}
+
+.vulnerableBannerList li {
+  margin-bottom: 2px;
+}
+
 /* Account Cards */
 .accountsSection {
   background: var(--theme-elevation-0, #fff);

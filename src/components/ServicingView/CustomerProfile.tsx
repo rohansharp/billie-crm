@@ -1,0 +1,127 @@
+'use client'
+
+import type { CustomerData } from '@/hooks/queries/useCustomer'
+import styles from './styles.module.css'
+
+export interface CustomerProfileProps {
+  customer: CustomerData
+}
+
+/**
+ * Format date of birth for display (Australian format: DD MMM YYYY)
+ */
+function formatDateOfBirth(dateString: string | null): string {
+  if (!dateString) return '—'
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-AU', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  } catch {
+    return '—'
+  }
+}
+
+/**
+ * Format address for display
+ */
+function formatAddress(address: CustomerData['residentialAddress']): string {
+  if (!address) return '—'
+  
+  // Try full address first
+  if (address.fullAddress) return address.fullAddress
+  
+  // Build from parts
+  const parts: string[] = []
+  if (address.street) parts.push(address.street)
+  if (address.suburb) parts.push(address.suburb)
+  if (address.state && address.postcode) {
+    parts.push(`${address.state} ${address.postcode}`)
+  } else if (address.state) {
+    parts.push(address.state)
+  } else if (address.postcode) {
+    parts.push(address.postcode)
+  }
+  
+  return parts.length > 0 ? parts.join(', ') : '—'
+}
+
+/**
+ * CustomerProfile component - displays customer details and identity badges.
+ * Part of the ServicingView sidebar.
+ */
+export const CustomerProfile: React.FC<CustomerProfileProps> = ({ customer }) => {
+  const initials = customer.fullName
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || '?'
+
+  // Check for any identity flags
+  const hasFlags = 
+    customer.identityVerified || 
+    customer.staffFlag || 
+    customer.investorFlag || 
+    customer.founderFlag ||
+    customer.vulnerableFlag
+
+  return (
+    <div className={styles.profileCard} data-testid="customer-profile">
+      <div className={styles.profileHeader}>
+        <div className={styles.profileAvatar}>{initials}</div>
+        <div className={styles.profileHeaderText}>
+          <h2 className={styles.profileName}>{customer.fullName || 'Unknown'}</h2>
+          <span className={styles.profileCustomerId}>{customer.customerId}</span>
+        </div>
+      </div>
+
+      <div className={styles.profileDetails}>
+        <div className={styles.profileRow}>
+          <span className={styles.profileLabel}>Email</span>
+          <span className={styles.profileValue}>{customer.emailAddress || '—'}</span>
+        </div>
+        <div className={styles.profileRow}>
+          <span className={styles.profileLabel}>Phone</span>
+          <span className={styles.profileValue}>{customer.mobilePhoneNumber || '—'}</span>
+        </div>
+        <div className={styles.profileRow}>
+          <span className={styles.profileLabel}>DOB</span>
+          <span className={styles.profileValue}>{formatDateOfBirth(customer.dateOfBirth)}</span>
+        </div>
+        <div className={styles.profileRow}>
+          <span className={styles.profileLabel}>Address</span>
+          <span className={styles.profileValue}>{formatAddress(customer.residentialAddress)}</span>
+        </div>
+      </div>
+
+      {/* Identity badges */}
+      {hasFlags && (
+        <div className={styles.profileBadges}>
+          {customer.identityVerified && (
+            <span className={`${styles.badge} ${styles.badgeVerified}`}>✓ Verified</span>
+          )}
+          {customer.staffFlag && (
+            <span className={`${styles.badge} ${styles.badgeStaff}`}>Staff</span>
+          )}
+          {customer.investorFlag && (
+            <span className={`${styles.badge} ${styles.badgeInvestor}`}>Investor</span>
+          )}
+          {customer.founderFlag && (
+            <span className={`${styles.badge} ${styles.badgeFounder}`}>Founder</span>
+          )}
+          {customer.vulnerableFlag && (
+            <span 
+              className={`${styles.badge} ${styles.badgeVulnerable}`}
+              data-testid="vulnerable-badge"
+            >
+              ⚠ Vulnerable
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

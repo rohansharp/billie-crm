@@ -2,77 +2,15 @@
 
 import Link from 'next/link'
 import { useCustomer } from '@/hooks/queries/useCustomer'
+import { CustomerProfile } from './CustomerProfile'
 import { CustomerProfileSkeleton } from './CustomerProfileSkeleton'
 import { LoanAccountsSkeleton } from './LoanAccountsSkeleton'
 import { TransactionsSkeleton } from './TransactionsSkeleton'
+import { VulnerableCustomerBanner } from './VulnerableCustomerBanner'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
   customerId: string
-}
-
-/**
- * Customer Profile section - displays customer details.
- * Placeholder for Story 2.2 full implementation.
- */
-const CustomerProfile: React.FC<{ customer: ReturnType<typeof useCustomer>['data'] }> = ({
-  customer,
-}) => {
-  if (!customer) return null
-
-  const initials = customer.fullName
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || '?'
-
-  return (
-    <div className={styles.profileCard}>
-      <div className={styles.profileHeader}>
-        <div className={styles.profileAvatar}>{initials}</div>
-        <div className={styles.profileHeaderText}>
-          <h2 className={styles.profileName}>{customer.fullName || 'Unknown'}</h2>
-          <span className={styles.profileCustomerId}>{customer.customerId}</span>
-        </div>
-      </div>
-
-      <div className={styles.profileDetails}>
-        <div className={styles.profileRow}>
-          <span className={styles.profileLabel}>Email</span>
-          <span className={styles.profileValue}>{customer.emailAddress || '—'}</span>
-        </div>
-        <div className={styles.profileRow}>
-          <span className={styles.profileLabel}>Phone</span>
-          <span className={styles.profileValue}>{customer.mobilePhoneNumber || '—'}</span>
-        </div>
-        <div className={styles.profileRow}>
-          <span className={styles.profileLabel}>Address</span>
-          <span className={styles.profileValue}>
-            {customer.residentialAddress?.fullAddress ||
-              customer.residentialAddress?.suburb ||
-              '—'}
-          </span>
-        </div>
-      </div>
-
-      {/* Identity badges */}
-      <div className={styles.profileBadges}>
-        {customer.identityVerified && (
-          <span className={`${styles.badge} ${styles.badgeVerified}`}>✓ Verified</span>
-        )}
-        {customer.staffFlag && (
-          <span className={`${styles.badge} ${styles.badgeStaff}`}>Staff</span>
-        )}
-        {customer.investorFlag && (
-          <span className={`${styles.badge} ${styles.badgeInvestor}`}>Investor</span>
-        )}
-        {customer.founderFlag && (
-          <span className={`${styles.badge} ${styles.badgeFounder}`}>Founder</span>
-        )}
-      </div>
-    </div>
-  )
 }
 
 /**
@@ -175,6 +113,7 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
 
   // Data loaded
   const accountCount = customer?.loanAccounts?.length ?? 0
+  const isVulnerable = customer?.vulnerableFlag ?? false
 
   return (
     <div className={styles.container}>
@@ -185,9 +124,12 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
         </div>
       </div>
 
+      {/* Vulnerable customer warning banner */}
+      {isVulnerable && <VulnerableCustomerBanner />}
+
       <div className={styles.grid}>
         <div className={styles.sidebar}>
-          <CustomerProfile customer={customer} />
+          {customer && <CustomerProfile customer={customer} />}
         </div>
         <div className={styles.main}>
           <LoanAccountsPlaceholder accountCount={accountCount} />

@@ -226,6 +226,14 @@ export const Customers: CollectionConfig = {
       },
     },
     {
+      name: 'vulnerableFlag',
+      type: 'checkbox',
+      admin: {
+        description: 'Indicates if customer requires additional care and support',
+        readOnly: true,
+      },
+    },
+    {
       name: 'ekycEntityId',
       type: 'text',
       admin: {

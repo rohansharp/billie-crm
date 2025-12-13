@@ -20,6 +20,7 @@ export interface CustomerData {
   staffFlag: boolean | null
   investorFlag: boolean | null
   founderFlag: boolean | null
+  vulnerableFlag: boolean | null
   residentialAddress: {
     fullAddress?: string | null
     street?: string | null

@@ -260,6 +260,10 @@ export interface Customer {
    */
   founderFlag?: boolean | null;
   /**
+   * Indicates if customer requires additional care and support
+   */
+  vulnerableFlag?: boolean | null;
+  /**
    * eKYC identifier from Frankie
    */
   ekycEntityId?: string | null;
@@ -908,6 +912,7 @@ export interface CustomersSelect<T extends boolean = true> {
   staffFlag?: T;
   investorFlag?: T;
   founderFlag?: T;
+  vulnerableFlag?: T;
   ekycEntityId?: T;
   ekycStatus?: T;
   individualStatus?: T;
