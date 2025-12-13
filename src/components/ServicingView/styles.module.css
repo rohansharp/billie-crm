@@ -1,0 +1,342 @@
+/* ServicingView Styles */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.headerTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0 0 8px 0;
+}
+
+.headerBreadcrumb {
+  font-size: 14px;
+  color: var(--theme-elevation-600, #666);
+}
+
+.headerBreadcrumb a {
+  color: var(--theme-elevation-800, #333);
+  text-decoration: none;
+}
+
+.headerBreadcrumb a:hover {
+  text-decoration: underline;
+}
+
+/* Grid Layout */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 350px 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 400px 1fr;
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Profile Card */
+.profileCard {
+  background: var(--theme-elevation-0, #fff);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.profileAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--theme-elevation-100, #f0f0f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--theme-elevation-600, #666);
+}
+
+.profileHeaderText {
+  flex: 1;
+}
+
+.profileName {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0 0 4px 0;
+}
+
+.profileCustomerId {
+  font-size: 13px;
+  color: var(--theme-elevation-600, #666);
+  font-family: monospace;
+}
+
+.profileDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profileRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.profileLabel {
+  font-size: 13px;
+  color: var(--theme-elevation-600, #666);
+  flex-shrink: 0;
+}
+
+.profileValue {
+  font-size: 14px;
+  color: var(--theme-text, #1a1a1a);
+  text-align: right;
+}
+
+.profileBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+.badgeVerified {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badgeStaff {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badgeInvestor {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.badgeFounder {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+/* Account Cards */
+.accountsSection {
+  background: var(--theme-elevation-0, #fff);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0 0 16px 0;
+}
+
+.accountsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accountCard {
+  background: var(--theme-elevation-50, #fafafa);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.accountHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.accountNumber {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.accountDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.balanceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.balanceLabel {
+  font-size: 13px;
+  color: var(--theme-elevation-600, #666);
+}
+
+.balanceValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Transactions */
+.transactionsSection {
+  background: var(--theme-elevation-0, #fff);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.transactionsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.transactionRow {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px 120px;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--theme-elevation-100, #e5e5e5);
+  font-size: 14px;
+}
+
+.transactionRow:last-child {
+  border-bottom: none;
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 48px;
+}
+
+.errorIcon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 24px;
+  color: var(--theme-elevation-400, #999);
+}
+
+.errorTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0 0 8px 0;
+}
+
+.errorMessage {
+  font-size: 14px;
+  color: var(--theme-elevation-600, #666);
+  margin: 0 0 24px 0;
+}
+
+.errorLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--theme-elevation-800, #333);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+.errorLink:hover {
+  background: var(--theme-elevation-900, #1a1a1a);
+}
+
+.errorHint {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--theme-elevation-500, #888);
+}
+
+/* Placeholder text for sections under development */
+.placeholderText {
+  color: var(--theme-elevation-600, #666);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px;
+  }
+
+  .profileCard,
+  .accountsSection,
+  .transactionsSection {
+    padding: 16px;
+  }
+
+  .transactionRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}

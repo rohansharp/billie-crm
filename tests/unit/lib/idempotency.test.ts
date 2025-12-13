@@ -18,12 +18,13 @@ describe('generateIdempotencyKey', () => {
 
   test('includes all components', () => {
     const key = generateIdempotencyKey('abc', 'xyz')
-    const parts = key.split('-')
-
-    expect(parts[0]).toBe('abc')
-    expect(parts[1]).toBe('xyz')
-    expect(parts[2]).toMatch(/^\d+$/) // timestamp
-    expect(parts[3]).toHaveLength(8) // nanoid
+    
+    // Key format: {userId}-{action}-{timestamp}-{random8}
+    // Note: nanoid can contain '-', so we match using regex instead of split
+    expect(key).toMatch(/^abc-xyz-\d+-[a-zA-Z0-9_-]{8}$/)
+    
+    // Verify starts with userId-action
+    expect(key.startsWith('abc-xyz-')).toBe(true)
   })
 
   test('timestamp is recent', () => {

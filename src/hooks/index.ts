@@ -2,6 +2,8 @@
 export { useGlobalHotkeys, useCommandPaletteHotkeys } from './useGlobalHotkeys'
 export { useCustomerSearch } from './queries/useCustomerSearch'
 export { useLoanAccountSearch } from './queries/useLoanAccountSearch'
+export { useCustomer } from './queries/useCustomer'
+export type { CustomerData } from './queries/useCustomer'
 
 // Re-export types from canonical location
 export type {

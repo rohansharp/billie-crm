@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { QueryClientProvider } from './query-client'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster, toast } from 'sonner'
@@ -20,6 +21,7 @@ import { useLoanAccountSearch } from '@/hooks/queries/useLoanAccountSearch'
  * Registered inside Providers to appear on all Payload admin pages.
  */
 const GlobalCommandPalette: React.FC = () => {
+  const router = useRouter()
   const {
     commandPaletteOpen,
     setCommandPaletteOpen,
@@ -43,22 +45,19 @@ const GlobalCommandPalette: React.FC = () => {
     accountSearch.isLoading ||
     accountSearch.isFetching
 
-  // Memoized handlers to prevent unnecessary re-renders
+  // Navigate to ServicingView when customer is selected (Story 2.1)
   const handleSelectCustomer = useCallback((customerId: string) => {
-    // Epic 2 will implement navigation to ServicingView
-    toast.info('Single Customer View coming in Epic 2', {
-      description: `Customer ${customerId} selected`,
-    })
     setCommandPaletteOpen(false)
-  }, [setCommandPaletteOpen])
+    router.push(`/admin/servicing/${customerId}`)
+  }, [setCommandPaletteOpen, router])
 
-  const handleSelectAccount = useCallback((accountNumber: string, _loanAccountId: string) => {
-    // Epic 2 will implement navigation to account servicing (using loanAccountId)
-    toast.info('Account servicing coming in Epic 2', {
-      description: `Account ${accountNumber} selected`,
-    })
+  // Navigate to customer's ServicingView when account is selected
+  const handleSelectAccount = useCallback((customerIdString: string | null) => {
     setCommandPaletteOpen(false)
-  }, [setCommandPaletteOpen])
+    if (customerIdString) {
+      router.push(`/admin/servicing/${customerIdString}`)
+    }
+  }, [setCommandPaletteOpen, router])
 
   // Show error toast if search fails (in useEffect to avoid render-time side effects)
   const hasError = customerSearch.isError || accountSearch.isError
@@ -100,7 +99,7 @@ const GlobalCommandPalette: React.FC = () => {
             <LoanAccountSearchResult
               key={account.id}
               account={account}
-              onSelect={() => handleSelectAccount(account.accountNumber, account.loanAccountId)}
+              onSelect={() => handleSelectAccount(account.customerIdString)}
             />
           ))}
         </Command.Group>

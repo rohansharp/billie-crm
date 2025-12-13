@@ -10,3 +10,6 @@ export type {
   CustomerSearchResultProps,
   LoanAccountSearchResultProps,
 } from './CommandPalette'
+
+export { Skeleton, SkeletonText } from './Skeleton'
+export type { SkeletonProps } from './Skeleton'

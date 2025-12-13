@@ -1,0 +1,40 @@
+/* Skeleton Loader Styles */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--theme-elevation-100, #e5e5e5) 25%,
+    var(--theme-elevation-50, #f0f0f0) 50%,
+    var(--theme-elevation-100, #e5e5e5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.text {
+  border-radius: 4px;
+  height: 1em;
+}
+
+.rectangular {
+  border-radius: 8px;
+}
+
+.circular {
+  border-radius: 50%;
+}
+
+.textBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
