@@ -52,7 +52,7 @@ development_status:
   2-1-servicingview-custom-payload-view: done
   2-2-customer-profile-identity-flags: done
   2-3-loan-accounts-list-live-balances: done
-  2-4-transaction-history-with-filtering: backlog
+  2-4-transaction-history-with-filtering: review
   epic-2-retrospective: optional
 
   # Epic 3: Financial Actions (Optimistic UI)

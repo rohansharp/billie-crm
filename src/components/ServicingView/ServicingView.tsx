@@ -11,6 +11,7 @@ import { TransactionsSkeleton } from './TransactionsSkeleton'
 import { VulnerableCustomerBanner } from './VulnerableCustomerBanner'
 import { LoanAccountCard } from './LoanAccountCard'
 import { LoanAccountDetails } from './LoanAccountDetails'
+import { TransactionHistory } from './TransactionHistory'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -81,19 +82,6 @@ const LoanAccountsList: React.FC<LoanAccountsListProps> = ({ accounts, onSelectA
   )
 }
 
-/**
- * Transactions placeholder - will be implemented in Story 2.4.
- */
-const TransactionsPlaceholder: React.FC = () => {
-  return (
-    <div className={styles.transactionsSection}>
-      <h3 className={styles.sectionTitle}>Transaction History</h3>
-      <p className={styles.placeholderText}>
-        Transaction details coming in Story 2.4
-      </p>
-    </div>
-  )
-}
 
 /**
  * ServicingView - Main customer servicing dashboard.
@@ -168,7 +156,7 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
         </div>
         <div className={styles.main}>
           <LoanAccountsList accounts={accounts} onSelectAccount={handleSelectAccount} />
-          <TransactionsPlaceholder />
+          <TransactionHistory loanAccountId={selectedAccount?.loanAccountId ?? null} />
         </div>
       </div>
 
