@@ -1,6 +1,6 @@
 # Story 2.3: Loan Accounts List with Live Balances
 
-**Status:** review
+**Status:** done
 
 ## Story
 
