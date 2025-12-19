@@ -1,12 +1,16 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { useCustomer } from '@/hooks/queries/useCustomer'
+import { useCustomer, type LoanAccountData } from '@/hooks/queries/useCustomer'
+import { ContextDrawer } from '@/components/ui/ContextDrawer'
 import { CustomerProfile } from './CustomerProfile'
 import { CustomerProfileSkeleton } from './CustomerProfileSkeleton'
 import { LoanAccountsSkeleton } from './LoanAccountsSkeleton'
 import { TransactionsSkeleton } from './TransactionsSkeleton'
 import { VulnerableCustomerBanner } from './VulnerableCustomerBanner'
+import { LoanAccountCard } from './LoanAccountCard'
+import { LoanAccountDetails } from './LoanAccountDetails'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -42,15 +46,37 @@ const CustomerNotFound: React.FC = () => {
 }
 
 /**
- * Loan Accounts placeholder - will be implemented in Story 2.3.
+ * Loan Accounts list with live balance display.
  */
-const LoanAccountsPlaceholder: React.FC<{ accountCount: number }> = ({ accountCount }) => {
+interface LoanAccountsListProps {
+  accounts: LoanAccountData[]
+  onSelectAccount: (account: LoanAccountData) => void
+}
+
+const LoanAccountsList: React.FC<LoanAccountsListProps> = ({ accounts, onSelectAccount }) => {
+  if (accounts.length === 0) {
+    return (
+      <div className={styles.accountsSection}>
+        <h3 className={styles.sectionTitle}>Loan Accounts</h3>
+        <p className={styles.placeholderText}>No loan accounts found</p>
+      </div>
+    )
+  }
+
   return (
     <div className={styles.accountsSection}>
-      <h3 className={styles.sectionTitle}>Loan Accounts</h3>
-      <p className={styles.placeholderText}>
-        {accountCount} account{accountCount !== 1 ? 's' : ''} — Details coming in Story 2.3
-      </p>
+      <h3 className={styles.sectionTitle}>
+        Loan Accounts ({accounts.length})
+      </h3>
+      <div className={styles.accountsList}>
+        {accounts.map((account) => (
+          <LoanAccountCard
+            key={account.id}
+            account={account}
+            onSelect={onSelectAccount}
+          />
+        ))}
+      </div>
     </div>
   )
 }
@@ -77,6 +103,15 @@ const TransactionsPlaceholder: React.FC = () => {
  */
 export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   const { data: customer, isLoading, isError } = useCustomer(customerId)
+  const [selectedAccount, setSelectedAccount] = useState<LoanAccountData | null>(null)
+
+  const handleSelectAccount = useCallback((account: LoanAccountData) => {
+    setSelectedAccount(account)
+  }, [])
+
+  const handleCloseDrawer = useCallback(() => {
+    setSelectedAccount(null)
+  }, [])
 
   // Error state
   if (isError) {
@@ -112,7 +147,7 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   }
 
   // Data loaded
-  const accountCount = customer?.loanAccounts?.length ?? 0
+  const accounts = customer?.loanAccounts ?? []
   const isVulnerable = customer?.vulnerableFlag ?? false
 
   return (
@@ -132,10 +167,19 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
           {customer && <CustomerProfile customer={customer} />}
         </div>
         <div className={styles.main}>
-          <LoanAccountsPlaceholder accountCount={accountCount} />
+          <LoanAccountsList accounts={accounts} onSelectAccount={handleSelectAccount} />
           <TransactionsPlaceholder />
         </div>
       </div>
+
+      {/* Account Details Drawer */}
+      <ContextDrawer
+        isOpen={selectedAccount !== null}
+        onClose={handleCloseDrawer}
+        title="Account Details"
+      >
+        {selectedAccount && <LoanAccountDetails account={selectedAccount} />}
+      </ContextDrawer>
     </div>
   )
 }

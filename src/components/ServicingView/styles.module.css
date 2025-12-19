@@ -245,23 +245,129 @@
 }
 
 .accountCard {
+  display: block;
+  width: 100%;
   background: var(--theme-elevation-50, #fafafa);
   border-radius: 8px;
   padding: 16px;
   border: 1px solid var(--theme-elevation-100, #e5e5e5);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.accountHeader {
+.accountCard:hover {
+  border-color: var(--theme-elevation-300, #ccc);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.accountCard:focus {
+  outline: 2px solid var(--theme-elevation-500, #888);
+  outline-offset: 2px;
+}
+
+.accountCardHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.accountCardTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .accountNumber {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--theme-text, #1a1a1a);
+}
+
+.accountStatus {
+  display: inline-flex;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+/* Shared status color classes - used with size-specific base classes */
+.statusActive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusPaidOff {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.statusArrears {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.statusWrittenOff {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.accountCardIndicator {
+  flex-shrink: 0;
+}
+
+.liveIndicator,
+.cachedIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.liveIndicator {
+  color: #166534;
+}
+
+.cachedIndicator {
+  color: #b45309;
+}
+
+.liveIndicatorDot,
+.cachedIndicatorDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.liveIndicatorDot {
+  background: #22c55e;
+}
+
+.cachedIndicatorDot {
+  background: #f59e0b;
+}
+
+.accountCardBalances {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.accountCardFooter {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.accountCardHint {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
 }
 
 .accountDetails {
@@ -286,6 +392,135 @@
   font-weight: 500;
   color: var(--theme-text, #1a1a1a);
   font-variant-numeric: tabular-nums;
+}
+
+.balanceRowTotal {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--theme-elevation-200, #ddd);
+}
+
+.balanceValueTotal {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Loan Account Details (Drawer) */
+.detailsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.detailsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.detailsAccountInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailsAccountNumber {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.detailsLoanId {
+  font-size: 13px;
+  color: var(--theme-elevation-600, #666);
+  font-family: monospace;
+}
+
+.detailsStatus {
+  display: inline-flex;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+/* Details status uses shared color classes above */
+
+.detailsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailsSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0;
+}
+
+.detailsLiveTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 4px;
+}
+
+.detailsCachedTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 4px;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.detailsItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailsLabel {
+  font-size: 12px;
+  color: var(--theme-elevation-600, #666);
+}
+
+.detailsValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.detailsValueHighlight {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.detailsTimestamp {
+  font-size: 11px;
+  color: var(--theme-elevation-500, #888);
+  margin: 0;
 }
 
 /* Transactions */

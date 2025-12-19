@@ -3,6 +3,48 @@
 import { useQuery } from '@tanstack/react-query'
 
 /**
+ * Live balance data from gRPC ledger service.
+ */
+export interface LiveBalanceData {
+  principalBalance: number
+  feeBalance: number
+  totalOutstanding: number
+  asOf: string
+}
+
+/**
+ * Loan account data returned by the customer API.
+ */
+export interface LoanAccountData {
+  id: string
+  loanAccountId: string
+  accountNumber: string
+  accountStatus: 'active' | 'paid_off' | 'in_arrears' | 'written_off'
+  loanTerms: {
+    loanAmount: number | null
+    loanFee: number | null
+    totalPayable: number | null
+    openedDate: string | null
+  } | null
+  balances: {
+    currentBalance: number | null
+    totalOutstanding: number | null
+    totalPaid: number | null
+  } | null
+  liveBalance: LiveBalanceData | null
+  lastPayment: {
+    date: string | null
+    amount: number | null
+  } | null
+  repaymentSchedule: {
+    scheduleId: string | null
+    numberOfPayments: number | null
+    paymentFrequency: 'weekly' | 'fortnightly' | 'monthly' | null
+  } | null
+  createdAt: string
+}
+
+/**
  * Subset of customer data returned by the API.
  * Matches the shape used by ServicingView.
  */
@@ -28,7 +70,17 @@ export interface CustomerData {
     state?: string | null
     postcode?: string | null
   } | null
-  loanAccounts?: Array<{ id: string }> | null
+  loanAccounts?: LoanAccountData[] | null
+}
+
+interface CustomerApiResponse {
+  customer: Omit<CustomerData, 'loanAccounts'>
+  accounts: LoanAccountData[]
+  summary: {
+    totalAccounts: number
+    activeAccounts: number
+    totalOutstanding: number
+  }
 }
 
 async function fetchCustomer(customerId: string): Promise<CustomerData> {
@@ -41,7 +93,13 @@ async function fetchCustomer(customerId: string): Promise<CustomerData> {
     throw new Error('Failed to fetch customer')
   }
   
-  return res.json()
+  const data: CustomerApiResponse = await res.json()
+  
+  // Merge customer and accounts into CustomerData shape
+  return {
+    ...data.customer,
+    loanAccounts: data.accounts,
+  }
 }
 
 /**

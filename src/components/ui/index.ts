@@ -13,3 +13,6 @@ export type {
 
 export { Skeleton, SkeletonText } from './Skeleton'
 export type { SkeletonProps } from './Skeleton'
+
+export { ContextDrawer } from './ContextDrawer'
+export type { ContextDrawerProps } from './ContextDrawer'
