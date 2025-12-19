@@ -295,3 +295,4 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ loanAcco
     </div>
   )
 }
+

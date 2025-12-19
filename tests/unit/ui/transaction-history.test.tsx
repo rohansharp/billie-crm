@@ -193,3 +193,4 @@ describe('TransactionHistory component', () => {
     expect(screen.getByTestId('transaction-history')).toBeInTheDocument()
   })
 })
+

@@ -48,11 +48,11 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Single Customer View
-  epic-2: in-progress
+  epic-2: done
   2-1-servicingview-custom-payload-view: done
   2-2-customer-profile-identity-flags: done
   2-3-loan-accounts-list-live-balances: done
-  2-4-transaction-history-with-filtering: review
+  2-4-transaction-history-with-filtering: done
   epic-2-retrospective: optional
 
   # Epic 3: Financial Actions (Optimistic UI)
