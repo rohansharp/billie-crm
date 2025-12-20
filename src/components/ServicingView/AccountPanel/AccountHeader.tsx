@@ -11,6 +11,7 @@ export interface AccountHeaderProps {
   showClose?: boolean
   onRefresh?: () => void
   isRefreshing?: boolean
+  hasPendingWriteOff?: boolean
 }
 
 // Hoisted for performance
@@ -29,6 +30,7 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({
   showClose = true,
   onRefresh,
   isRefreshing = false,
+  hasPendingWriteOff = false,
 }) => {
   const statusConfig = getStatusConfig(account.accountStatus)
   const hasLiveBalance = account.liveBalance !== null
@@ -57,6 +59,15 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({
           <span className={styles.accountHeaderCached}>
             <span className={styles.accountHeaderCachedDot} />
             Cached
+          </span>
+        )}
+        {hasPendingWriteOff && (
+          <span
+            className={styles.accountHeaderWriteOffBadge}
+            title="Write-off request pending approval"
+            data-testid="pending-writeoff-badge"
+          >
+            📝 Write-Off Pending
           </span>
         )}
       </div>

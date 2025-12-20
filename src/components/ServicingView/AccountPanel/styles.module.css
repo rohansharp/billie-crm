@@ -120,6 +120,18 @@
   }
 }
 
+.accountHeaderWriteOffBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
 .accountHeaderLive,
 .accountHeaderCached {
   display: inline-flex;
@@ -456,6 +468,32 @@
 .actionCardBtnPrimary:hover:not(:disabled) {
   background: #059669;
   border-color: #059669;
+}
+
+.actionCardBtnDanger {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+.actionCardBtnDanger:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.actionCardBtnDanger:disabled {
+  background: #fca5a5;
+  border-color: #fca5a5;
+}
+
+.actionCardBadge {
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 4px;
 }
 
 .actionsFuture {

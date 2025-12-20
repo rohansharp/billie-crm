@@ -29,6 +29,10 @@ export interface AccountPanelProps {
   onRefresh?: () => void
   /** Whether data is currently being refreshed */
   isRefreshing?: boolean
+  /** Callback to open write-off request form */
+  onRequestWriteOff?: () => void
+  /** Whether there's a pending write-off for this account */
+  hasPendingWriteOff?: boolean
 }
 
 /**
@@ -53,6 +57,8 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
   feesCount,
   onRefresh,
   isRefreshing,
+  onRequestWriteOff,
+  hasPendingWriteOff,
 }) => {
   // Other accounts for switcher (exclude current)
   const otherAccounts = useMemo(
@@ -95,6 +101,8 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
             account={account}
             onRecordRepayment={onRecordRepayment}
             onWaiveFee={onWaiveFee}
+            onRequestWriteOff={onRequestWriteOff}
+            hasPendingWriteOff={hasPendingWriteOff}
           />
         )
       default:
@@ -110,6 +118,7 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
         showClose={showClose}
         onRefresh={onRefresh}
         isRefreshing={isRefreshing}
+        hasPendingWriteOff={hasPendingWriteOff}
       />
       <AccountTabs
         activeTab={activeTab}

@@ -1,0 +1,271 @@
+import type { CollectionConfig, Access } from 'payload'
+import type { User } from '@/payload-types'
+
+/** Helper to safely get role from user with proper typing */
+function getUserRole(user: unknown): User['role'] | undefined {
+  if (user && typeof user === 'object' && 'role' in user) {
+    return (user as User).role
+  }
+  return undefined
+}
+
+/**
+ * Access control: Any authenticated user can read write-off requests
+ */
+const canRead: Access = ({ req }) => {
+  return !!req.user
+}
+
+/**
+ * Access control: Operations, Supervisor, and Admin can create write-off requests
+ */
+const canCreate: Access = ({ req }) => {
+  const role = getUserRole(req.user)
+  return role !== undefined && ['admin', 'supervisor', 'operations'].includes(role)
+}
+
+/**
+ * Access control: Only Admin and Supervisor can update (approve/reject)
+ */
+const canUpdate: Access = ({ req }) => {
+  const role = getUserRole(req.user)
+  return role !== undefined && ['admin', 'supervisor'].includes(role)
+}
+
+/**
+ * Access control: Only Admin can delete write-off requests
+ */
+const canDelete: Access = ({ req }) => {
+  return getUserRole(req.user) === 'admin'
+}
+
+/**
+ * Write-Off Requests Collection
+ *
+ * Stores write-off requests for loan accounts, requiring approval workflow.
+ * Part of Epic 4: Write-Off & Approval Workflow.
+ */
+export const WriteOffRequests: CollectionConfig = {
+  slug: 'write-off-requests',
+  admin: {
+    useAsTitle: 'requestNumber',
+    group: 'Servicing',
+    defaultColumns: ['requestNumber', 'status', 'loanAccountId', 'amount', 'createdAt'],
+    description: 'Write-off requests requiring approval',
+  },
+  access: {
+    read: canRead,
+    create: canCreate,
+    update: canUpdate,
+    delete: canDelete,
+  },
+  hooks: {
+    beforeChange: [
+      async ({ data, operation }) => {
+        // Generate request number on create
+        if (operation === 'create') {
+          const timestamp = Date.now().toString(36).toUpperCase()
+          const random = Math.random().toString(36).substring(2, 6).toUpperCase()
+          data.requestNumber = `WO-${timestamp}-${random}`
+        }
+        return data
+      },
+    ],
+  },
+  fields: [
+    {
+      name: 'requestNumber',
+      type: 'text',
+      admin: {
+        readOnly: true,
+        description: 'Auto-generated request reference number',
+      },
+      index: true,
+    },
+    {
+      name: 'loanAccountId',
+      type: 'text',
+      required: true,
+      index: true,
+      admin: {
+        description: 'The loan account ID for the write-off request',
+      },
+    },
+    {
+      name: 'customerId',
+      type: 'text',
+      required: true,
+      index: true,
+      admin: {
+        description: 'The customer ID associated with the loan account',
+      },
+    },
+    {
+      name: 'customerName',
+      type: 'text',
+      admin: {
+        description: 'Customer name for display purposes',
+      },
+    },
+    {
+      name: 'accountNumber',
+      type: 'text',
+      admin: {
+        description: 'Account number for display purposes',
+      },
+    },
+    {
+      name: 'amount',
+      type: 'number',
+      required: true,
+      min: 0,
+      admin: {
+        description: 'Write-off amount in AUD',
+      },
+    },
+    {
+      name: 'originalBalance',
+      type: 'number',
+      admin: {
+        description: 'Account balance at time of request',
+      },
+    },
+    {
+      name: 'reason',
+      type: 'select',
+      required: true,
+      options: [
+        { label: 'Customer Hardship', value: 'hardship' },
+        { label: 'Bankruptcy/Insolvency', value: 'bankruptcy' },
+        { label: 'Deceased Estate', value: 'deceased' },
+        { label: 'Unable to Locate', value: 'unable_to_locate' },
+        { label: 'Fraud - Customer is Victim', value: 'fraud_victim' },
+        { label: 'Disputed Debt', value: 'disputed' },
+        { label: 'Aged Debt (>180 days)', value: 'aged_debt' },
+        { label: 'Other', value: 'other' },
+      ],
+      admin: {
+        description: 'Primary reason for the write-off request',
+      },
+    },
+    {
+      name: 'notes',
+      type: 'textarea',
+      admin: {
+        description: 'Supporting notes and context for the request',
+      },
+    },
+    {
+      name: 'supportingDocuments',
+      type: 'array',
+      admin: {
+        description: 'Uploaded supporting documents',
+      },
+      fields: [
+        {
+          name: 'document',
+          type: 'upload',
+          relationTo: 'media',
+        },
+        {
+          name: 'description',
+          type: 'text',
+        },
+      ],
+    },
+    {
+      name: 'status',
+      type: 'select',
+      required: true,
+      defaultValue: 'pending',
+      options: [
+        { label: 'Pending Approval', value: 'pending' },
+        { label: 'Approved', value: 'approved' },
+        { label: 'Rejected', value: 'rejected' },
+        { label: 'Cancelled', value: 'cancelled' },
+      ],
+      index: true,
+      admin: {
+        description: 'Current status of the write-off request',
+      },
+    },
+    {
+      name: 'priority',
+      type: 'select',
+      defaultValue: 'normal',
+      options: [
+        { label: 'Normal', value: 'normal' },
+        { label: 'High', value: 'high' },
+        { label: 'Urgent', value: 'urgent' },
+      ],
+      admin: {
+        description: 'Priority level for approval queue',
+      },
+    },
+    {
+      name: 'requiresSeniorApproval',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Flag for requests exceeding threshold ($10,000)',
+      },
+    },
+    // Requestor information
+    {
+      name: 'requestedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        description: 'User who submitted the request',
+      },
+    },
+    {
+      name: 'requestedByName',
+      type: 'text',
+      admin: {
+        description: 'Requestor name for audit purposes',
+      },
+    },
+    // Approval information
+    {
+      name: 'approvalDetails',
+      type: 'group',
+      admin: {
+        condition: (data) => data?.status === 'approved' || data?.status === 'rejected',
+      },
+      fields: [
+        {
+          name: 'decidedBy',
+          type: 'relationship',
+          relationTo: 'users',
+        },
+        {
+          name: 'decidedByName',
+          type: 'text',
+        },
+        {
+          name: 'decidedAt',
+          type: 'date',
+        },
+        {
+          name: 'comment',
+          type: 'textarea',
+          admin: {
+            description: 'Approval or rejection comment',
+          },
+        },
+      ],
+    },
+    // Audit fields
+    {
+      name: 'requestedAt',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        description: 'Timestamp when request was submitted',
+      },
+      defaultValue: () => new Date().toISOString(),
+    },
+  ],
+  timestamps: true,
+}

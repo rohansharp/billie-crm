@@ -57,12 +57,24 @@ This file tracks items identified during code reviews that were deferred for fut
 
 ---
 
+## Epic 4: Write-Off & Approval Workflow
+
+### Story 4.1: Write-Off Request Form
+| ID | Item | Priority | Notes |
+|----|------|----------|-------|
+| 4.1-D1 | Document upload for supporting evidence | Medium | AC1 mentions document upload; requires storage config |
+| 4.1-D2 | Request priority selection in form | Low | Form only shows "Normal"; priority field exists in collection |
+| 4.1-D3 | Draft/save request without submitting | Low | Future enhancement for complex requests |
+
+---
+
 ## Summary by Priority
 
 ### Medium Priority
 - **3.1-D1**: Auth context for `approvedBy` in waive fee (and record repayment)
 - **3.3-D1**: Server-side idempotency (API acceptance of idempotency keys)
 - **3.3-D2**: Retry with same idempotency key (requires 3.3-D1)
+- **4.1-D1**: Document upload for write-off supporting evidence
 
 ### Low Priority
 - 1.4-D1: Hook behavior tests
@@ -77,4 +89,4 @@ This file tracks items identified during code reviews that were deferred for fut
 
 ---
 
-*Last updated: Epic 3 completion*
+*Last updated: Story 4.1 completion*

@@ -9,6 +9,8 @@ export interface ActionsTabProps {
   account: LoanAccountData
   onRecordRepayment: () => void
   onWaiveFee: () => void
+  onRequestWriteOff?: () => void
+  hasPendingWriteOff?: boolean
 }
 
 // Hoisted for performance
@@ -25,6 +27,8 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
   account,
   onRecordRepayment,
   onWaiveFee,
+  onRequestWriteOff,
+  hasPendingWriteOff = false,
 }) => {
   const readOnlyMode = useUIStore((state) => state.readOnlyMode)
   const hasPendingAction = useOptimisticStore((state) => state.hasPendingAction)
@@ -105,10 +109,40 @@ export const ActionsTab: React.FC<ActionsTabProps> = ({
         </div>
       </div>
 
+      {/* Request Write-Off Action */}
+      {onRequestWriteOff && (
+        <div className={styles.actionCard}>
+          <div className={styles.actionCardHeader}>
+            <span className={styles.actionCardIcon}>📝</span>
+            <span className={styles.actionCardTitle}>Request Write-Off</span>
+            {hasPendingWriteOff && (
+              <span className={styles.actionCardBadge}>Pending</span>
+            )}
+          </div>
+          <p className={styles.actionCardDescription}>
+            Submit a write-off request for this account. Requires approval from a supervisor.
+          </p>
+          <div className={styles.actionCardFooter}>
+            <span className={styles.actionCardMeta}>
+              Balance: {currencyFormatter.format(totalOutstanding)}
+            </span>
+            <button
+              type="button"
+              className={`${styles.actionCardBtn} ${styles.actionCardBtnDanger}`}
+              onClick={onRequestWriteOff}
+              disabled={readOnlyMode || hasPendingWriteOff}
+              data-testid="action-request-writeoff"
+            >
+              {hasPendingWriteOff ? '⏳ Pending Approval' : 'Request Write-Off'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Future actions placeholder */}
       <div className={styles.actionsFuture}>
         <p className={styles.actionsFutureText}>
-          More actions coming soon: Write-Off, Reschedule Payment, Send Statement
+          More actions coming soon: Reschedule Payment, Send Statement
         </p>
       </div>
     </div>

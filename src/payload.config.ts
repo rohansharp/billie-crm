@@ -13,6 +13,7 @@ import { Customers } from './collections/Customers'
 import { Conversations } from './collections/Conversations'
 import { Applications } from './collections/Applications'
 import { LoanAccounts } from './collections/LoanAccounts'
+import { WriteOffRequests } from './collections/WriteOffRequests'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -27,7 +28,7 @@ export default buildConfig({
       providers: ['@/providers'],
     },
   },
-  collections: [Users, Media, Customers, Conversations, Applications, LoanAccounts],
+  collections: [Users, Media, Customers, Conversations, Applications, LoanAccounts, WriteOffRequests],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

@@ -1092,6 +1092,234 @@
   font-size: 16px;
 }
 
+/* Write-Off Request Drawer */
+.writeOffForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.writeOffSummary {
+  padding: 16px;
+  background: var(--theme-elevation-50, #fafafa);
+  border-radius: 8px;
+}
+
+.writeOffSummaryTitle {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.writeOffSummaryGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.writeOffSummaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.writeOffSummaryLabel {
+  font-size: 13px;
+  color: var(--theme-elevation-600, #666);
+}
+
+.writeOffSummaryValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+  font-family: monospace;
+}
+
+.writeOffSummaryValueLarge {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.writeOffError {
+  padding: 12px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.writeOffField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.writeOffLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.writeOffInputWrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.writeOffInputPrefix {
+  padding: 12px;
+  background: var(--theme-elevation-50, #fafafa);
+  border-right: 1px solid var(--theme-elevation-200, #ddd);
+  color: var(--theme-elevation-600, #666);
+  font-weight: 500;
+}
+
+.writeOffInput {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  font-size: 14px;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.writeOffInput:focus {
+  box-shadow: inset 0 0 0 1px #3b82f6;
+}
+
+.writeOffInput:disabled {
+  background: var(--theme-elevation-50, #fafafa);
+  color: var(--theme-elevation-500, #888);
+}
+
+.writeOffSelect {
+  padding: 12px;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+  cursor: pointer;
+}
+
+.writeOffSelect:focus {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.writeOffSelect:disabled {
+  background: var(--theme-elevation-50, #fafafa);
+  color: var(--theme-elevation-500, #888);
+  cursor: not-allowed;
+}
+
+.writeOffTextarea {
+  padding: 12px;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  outline: none;
+}
+
+.writeOffTextarea:focus {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.writeOffTextarea:disabled {
+  background: var(--theme-elevation-50, #fafafa);
+  color: var(--theme-elevation-500, #888);
+}
+
+.writeOffHint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.writeOffActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.writeOffCancelBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--theme-text, #1a1a1a);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.writeOffCancelBtn:hover {
+  background: var(--theme-elevation-50, #fafafa);
+}
+
+.writeOffSubmitBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: #ef4444;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.writeOffSubmitBtn:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.writeOffSubmitBtn:disabled {
+  background: #fca5a5;
+  cursor: not-allowed;
+}
+
+.seniorApprovalWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid #fcd34d;
+}
+
+.warningIcon {
+  font-size: 16px;
+}
+
+/* Pending Write-Off Badge */
+.pendingWriteOffBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.pendingWriteOffBadgeIcon {
+  font-size: 12px;
+}
+
 /* Details Action Button */
 .detailsActions {
   display: flex;

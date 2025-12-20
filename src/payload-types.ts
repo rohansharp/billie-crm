@@ -73,6 +73,7 @@ export interface Config {
     conversations: Conversation;
     applications: Application;
     'loan-accounts': LoanAccount;
+    'write-off-requests': WriteOffRequest;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -85,6 +86,7 @@ export interface Config {
     conversations: ConversationsSelect<false> | ConversationsSelect<true>;
     applications: ApplicationsSelect<false> | ApplicationsSelect<true>;
     'loan-accounts': LoanAccountsSelect<false> | LoanAccountsSelect<true>;
+    'write-off-requests': WriteOffRequestsSelect<false> | WriteOffRequestsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -753,6 +755,104 @@ export interface LoanAccount {
   createdAt: string;
 }
 /**
+ * Write-off requests requiring approval
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "write-off-requests".
+ */
+export interface WriteOffRequest {
+  id: string;
+  /**
+   * Auto-generated request reference number
+   */
+  requestNumber?: string | null;
+  /**
+   * The loan account ID for the write-off request
+   */
+  loanAccountId: string;
+  /**
+   * The customer ID associated with the loan account
+   */
+  customerId: string;
+  /**
+   * Customer name for display purposes
+   */
+  customerName?: string | null;
+  /**
+   * Account number for display purposes
+   */
+  accountNumber?: string | null;
+  /**
+   * Write-off amount in AUD
+   */
+  amount: number;
+  /**
+   * Account balance at time of request
+   */
+  originalBalance?: number | null;
+  /**
+   * Primary reason for the write-off request
+   */
+  reason:
+    | 'hardship'
+    | 'bankruptcy'
+    | 'deceased'
+    | 'unable_to_locate'
+    | 'fraud_victim'
+    | 'disputed'
+    | 'aged_debt'
+    | 'other';
+  /**
+   * Supporting notes and context for the request
+   */
+  notes?: string | null;
+  /**
+   * Uploaded supporting documents
+   */
+  supportingDocuments?:
+    | {
+        document?: (string | null) | Media;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Current status of the write-off request
+   */
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  /**
+   * Priority level for approval queue
+   */
+  priority?: ('normal' | 'high' | 'urgent') | null;
+  /**
+   * Flag for requests exceeding threshold ($10,000)
+   */
+  requiresSeniorApproval?: boolean | null;
+  /**
+   * User who submitted the request
+   */
+  requestedBy?: (string | null) | User;
+  /**
+   * Requestor name for audit purposes
+   */
+  requestedByName?: string | null;
+  approvalDetails?: {
+    decidedBy?: (string | null) | User;
+    decidedByName?: string | null;
+    decidedAt?: string | null;
+    /**
+     * Approval or rejection comment
+     */
+    comment?: string | null;
+  };
+  /**
+   * Timestamp when request was submitted
+   */
+  requestedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -782,6 +882,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'loan-accounts';
         value: string | LoanAccount;
+      } | null)
+    | ({
+        relationTo: 'write-off-requests';
+        value: string | WriteOffRequest;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1136,6 +1240,44 @@ export interface LoanAccountsSelect<T extends boolean = true> {
             };
         createdDate?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "write-off-requests_select".
+ */
+export interface WriteOffRequestsSelect<T extends boolean = true> {
+  requestNumber?: T;
+  loanAccountId?: T;
+  customerId?: T;
+  customerName?: T;
+  accountNumber?: T;
+  amount?: T;
+  originalBalance?: T;
+  reason?: T;
+  notes?: T;
+  supportingDocuments?:
+    | T
+    | {
+        document?: T;
+        description?: T;
+        id?: T;
+      };
+  status?: T;
+  priority?: T;
+  requiresSeniorApproval?: T;
+  requestedBy?: T;
+  requestedByName?: T;
+  approvalDetails?:
+    | T
+    | {
+        decidedBy?: T;
+        decidedByName?: T;
+        decidedAt?: T;
+        comment?: T;
+      };
+  requestedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

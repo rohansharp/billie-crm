@@ -15,8 +15,10 @@ import { LoanAccountCard } from './LoanAccountCard'
 import { WaiveFeeDrawer } from './WaiveFeeDrawer'
 import { RecordRepaymentDrawer } from './RecordRepaymentDrawer'
 import { BulkWaiveFeeDrawer } from './BulkWaiveFeeDrawer'
+import { WriteOffRequestDrawer } from './WriteOffRequestDrawer'
 import { AccountPanel, type TabId } from './AccountPanel'
 import type { SelectedFee } from './FeeList'
+import { usePendingWriteOff } from '@/hooks/queries/usePendingWriteOff'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -152,6 +154,7 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   const [recordRepaymentOpen, setRecordRepaymentOpen] = useState(false)
   const [bulkWaiveOpen, setBulkWaiveOpen] = useState(false)
   const [selectedFees, setSelectedFees] = useState<SelectedFee[]>([])
+  const [writeOffOpen, setWriteOffOpen] = useState(false)
 
   // Derive accounts and selected account
   const accounts = customer?.loanAccounts ?? []
@@ -162,6 +165,11 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
 
   // Get fees count for badge
   const feesCount = useFeesCount(selectedAccountId)
+
+  // Check for pending write-off (fail open: allow action if query errors)
+  const { data: pendingWriteOff, isError: pendingWriteOffError } = usePendingWriteOff(selectedAccountId)
+  // Only block if we have confirmed pending data; allow if error/loading (fail open for UX)
+  const hasPendingWriteOff = !pendingWriteOffError && !!pendingWriteOff
 
   // Auto-select single account
   useEffect(() => {
@@ -219,6 +227,14 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
 
   const handleBulkWaiveSuccess = useCallback(() => {
     setSelectedFees([])
+  }, [])
+
+  const handleOpenWriteOff = useCallback(() => {
+    setWriteOffOpen(true)
+  }, [])
+
+  const handleCloseWriteOff = useCallback(() => {
+    setWriteOffOpen(false)
   }, [])
 
   // Refresh handler - invalidates appropriate queries based on active tab
@@ -320,6 +336,8 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
               feesCount={feesCount}
               onRefresh={handleRefresh}
               isRefreshing={isFetchingData}
+              onRequestWriteOff={handleOpenWriteOff}
+              hasPendingWriteOff={hasPendingWriteOff}
             />
           ) : (
             <AccountSelectionPrompt />
@@ -359,6 +377,23 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
           loanAccountId={selectedAccount.loanAccountId}
           selectedFees={selectedFees}
           onSuccess={handleBulkWaiveSuccess}
+        />
+      )}
+
+      {/* Write-Off Request Drawer - overlay */}
+      {selectedAccount && (
+        <WriteOffRequestDrawer
+          isOpen={writeOffOpen}
+          onClose={handleCloseWriteOff}
+          loanAccountId={selectedAccount.loanAccountId}
+          customerId={customerId}
+          customerName={customer?.fullName ?? undefined}
+          accountNumber={selectedAccount.accountNumber}
+          totalOutstanding={
+            selectedAccount.liveBalance?.totalOutstanding ??
+            selectedAccount.balances?.totalOutstanding ??
+            0
+          }
         />
       )}
     </div>
