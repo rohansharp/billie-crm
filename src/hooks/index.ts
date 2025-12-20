@@ -8,6 +8,12 @@ export type { CustomerData } from './queries/useCustomer'
 // Mutations
 export { useWaiveFee } from './mutations/useWaiveFee'
 export type { WaiveFeeParams, WaiveFeeResponse } from './mutations/useWaiveFee'
+export { useRecordRepayment } from './mutations/useRecordRepayment'
+export type {
+  RecordRepaymentParams,
+  RecordRepaymentResponse,
+  RepaymentAllocation,
+} from './mutations/useRecordRepayment'
 
 // Re-export types from canonical location
 export type {

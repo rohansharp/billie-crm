@@ -1042,6 +1042,266 @@
   border-color: #059669;
 }
 
+/* Record Repayment Drawer */
+.repaymentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.repaymentBalance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--theme-elevation-50, #fafafa);
+  border-radius: 8px;
+}
+
+.repaymentBalanceLabel {
+  font-size: 14px;
+  color: var(--theme-elevation-600, #666);
+}
+
+.repaymentBalanceValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.repaymentError {
+  padding: 12px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.repaymentField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.repaymentLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.repaymentInputWrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.repaymentInputPrefix {
+  padding: 10px 12px;
+  background: var(--theme-elevation-50, #fafafa);
+  color: var(--theme-elevation-600, #666);
+  font-size: 14px;
+  border-right: 1px solid var(--theme-elevation-200, #ddd);
+}
+
+.repaymentInput {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  font-size: 14px;
+  color: var(--theme-text, #1a1a1a);
+  outline: none;
+}
+
+.repaymentInput:focus {
+  box-shadow: inset 0 0 0 2px var(--theme-elevation-500, #888);
+}
+
+.repaymentInput:disabled {
+  background: var(--theme-elevation-100, #f3f3f3);
+  cursor: not-allowed;
+}
+
+.repaymentTextInput {
+  padding: 10px 12px;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.repaymentTextInput:focus {
+  outline: 2px solid var(--theme-elevation-500, #888);
+  outline-offset: -1px;
+}
+
+.repaymentTextInput:disabled {
+  background: var(--theme-elevation-100, #f3f3f3);
+  cursor: not-allowed;
+}
+
+.repaymentSelect {
+  padding: 10px 12px;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--theme-text, #1a1a1a);
+  background: var(--theme-elevation-0, #fff);
+  cursor: pointer;
+}
+
+.repaymentSelect:focus {
+  outline: 2px solid var(--theme-elevation-500, #888);
+  outline-offset: -1px;
+}
+
+.repaymentSelect:disabled {
+  background: var(--theme-elevation-100, #f3f3f3);
+  cursor: not-allowed;
+}
+
+.repaymentTextarea {
+  padding: 10px 12px;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--theme-text, #1a1a1a);
+  resize: vertical;
+  min-height: 60px;
+}
+
+.repaymentTextarea:focus {
+  outline: 2px solid var(--theme-elevation-500, #888);
+  outline-offset: -1px;
+}
+
+.repaymentTextarea:disabled {
+  background: var(--theme-elevation-100, #f3f3f3);
+  cursor: not-allowed;
+}
+
+.repaymentHint {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+  margin: 0;
+}
+
+.repaymentActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.repaymentCancelBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  background: var(--theme-elevation-0, #fff);
+  color: var(--theme-text, #1a1a1a);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.repaymentCancelBtn:hover {
+  background: var(--theme-elevation-50, #fafafa);
+}
+
+.repaymentSubmitBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: #3b82f6;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.repaymentSubmitBtn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.repaymentSubmitBtn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Overpayment Confirmation */
+.overpaymentConfirm {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+}
+
+.overpaymentConfirmIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.overpaymentConfirmContent {
+  flex: 1;
+}
+
+.overpaymentConfirmTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+  margin: 0 0 4px;
+}
+
+.overpaymentConfirmText {
+  font-size: 13px;
+  color: #b45309;
+  margin: 0 0 12px;
+}
+
+.overpaymentConfirmActions {
+  display: flex;
+  gap: 8px;
+}
+
+.overpaymentCancelBtn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #d97706;
+  border-radius: 4px;
+  background: transparent;
+  color: #92400e;
+  cursor: pointer;
+}
+
+.overpaymentCancelBtn:hover {
+  background: rgba(217, 119, 6, 0.1);
+}
+
+.overpaymentConfirmBtn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  background: #d97706;
+  color: #fff;
+  cursor: pointer;
+}
+
+.overpaymentConfirmBtn:hover {
+  background: #b45309;
+}
+
 /* Error State */
 .errorContainer {
   display: flex;

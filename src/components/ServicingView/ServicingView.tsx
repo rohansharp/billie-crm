@@ -13,6 +13,7 @@ import { LoanAccountCard } from './LoanAccountCard'
 import { LoanAccountDetails } from './LoanAccountDetails'
 import { TransactionHistory } from './TransactionHistory'
 import { WaiveFeeDrawer } from './WaiveFeeDrawer'
+import { RecordRepaymentDrawer } from './RecordRepaymentDrawer'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -94,6 +95,7 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   const { data: customer, isLoading, isError } = useCustomer(customerId)
   const [selectedAccount, setSelectedAccount] = useState<LoanAccountData | null>(null)
   const [waiveFeeOpen, setWaiveFeeOpen] = useState(false)
+  const [recordRepaymentOpen, setRecordRepaymentOpen] = useState(false)
 
   const handleSelectAccount = useCallback((account: LoanAccountData) => {
     setSelectedAccount(account)
@@ -109,6 +111,14 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
 
   const handleCloseWaiveFee = useCallback(() => {
     setWaiveFeeOpen(false)
+  }, [])
+
+  const handleOpenRecordRepayment = useCallback(() => {
+    setRecordRepaymentOpen(true)
+  }, [])
+
+  const handleCloseRecordRepayment = useCallback(() => {
+    setRecordRepaymentOpen(false)
   }, [])
 
   // Error state
@@ -180,6 +190,7 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
           <LoanAccountDetails
             account={selectedAccount}
             onWaiveFee={handleOpenWaiveFee}
+            onRecordRepayment={handleOpenRecordRepayment}
           />
         )}
       </ContextDrawer>
@@ -192,6 +203,20 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
           loanAccountId={selectedAccount.loanAccountId}
           currentFeeBalance={
             selectedAccount.liveBalance?.feeBalance ?? 0
+          }
+        />
+      )}
+
+      {/* Record Repayment Drawer */}
+      {selectedAccount && (
+        <RecordRepaymentDrawer
+          isOpen={recordRepaymentOpen}
+          onClose={handleCloseRecordRepayment}
+          loanAccountId={selectedAccount.loanAccountId}
+          totalOutstanding={
+            selectedAccount.liveBalance?.totalOutstanding ??
+            selectedAccount.balances?.totalOutstanding ??
+            0
           }
         />
       )}
