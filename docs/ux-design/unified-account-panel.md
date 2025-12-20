@@ -1,27 +1,49 @@
-# Unified Account Panel - UX Implementation Plan
+# Unified Account Panel - UX Implementation
 
 **Author:** Sally (UX Designer)  
 **Date:** 11 Dec 2025  
-**Status:** Approved for Implementation
+**Status:** ✅ Implemented (Phase 1 + Phase 2)
 
 ---
 
 ## 1. Executive Summary
 
-Transform the ServicingView from a drawer-based detail view to a unified account panel with tabs. This eliminates the UX friction where the account details drawer obstructs transaction history and creates context loss when closed.
+Transformed the ServicingView from a drawer-based detail view to a unified account panel with tabs. This eliminates the UX friction where the account details drawer obstructed transaction history and created context loss when closed.
 
-### Key Benefits
-- **No occlusion** - All content visible, no overlays
-- **Clear context** - Always know which account you're viewing
-- **Quick access** - Tabs for instant navigation between aspects
-- **Seamless switching** - Mini-cards for quick account changes
-- **Familiar pattern** - Tabs are universally understood
+### Key Benefits Achieved
+- ✅ **No occlusion** - All content visible, no overlays blocking main view
+- ✅ **Clear context** - Always know which account you're viewing
+- ✅ **Quick access** - Tabs for instant navigation between aspects
+- ✅ **Seamless switching** - Mini-cards for quick account changes
+- ✅ **Familiar pattern** - Tabs are universally understood
+- ✅ **Keyboard-first** - Full keyboard navigation support
 
 ---
 
-## 2. Information Architecture
+## 2. Final Implementation
 
-### Overview State (No Account Selected)
+### Component Structure
+```
+src/components/ServicingView/AccountPanel/
+├── AccountPanel.tsx           # Main panel container with keyboard shortcuts
+├── AccountHeader.tsx          # 📍 Account info bar with status + close
+├── AccountTabs.tsx            # Tab navigation with keyboard hints + badges
+├── AccountSwitcher.tsx        # Mini-cards for quick account switching
+├── OverviewTab.tsx            # Balance, terms, schedule, last payment
+├── TransactionsTab.tsx        # Wraps existing TransactionHistory
+├── FeesTab.tsx                # Wraps existing FeeList with bulk waive
+├── ActionsTab.tsx             # Record Payment, Waive Fee action cards
+├── useAccountPanelHotkeys.ts  # Custom hook for keyboard shortcuts
+├── styles.module.css          # Component-specific styles
+└── index.ts                   # Barrel exports
+
+src/hooks/queries/
+└── useFeesCount.ts            # Hook for fees badge count
+```
+
+### Information Architecture
+
+**Overview State (No Account Selected)**
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ Customer Servicing > Customer Name                           │
@@ -30,29 +52,33 @@ Transform the ServicingView from a drawer-based detail view to a unified account
 │  Customer    │  Loan Accounts (N)         Total: $X,XXX.XX  │
 │  Profile     │  ┌──────────┐ ┌──────────┐ ┌──────────┐      │
 │              │  │ Account1 │ │ Account2 │ │ Account3 │      │
-│              │  │ Status   │ │ Status   │ │ Status   │      │
+│              │  │ ✓ Active │ │  Closed  │ │  Arrears │      │
 │              │  │ $XXX.XX  │ │ $XXX.XX  │ │ $XXX.XX  │      │
 │              │  └──────────┘ └──────────┘ └──────────┘      │
 │              │                                               │
-│              │  ─────────────────────────────────────────── │
-│              │  Select an account above to view details,    │
-│              │  transactions, and take actions.             │
-│              │                                               │
+│              │  ┌─────────────────────────────────────────┐ │
+│              │  │           👆 Select an Account          │ │
+│              │  │  Click on a loan account above to view  │ │
+│              │  │  details, transactions, and take actions│ │
+│              │  │                                         │ │
+│              │  │  Use 1-4 to switch tabs, ↑↓ to navigate│ │
+│              │  └─────────────────────────────────────────┘ │
 └──────────────┴──────────────────────────────────────────────┘
 ```
 
-### Account Selected State
+**Account Selected State**
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ Customer Servicing > Customer Name                           │
 ├──────────────┬──────────────────────────────────────────────┤
 │              │ ┌───────────────────────────────────────────┐│
-│  Customer    │ │ 📍 AccountNum │ Status │ $XXX.XX  [✕]    ││
+│  Customer    │ │📍 0WOMN8STJBKY │ Active │ Live │ $83 [✕] ││
 │  Profile     │ └───────────────────────────────────────────┘│
 │              │                                               │
-│              │ ┌────────┬──────────────┬──────┬─────────┐   │
-│              │ │Overview│ Transactions │ Fees │ Actions │   │
-│              │ └────────┴──────────────┴──────┴─────────┘   │
+│              │ ┌─────────┬──────────────┬────────┬─────────┐│
+│              │ │Overview │ Transactions │ Fees ⓷ │ Actions ││
+│              │ │   [1]   │     [2]      │  [3]   │   [4]   ││
+│              │ └─────────┴──────────────┴────────┴─────────┘│
 │              │ ═══════════════════════════════════════════  │
 │              │                                               │
 │              │  [Active Tab Content]                         │
@@ -60,66 +86,99 @@ Transform the ServicingView from a drawer-based detail view to a unified account
 │              │ ─────────────────────────────────────────────│
 │              │ Other Accounts:                               │
 │              │ ┌─────────────┐ ┌─────────────┐              │
-│              │ │ Account2    │ │ Account3    │              │
+│              │ │ 0ABC123...  │ │ 0XYZ789...  │ ← ↑↓ to nav  │
+│              │ │ Closed • $0 │ │ Active $200 │              │
 │              │ └─────────────┘ └─────────────┘              │
 └──────────────┴──────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Component Architecture
+## 3. Keyboard Shortcuts
 
-### New Components
-```
-src/components/ServicingView/
-├── AccountPanel/
-│   ├── AccountPanel.tsx           # Main panel container
-│   ├── AccountHeader.tsx          # Account info + close button
-│   ├── AccountTabs.tsx            # Tab navigation
-│   ├── AccountSwitcher.tsx        # Mini-cards for switching
-│   └── index.ts                   # Barrel exports
-├── tabs/
-│   ├── OverviewTab.tsx            # Balance details (refactored from LoanAccountDetails)
-│   ├── TransactionsTab.tsx        # Wrapper for TransactionHistory
-│   ├── FeesTab.tsx                # Wrapper for FeeList
-│   └── ActionsTab.tsx             # Actions (Waive Fee, Record Payment)
-└── ... existing components
-```
+| Shortcut | Action | Scope |
+|----------|--------|-------|
+| `1` | Switch to Overview tab | When account selected |
+| `2` | Switch to Transactions tab | When account selected |
+| `3` | Switch to Fees tab | When account selected |
+| `4` | Switch to Actions tab | When account selected |
+| `↑` | Navigate to previous account | When multiple accounts |
+| `↓` | Navigate to next account | When multiple accounts |
+| `←` / `→` | Navigate tabs when tab focused | Within tab navigation |
+| `Escape` | Close account panel | When account selected |
 
-### Modified Components
-- `ServicingView.tsx` - Major refactor to use new AccountPanel
-- `LoanAccountCard.tsx` - Add compact mode for switcher
-- `LoanAccountDetails.tsx` - Extract balance section for OverviewTab
-
-### Unchanged Components
-- `CustomerProfile.tsx`
-- `TransactionHistory.tsx` (content only, wrapped by tab)
-- `FeeList.tsx` (content only, wrapped by tab)
-- `WaiveFeeDrawer.tsx`
-- `RecordRepaymentDrawer.tsx`
-- `BulkWaiveFeeDrawer.tsx`
+**Note:** Shortcuts are disabled when:
+- Modifier keys (Cmd/Ctrl/Alt) are pressed
+- User is typing in an input, textarea, or select
+- Panel is not active
 
 ---
 
-## 4. State Management
+## 4. Tab Content
 
-### Current State
-```typescript
-// ServicingView.tsx
-const [selectedAccount, setSelectedAccount] = useState<LoanAccountData | null>(null)
-```
+### Overview Tab (1)
+- Account number and Loan Account ID
+- Live/Cached balance indicator
+- Balance breakdown: Principal, Fees, Total Outstanding, Total Paid
+- Loan Terms: Amount, Fee, Total Payable, Opened Date
+- Repayment Schedule: Frequency, Number of Payments
+- Last Payment: Date, Amount
 
-### New State
+### Transactions Tab (2)
+- Full transaction history with filtering
+- Type filter dropdown
+- Date range filters (From/To)
+- Paginated results with "Load More"
+- Mobile-responsive card view
+
+### Fees Tab (3)
+- List of waivable fees (Late Fee, Dishonour Fee)
+- Selection mode for bulk operations
+- Select All / Clear actions
+- Fee count badge on tab
+- Bulk waive functionality
+
+### Actions Tab (4)
+- **Record Payment** - Action card with outstanding balance
+- **Waive Fee** - Action card with current fee balance
+- Read-only mode warning when applicable
+- Pending action indicators
+- Future actions placeholder
+
+---
+
+## 5. Multi-Account Behavior
+
+| Scenario | Behavior |
+|----------|----------|
+| **1 account** | Auto-selected on load, no close button |
+| **2+ accounts** | Show card grid, require selection, show total |
+| **Account selected** | Tabbed panel + "Other Accounts" switcher at bottom |
+| **Switch account** | Click mini-card or use ↑↓ keys, tab resets to Overview |
+| **Close (✕)** | Return to card grid, clear selection |
+
+### Account Card Visual States
+- **Default**: White background, subtle border
+- **Selected**: Green border + background, "✓ Selected" hint
+- **Hover**: Darker border, subtle shadow
+
+---
+
+## 6. State Management
+
 ```typescript
 // ServicingView.tsx
 const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null)
 const [activeTab, setActiveTab] = useState<TabId>('overview')
 
-// Derived
+// Derived account from accounts array
 const selectedAccount = useMemo(() => 
   accounts.find(a => a.loanAccountId === selectedAccountId) ?? null,
   [accounts, selectedAccountId]
 )
+
+// Get fees count for badge
+const feesCount = useFeesCount(selectedAccountId)
 
 // Auto-select single account
 useEffect(() => {
@@ -129,302 +188,94 @@ useEffect(() => {
 }, [accounts, selectedAccountId])
 ```
 
-### Tab IDs
-```typescript
-type TabId = 'overview' | 'transactions' | 'fees' | 'actions'
-```
+---
+
+## 7. Test Coverage
+
+### New Unit Tests (42 tests added)
+
+**useAccountPanelHotkeys.test.ts** (17 tests)
+- Tab switching with number keys 1-4
+- Out-of-range keys (0, 5) ignored
+- Arrow key account navigation with wrap-around
+- Single account ignores arrow keys
+- Escape key closes panel
+- Modifier keys disable shortcuts
+- isActive flag controls all shortcuts
+- Input element handling (ignores when typing)
+- Cleanup on unmount
+
+**account-tabs.test.tsx** (25 tests)
+- Renders all four tabs
+- Shows/hides keyboard hints
+- Active tab state and aria attributes
+- Tab click handlers
+- Arrow key navigation within tabs
+- Fees badge display
+- Accessibility: tablist role, aria-controls
 
 ---
 
-## 5. Component Specifications
+## 8. Success Metrics
 
-### AccountPanel
-```typescript
-interface AccountPanelProps {
-  account: LoanAccountData
-  allAccounts: LoanAccountData[]
-  activeTab: TabId
-  onTabChange: (tab: TabId) => void
-  onClose: () => void
-  onSwitchAccount: (accountId: string) => void
-  // Action handlers
-  onWaiveFee: () => void
-  onRecordRepayment: () => void
-  onBulkWaive: (fees: SelectedFee[]) => void
-}
-```
-
-### AccountHeader
-```typescript
-interface AccountHeaderProps {
-  account: LoanAccountData
-  onClose: () => void
-  showClose?: boolean  // False for single-account customers
-}
-
-// Renders:
-// ┌─────────────────────────────────────────────────────┐
-// │ 📍 0WOMN8STJBKY │ Active │ Live │ $83.00    [✕]    │
-// └─────────────────────────────────────────────────────┘
-```
-
-### AccountTabs
-```typescript
-interface AccountTabsProps {
-  activeTab: TabId
-  onTabChange: (tab: TabId) => void
-  feesCount?: number      // Badge for fees tab
-  hasPendingAction?: boolean  // Indicator for actions tab
-}
-
-// Tab configuration
-const TABS: { id: TabId; label: string; icon?: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'transactions', label: 'Transactions' },
-  { id: 'fees', label: 'Fees' },
-  { id: 'actions', label: 'Actions' },
-]
-```
-
-### AccountSwitcher
-```typescript
-interface AccountSwitcherProps {
-  accounts: LoanAccountData[]  // Excludes currently selected
-  onSelect: (accountId: string) => void
-}
-
-// Renders mini-cards in horizontal scrollable strip
-```
+| Metric | Before | After |
+|--------|--------|-------|
+| Clicks to view transactions | 1 (blocks view) | 1 (tab switch) |
+| Context loss on close | 100% | 0% |
+| Actions discoverable | Hidden in drawer | Always visible in tab |
+| Account comparison | Impossible | Quick via total + cards |
+| Keyboard navigation | None | Full support |
 
 ---
 
-## 6. Tab Content Definitions
+## 9. Future Enhancements
 
-### Overview Tab
-Content from current `LoanAccountDetails.tsx` minus the action buttons:
-- Account number and status badge
-- Live/Cached balance indicator
-- Balance breakdown (Principal, Fees, Total Outstanding, Total Paid)
-- Loan Terms section
-- Repayment Schedule section
-- Last Payment section
+### Completed ✅
+- [x] Keyboard shortcuts (1-4, ↑↓, Escape)
+- [x] Tab badges (fees count)
+- [x] Keyboard hints on tabs
+- [x] Account total across all accounts
 
-### Transactions Tab
-Wrapper around existing `TransactionHistory` component:
-```tsx
-<TransactionHistory loanAccountId={account.loanAccountId} />
-```
-
-### Fees Tab
-Wrapper around existing `FeeList` component:
-```tsx
-<FeeList 
-  loanAccountId={account.loanAccountId} 
-  onBulkWaive={onBulkWaive} 
-/>
-```
-
-### Actions Tab
-Dedicated action buttons with descriptions:
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Available Actions                                            │
-│                                                              │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ 💳 Record Payment                                       │ │
-│ │ Record a manual repayment for this account             │ │
-│ │                                        [Record Payment] │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                              │
-│ ┌─────────────────────────────────────────────────────────┐ │
-│ │ 🎁 Waive Fee                                            │ │
-│ │ Waive outstanding fees for this account                │ │
-│ │ Current fees: $30.00                   [Waive Fee]     │ │
-│ └─────────────────────────────────────────────────────────┘ │
-│                                                              │
-│ [Future: Write-Off, Reschedule, etc.]                        │
-└─────────────────────────────────────────────────────────────┘
-```
+### Planned
+- [ ] **Deep linking** - URL reflects selected account/tab
+- [ ] **Transaction count badge** - Show count on Transactions tab
+- [ ] **Collapsible sections** - Overview sections can collapse
+- [ ] **User preferences** - Remember last selected tab
+- [ ] **Animations** - Smooth tab transitions
 
 ---
 
-## 7. CSS Styling Strategy
+## 10. Files Changed
 
-### New CSS Classes
-```css
-/* Account Panel */
-.accountPanel { ... }
-.accountPanelHeader { ... }
-.accountPanelContent { ... }
+### New Files
+- `src/components/ServicingView/AccountPanel/AccountPanel.tsx`
+- `src/components/ServicingView/AccountPanel/AccountHeader.tsx`
+- `src/components/ServicingView/AccountPanel/AccountTabs.tsx`
+- `src/components/ServicingView/AccountPanel/AccountSwitcher.tsx`
+- `src/components/ServicingView/AccountPanel/OverviewTab.tsx`
+- `src/components/ServicingView/AccountPanel/TransactionsTab.tsx`
+- `src/components/ServicingView/AccountPanel/FeesTab.tsx`
+- `src/components/ServicingView/AccountPanel/ActionsTab.tsx`
+- `src/components/ServicingView/AccountPanel/useAccountPanelHotkeys.ts`
+- `src/components/ServicingView/AccountPanel/styles.module.css`
+- `src/components/ServicingView/AccountPanel/index.ts`
+- `src/hooks/queries/useFeesCount.ts`
+- `tests/unit/hooks/useAccountPanelHotkeys.test.ts`
+- `tests/unit/ui/account-tabs.test.tsx`
 
-/* Account Header Bar */
-.accountHeaderBar { ... }
-.accountHeaderInfo { ... }
-.accountHeaderIcon { ... }  /* 📍 pin icon */
-.accountHeaderNumber { ... }
-.accountHeaderStatus { ... }
-.accountHeaderBalance { ... }
-.accountHeaderClose { ... }
+### Modified Files
+- `src/components/ServicingView/ServicingView.tsx` - Major refactor
+- `src/components/ServicingView/LoanAccountCard.tsx` - Added isSelected prop
+- `src/components/ServicingView/styles.module.css` - Selection prompt, card selected state
 
-/* Tabs */
-.tabNav { ... }
-.tabNavList { ... }
-.tabNavItem { ... }
-.tabNavItemActive { ... }
-.tabNavBadge { ... }
-.tabContent { ... }
-
-/* Account Switcher */
-.accountSwitcher { ... }
-.accountSwitcherTitle { ... }
-.accountSwitcherList { ... }
-.accountSwitcherCard { ... }  /* Compact version of accountCard */
-
-/* Overview State */
-.overviewPlaceholder { ... }
-.overviewTotalBanner { ... }
-```
-
-### Responsive Breakpoints
-- **Desktop (≥1024px):** Full layout with sidebar
-- **Tablet (768-1023px):** Collapsible sidebar, full tabs
-- **Mobile (<768px):** Stacked layout, horizontal scrolling tabs
+### Preserved (No Changes)
+- `src/components/ServicingView/CustomerProfile.tsx`
+- `src/components/ServicingView/TransactionHistory.tsx`
+- `src/components/ServicingView/FeeList.tsx`
+- `src/components/ServicingView/WaiveFeeDrawer.tsx`
+- `src/components/ServicingView/RecordRepaymentDrawer.tsx`
+- `src/components/ServicingView/BulkWaiveFeeDrawer.tsx`
 
 ---
 
-## 8. Phased Implementation Plan
-
-### Phase 1: Foundation (MVP) - ~2-3 hours
-**Goal:** Basic tab navigation without breaking existing functionality
-
-1. **Create AccountPanel component structure**
-   - Shell component with header and tab navigation
-   - Tab content renders existing components
-
-2. **Create AccountTabs component**
-   - Tab navigation UI
-   - Active tab state
-
-3. **Create AccountHeader component**
-   - Account info display
-   - Close button
-
-4. **Integrate into ServicingView**
-   - Replace drawer with AccountPanel
-   - Add activeTab state
-   - Wire up tab switching
-
-5. **Remove ContextDrawer** (for account details only)
-   - Keep WaiveFeeDrawer, RecordRepaymentDrawer, BulkWaiveFeeDrawer as overlays
-
-### Phase 2: Polish - ~1-2 hours
-**Goal:** Complete UX with multi-account support
-
-1. **Create AccountSwitcher component**
-   - Mini-card display
-   - Account switching
-
-2. **Enhance LoanAccountCard**
-   - Add `variant="compact"` prop for switcher
-
-3. **Auto-select single account**
-   - useEffect to auto-select when only one account
-
-4. **Add total across accounts**
-   - Calculate and display in accounts section header
-
-### Phase 3: Refinement - ~1 hour
-**Goal:** Accessibility and edge cases
-
-1. **Keyboard navigation**
-   - Arrow keys for tab navigation
-   - Focus management
-
-2. **ARIA attributes**
-   - role="tablist", role="tab", role="tabpanel"
-   - aria-selected, aria-controls
-
-3. **Animations**
-   - Tab transition effects
-   - Smooth content switching
-
-4. **Mobile optimizations**
-   - Swipe gestures for tabs
-   - Touch-friendly targets
-
----
-
-## 9. Testing Strategy
-
-### Unit Tests
-- AccountPanel renders with all tabs
-- Tab switching updates content
-- AccountHeader displays correct info
-- AccountSwitcher shows other accounts
-- Close button clears selection
-
-### Integration Tests
-- Selecting account shows panel
-- Switching accounts preserves tab
-- Actions work from Actions tab
-- Bulk waive works from Fees tab
-
-### Accessibility Tests
-- Screen reader navigation
-- Keyboard-only operation
-- Focus management
-
----
-
-## 10. Migration Notes
-
-### Breaking Changes
-- `ContextDrawer` no longer used for account details
-- `selectedAccount` state semantics change
-
-### Preserved Behavior
-- WaiveFeeDrawer, RecordRepaymentDrawer, BulkWaiveFeeDrawer remain as overlays
-- All existing functionality continues to work
-- Transaction filtering preserved
-- Fee selection mode preserved
-
-### Rollback Plan
-- Keep old ServicingView in `ServicingView.backup.tsx` during development
-- Feature flag option: `USE_ACCOUNT_PANEL=true`
-
----
-
-## 11. Success Metrics
-
-| Metric | Current | Target |
-|--------|---------|--------|
-| Clicks to view transactions | 1 (opens drawer that blocks) | 1 (tab switch) |
-| Context loss on drawer close | 100% (data disappears) | 0% (data persists) |
-| Actions visible | Only in drawer | Always in Actions tab |
-| Account comparison | Impossible | Quick via mini-cards |
-
----
-
-## 12. Future Enhancements
-
-1. **Keyboard shortcuts**
-   - `1-4` keys to switch tabs
-   - `Esc` to close panel
-   - `↑↓` to switch accounts
-
-2. **Deep linking**
-   - URL reflects selected account and tab
-   - `/customer/:id/account/:accountId/transactions`
-
-3. **Tab badges**
-   - Transaction count on Transactions tab
-   - Pending fee count on Fees tab
-   - Pending action indicator on Actions tab
-
-4. **Collapsible sections**
-   - Overview tab sections can collapse
-   - User preference remembered
-
----
-
-*Ready to build? Let's make Sarah's day easier.* 🎨
+*Sarah can now view transactions, check fees, and take actions without losing context. Her productivity just got a boost!* 🎨✨
