@@ -1165,16 +1165,17 @@
 .writeOffInputWrapper {
   display: flex;
   align-items: center;
-  border: 1px solid var(--theme-elevation-200, #ddd);
+  border: 1px solid var(--theme-elevation-200, #444);
   border-radius: 6px;
   overflow: hidden;
+  background: var(--theme-input-bg, var(--theme-elevation-100, #2a2a2a));
 }
 
 .writeOffInputPrefix {
   padding: 12px;
-  background: var(--theme-elevation-50, #fafafa);
-  border-right: 1px solid var(--theme-elevation-200, #ddd);
-  color: var(--theme-elevation-600, #666);
+  background: var(--theme-elevation-50, #1f1f1f);
+  border-right: 1px solid var(--theme-elevation-200, #444);
+  color: var(--theme-elevation-600, #999);
   font-weight: 500;
 }
 
@@ -1185,6 +1186,8 @@
   font-size: 14px;
   outline: none;
   font-variant-numeric: tabular-nums;
+  background: transparent;
+  color: var(--theme-text, #fff);
 }
 
 .writeOffInput:focus {
@@ -1192,17 +1195,18 @@
 }
 
 .writeOffInput:disabled {
-  background: var(--theme-elevation-50, #fafafa);
-  color: var(--theme-elevation-500, #888);
+  background: var(--theme-elevation-50, #1a1a1a);
+  color: var(--theme-elevation-500, #666);
 }
 
 .writeOffSelect {
   padding: 12px;
-  border: 1px solid var(--theme-elevation-200, #ddd);
+  border: 1px solid var(--theme-elevation-200, #444);
   border-radius: 6px;
   font-size: 14px;
   outline: none;
-  background: #fff;
+  background: var(--theme-input-bg, var(--theme-elevation-100, #2a2a2a));
+  color: var(--theme-text, #fff);
   cursor: pointer;
 }
 
@@ -1211,20 +1215,22 @@
 }
 
 .writeOffSelect:disabled {
-  background: var(--theme-elevation-50, #fafafa);
-  color: var(--theme-elevation-500, #888);
+  background: var(--theme-elevation-50, #1a1a1a);
+  color: var(--theme-elevation-500, #666);
   cursor: not-allowed;
 }
 
 .writeOffTextarea {
   padding: 12px;
-  border: 1px solid var(--theme-elevation-200, #ddd);
+  border: 1px solid var(--theme-elevation-200, #444);
   border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
   min-height: 100px;
   outline: none;
+  background: var(--theme-input-bg, var(--theme-elevation-100, #2a2a2a));
+  color: var(--theme-text, #fff);
 }
 
 .writeOffTextarea:focus {
@@ -1232,8 +1238,8 @@
 }
 
 .writeOffTextarea:disabled {
-  background: var(--theme-elevation-50, #fafafa);
-  color: var(--theme-elevation-500, #888);
+  background: var(--theme-elevation-50, #1a1a1a);
+  color: var(--theme-elevation-500, #666);
 }
 
 .writeOffHint {
@@ -1253,16 +1259,16 @@
   padding: 12px;
   font-size: 14px;
   font-weight: 500;
-  border: 1px solid var(--theme-elevation-200, #ddd);
+  border: 1px solid var(--theme-elevation-200, #444);
   border-radius: 6px;
-  background: #fff;
-  color: var(--theme-text, #1a1a1a);
+  background: var(--theme-elevation-100, #2a2a2a);
+  color: var(--theme-text, #fff);
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .writeOffCancelBtn:hover {
-  background: var(--theme-elevation-50, #fafafa);
+  background: var(--theme-elevation-150, #333);
 }
 
 .writeOffSubmitBtn {

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { stringify } from 'qs-esm'
 
 export interface PendingWriteOffData {
   id: string
@@ -21,18 +22,22 @@ interface WriteOffRequestsResponse {
 async function fetchPendingWriteOff(
   loanAccountId: string
 ): Promise<PendingWriteOffData | null> {
-  const params = new URLSearchParams({
-    where: JSON.stringify({
-      and: [
-        { loanAccountId: { equals: loanAccountId } },
-        { status: { equals: 'pending' } },
-      ],
-    }),
-    limit: '1',
-    sort: '-createdAt',
-  })
+  // Use qs-esm to properly serialize Payload REST API where queries
+  const queryString = stringify(
+    {
+      where: {
+        and: [
+          { loanAccountId: { equals: loanAccountId } },
+          { status: { equals: 'pending' } },
+        ],
+      },
+      limit: 1,
+      sort: '-createdAt',
+    },
+    { addQueryPrefix: true }
+  )
 
-  const res = await fetch(`/api/write-off-requests?${params.toString()}`)
+  const res = await fetch(`/api/write-off-requests${queryString}`)
 
   if (!res.ok) {
     throw new Error('Failed to fetch write-off requests')
