@@ -1,11 +1,13 @@
 'use client'
 
 import type { LoanAccountData } from '@/hooks/queries/useCustomer'
+import { useUIStore } from '@/stores/ui'
 import { getStatusConfig } from './account-status'
 import styles from './styles.module.css'
 
 export interface LoanAccountDetailsProps {
   account: LoanAccountData
+  onWaiveFee?: () => void
 }
 
 // Hoisted for performance
@@ -43,7 +45,8 @@ function formatFrequency(freq: string | null): string {
  * LoanAccountDetails - Full account details for the context drawer.
  * Shows loan terms, balances, repayment schedule, and last payment info.
  */
-export const LoanAccountDetails: React.FC<LoanAccountDetailsProps> = ({ account }) => {
+export const LoanAccountDetails: React.FC<LoanAccountDetailsProps> = ({ account, onWaiveFee }) => {
+  const readOnlyMode = useUIStore((state) => state.readOnlyMode)
   const statusConfig = getStatusConfig(account.accountStatus)
   const hasLiveBalance = account.liveBalance !== null
 
@@ -188,6 +191,22 @@ export const LoanAccountDetails: React.FC<LoanAccountDetailsProps> = ({ account 
               </span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      {onWaiveFee && fees > 0 && (
+        <div className={styles.detailsActions}>
+          <button
+            type="button"
+            className={`${styles.detailsActionBtn} ${styles.detailsActionBtnPrimary}`}
+            onClick={onWaiveFee}
+            disabled={readOnlyMode}
+            title={readOnlyMode ? 'System in read-only mode' : 'Waive outstanding fees'}
+            data-testid="waive-fee-button"
+          >
+            🎁 Waive Fee
+          </button>
         </div>
       )}
     </div>

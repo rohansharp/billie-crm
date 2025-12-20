@@ -12,6 +12,7 @@ import { VulnerableCustomerBanner } from './VulnerableCustomerBanner'
 import { LoanAccountCard } from './LoanAccountCard'
 import { LoanAccountDetails } from './LoanAccountDetails'
 import { TransactionHistory } from './TransactionHistory'
+import { WaiveFeeDrawer } from './WaiveFeeDrawer'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -92,6 +93,7 @@ const LoanAccountsList: React.FC<LoanAccountsListProps> = ({ accounts, onSelectA
 export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   const { data: customer, isLoading, isError } = useCustomer(customerId)
   const [selectedAccount, setSelectedAccount] = useState<LoanAccountData | null>(null)
+  const [waiveFeeOpen, setWaiveFeeOpen] = useState(false)
 
   const handleSelectAccount = useCallback((account: LoanAccountData) => {
     setSelectedAccount(account)
@@ -99,6 +101,14 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
 
   const handleCloseDrawer = useCallback(() => {
     setSelectedAccount(null)
+  }, [])
+
+  const handleOpenWaiveFee = useCallback(() => {
+    setWaiveFeeOpen(true)
+  }, [])
+
+  const handleCloseWaiveFee = useCallback(() => {
+    setWaiveFeeOpen(false)
   }, [])
 
   // Error state
@@ -166,8 +176,25 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
         onClose={handleCloseDrawer}
         title="Account Details"
       >
-        {selectedAccount && <LoanAccountDetails account={selectedAccount} />}
+        {selectedAccount && (
+          <LoanAccountDetails
+            account={selectedAccount}
+            onWaiveFee={handleOpenWaiveFee}
+          />
+        )}
       </ContextDrawer>
+
+      {/* Waive Fee Drawer */}
+      {selectedAccount && (
+        <WaiveFeeDrawer
+          isOpen={waiveFeeOpen}
+          onClose={handleCloseWaiveFee}
+          loanAccountId={selectedAccount.loanAccountId}
+          currentFeeBalance={
+            selectedAccount.liveBalance?.feeBalance ?? 0
+          }
+        />
+      )}
     </div>
   )
 }

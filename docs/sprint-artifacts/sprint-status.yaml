@@ -56,8 +56,8 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Financial Actions (Optimistic UI)
-  epic-3: backlog
-  3-1-waive-fee-action-optimistic-ui: backlog
+  epic-3: in-progress
+  3-1-waive-fee-action-optimistic-ui: done
   3-2-record-repayment-action-optimistic-ui: backlog
   3-3-idempotency-duplicate-prevention: backlog
   3-4-bulk-fee-waiver: backlog

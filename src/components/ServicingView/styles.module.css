@@ -821,6 +821,227 @@
   }
 }
 
+/* Waive Fee Drawer */
+.waiveFeeForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.waiveFeeBalance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--theme-elevation-50, #fafafa);
+  border-radius: 8px;
+}
+
+.waiveFeeBalanceLabel {
+  font-size: 14px;
+  color: var(--theme-elevation-600, #666);
+}
+
+.waiveFeeBalanceValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.waiveFeeError {
+  padding: 12px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.waiveFeeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.waiveFeeLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.required {
+  color: #b91c1c;
+}
+
+.waiveFeeInputWrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.waiveFeeInputPrefix {
+  padding: 10px 12px;
+  background: var(--theme-elevation-50, #fafafa);
+  color: var(--theme-elevation-600, #666);
+  font-size: 14px;
+  border-right: 1px solid var(--theme-elevation-200, #ddd);
+}
+
+.waiveFeeInput {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  font-size: 14px;
+  color: var(--theme-text, #1a1a1a);
+  outline: none;
+}
+
+.waiveFeeInput:focus {
+  box-shadow: inset 0 0 0 2px var(--theme-elevation-500, #888);
+}
+
+.waiveFeeInput:disabled {
+  background: var(--theme-elevation-100, #f3f3f3);
+  cursor: not-allowed;
+}
+
+.waiveFeeTextarea {
+  padding: 10px 12px;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--theme-text, #1a1a1a);
+  resize: vertical;
+  min-height: 80px;
+}
+
+.waiveFeeTextarea:focus {
+  outline: 2px solid var(--theme-elevation-500, #888);
+  outline-offset: -1px;
+}
+
+.waiveFeeTextarea:disabled {
+  background: var(--theme-elevation-100, #f3f3f3);
+  cursor: not-allowed;
+}
+
+.waiveFeeHint {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+  margin: 0;
+}
+
+.waiveFeeActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.waiveFeeCancelBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  background: var(--theme-elevation-0, #fff);
+  color: var(--theme-text, #1a1a1a);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.waiveFeeCancelBtn:hover {
+  background: var(--theme-elevation-50, #fafafa);
+}
+
+.waiveFeeSubmitBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background: #10b981;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.waiveFeeSubmitBtn:hover:not(:disabled) {
+  background: #059669;
+}
+
+.waiveFeeSubmitBtn:disabled {
+  background: #a7f3d0;
+  cursor: not-allowed;
+}
+
+.readOnlyWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.readOnlyIcon {
+  font-size: 16px;
+}
+
+/* Details Action Button */
+.detailsActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.detailsActionBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  background: var(--theme-elevation-0, #fff);
+  color: var(--theme-text, #1a1a1a);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.detailsActionBtn:hover:not(:disabled) {
+  border-color: var(--theme-elevation-300, #ccc);
+  background: var(--theme-elevation-50, #fafafa);
+}
+
+.detailsActionBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.detailsActionBtnPrimary {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+
+.detailsActionBtnPrimary:hover:not(:disabled) {
+  background: #059669;
+  border-color: #059669;
+}
+
 /* Error State */
 .errorContainer {
   display: flex;
