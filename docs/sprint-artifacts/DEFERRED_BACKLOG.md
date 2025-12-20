@@ -48,6 +48,13 @@ This file tracks items identified during code reviews that were deferred for fut
 | 3.3-D2 | Retry with same key (AC4) | Medium | Requires 3.3-D1; currently retries are fresh requests |
 | 3.3-D3 | Zustand selector optimization | Low | `LoanAccountDetails` could use direct selector for better reactivity |
 
+### Story 3.4: Bulk Fee Waiver
+| ID | Item | Priority | Notes |
+|----|------|----------|-------|
+| 3.4-D1 | Fee type badge differentiation | Low | All fees use same style; could differentiate DISHONOUR_FEE |
+| 3.4-D2 | Auto-exit selection mode on success | Low | Selections clear but stays in selection mode |
+| 3.4-D3 | Individual fee waiver API | Medium | API only supports total amount; can't target specific fee transactions |
+
 ---
 
 ## Summary by Priority
@@ -65,7 +72,9 @@ This file tracks items identified during code reviews that were deferred for fut
 - 3.2-D1: Date field for backdating
 - 3.2-D2: Notes field to API
 - 3.3-D3: Zustand selector optimization
+- 3.4-D1: Fee type badge differentiation
+- 3.4-D2: Auto-exit selection mode on success
 
 ---
 
-*Last updated: Story 3.3 completion*
+*Last updated: Epic 3 completion*

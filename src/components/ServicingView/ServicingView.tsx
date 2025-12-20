@@ -14,6 +14,8 @@ import { LoanAccountDetails } from './LoanAccountDetails'
 import { TransactionHistory } from './TransactionHistory'
 import { WaiveFeeDrawer } from './WaiveFeeDrawer'
 import { RecordRepaymentDrawer } from './RecordRepaymentDrawer'
+import { FeeList, type SelectedFee } from './FeeList'
+import { BulkWaiveFeeDrawer } from './BulkWaiveFeeDrawer'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -96,6 +98,8 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   const [selectedAccount, setSelectedAccount] = useState<LoanAccountData | null>(null)
   const [waiveFeeOpen, setWaiveFeeOpen] = useState(false)
   const [recordRepaymentOpen, setRecordRepaymentOpen] = useState(false)
+  const [bulkWaiveOpen, setBulkWaiveOpen] = useState(false)
+  const [selectedFees, setSelectedFees] = useState<SelectedFee[]>([])
 
   const handleSelectAccount = useCallback((account: LoanAccountData) => {
     setSelectedAccount(account)
@@ -119,6 +123,21 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
 
   const handleCloseRecordRepayment = useCallback(() => {
     setRecordRepaymentOpen(false)
+  }, [])
+
+  const handleBulkWaive = useCallback((fees: SelectedFee[]) => {
+    setSelectedFees(fees)
+    setBulkWaiveOpen(true)
+  }, [])
+
+  const handleCloseBulkWaive = useCallback(() => {
+    setBulkWaiveOpen(false)
+    setSelectedFees([])
+  }, [])
+
+  const handleBulkWaiveSuccess = useCallback(() => {
+    // Clear selections after successful bulk waive
+    setSelectedFees([])
   }, [])
 
   // Error state
@@ -176,6 +195,10 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
         </div>
         <div className={styles.main}>
           <LoanAccountsList accounts={accounts} onSelectAccount={handleSelectAccount} />
+          <FeeList
+            loanAccountId={selectedAccount?.loanAccountId ?? null}
+            onBulkWaive={handleBulkWaive}
+          />
           <TransactionHistory loanAccountId={selectedAccount?.loanAccountId ?? null} />
         </div>
       </div>
@@ -218,6 +241,17 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
             selectedAccount.balances?.totalOutstanding ??
             0
           }
+        />
+      )}
+
+      {/* Bulk Waive Fee Drawer */}
+      {selectedAccount && selectedFees.length > 0 && (
+        <BulkWaiveFeeDrawer
+          isOpen={bulkWaiveOpen}
+          onClose={handleCloseBulkWaive}
+          loanAccountId={selectedAccount.loanAccountId}
+          selectedFees={selectedFees}
+          onSuccess={handleBulkWaiveSuccess}
         />
       )}
     </div>
