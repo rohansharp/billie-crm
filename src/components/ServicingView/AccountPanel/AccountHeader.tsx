@@ -1,6 +1,7 @@
 'use client'
 
 import type { LoanAccountData } from '@/hooks/queries/useCustomer'
+import { CopyButton } from '@/components/ui'
 import { getStatusConfig } from '../account-status'
 import styles from './styles.module.css'
 
@@ -8,6 +9,8 @@ export interface AccountHeaderProps {
   account: LoanAccountData
   onClose?: () => void
   showClose?: boolean
+  onRefresh?: () => void
+  isRefreshing?: boolean
 }
 
 // Hoisted for performance
@@ -24,6 +27,8 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({
   account,
   onClose,
   showClose = true,
+  onRefresh,
+  isRefreshing = false,
 }) => {
   const statusConfig = getStatusConfig(account.accountStatus)
   const hasLiveBalance = account.liveBalance !== null
@@ -36,7 +41,10 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({
     <div className={styles.accountHeader} data-testid="account-header">
       <div className={styles.accountHeaderInfo}>
         <span className={styles.accountHeaderIcon}>📍</span>
-        <span className={styles.accountHeaderNumber}>{account.accountNumber}</span>
+        <span className={styles.copyable}>
+          <span className={styles.accountHeaderNumber}>{account.accountNumber}</span>
+          <CopyButton value={account.accountNumber} label="Copy account number" />
+        </span>
         <span className={`${styles.accountHeaderStatus} ${styles[statusConfig.colorClass]}`}>
           {statusConfig.label}
         </span>
@@ -56,6 +64,30 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({
         <span className={styles.accountHeaderBalance}>
           {currencyFormatter.format(totalOutstanding)}
         </span>
+        {onRefresh && (
+          <button
+            type="button"
+            className={styles.accountHeaderRefresh}
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            aria-label="Refresh data"
+            title="Refresh data from ledger"
+            data-testid="refresh-account-data"
+          >
+            <svg
+              className={`${styles.accountHeaderRefreshIcon} ${isRefreshing ? styles.accountHeaderRefreshIconSpinning : ''}`}
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 8A6 6 0 1 1 8 2" />
+              <path d="M14 2v6h-6" />
+            </svg>
+          </button>
+        )}
         {showClose && onClose && (
           <button
             type="button"

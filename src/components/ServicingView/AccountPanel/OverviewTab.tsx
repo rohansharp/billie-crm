@@ -1,6 +1,7 @@
 'use client'
 
 import type { LoanAccountData } from '@/hooks/queries/useCustomer'
+import { CopyButton } from '@/components/ui'
 import styles from './styles.module.css'
 
 export interface OverviewTabProps {
@@ -187,7 +188,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ account }) => {
       <div className={styles.overviewSection}>
         <div className={styles.overviewItem}>
           <span className={styles.overviewLabel}>Loan Account ID</span>
-          <span className={styles.overviewValueMono}>{account.loanAccountId}</span>
+          <span className={styles.copyable}>
+            <span className={styles.overviewValueMono}>{account.loanAccountId}</span>
+            <CopyButton value={account.loanAccountId} label="Copy loan account ID" />
+          </span>
         </div>
       </div>
     </div>

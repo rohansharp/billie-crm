@@ -25,6 +25,10 @@ export interface AccountPanelProps {
   onBulkWaive: (fees: SelectedFee[]) => void
   /** Number of outstanding fees (for tab badge) */
   feesCount?: number
+  /** Callback to refresh data for current tab */
+  onRefresh?: () => void
+  /** Whether data is currently being refreshed */
+  isRefreshing?: boolean
 }
 
 /**
@@ -47,6 +51,8 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
   onRecordRepayment,
   onBulkWaive,
   feesCount,
+  onRefresh,
+  isRefreshing,
 }) => {
   // Other accounts for switcher (exclude current)
   const otherAccounts = useMemo(
@@ -98,7 +104,13 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
 
   return (
     <div className={styles.accountPanel} data-testid="account-panel">
-      <AccountHeader account={account} onClose={onClose} showClose={showClose} />
+      <AccountHeader
+        account={account}
+        onClose={onClose}
+        showClose={showClose}
+        onRefresh={onRefresh}
+        isRefreshing={isRefreshing}
+      />
       <AccountTabs
         activeTab={activeTab}
         onTabChange={onTabChange}

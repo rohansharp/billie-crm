@@ -107,6 +107,12 @@
   font-family: monospace;
 }
 
+.profileCopyable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .profileDetails {
   display: flex;
   flex-direction: column;
@@ -579,6 +585,58 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  gap: 12px;
+}
+
+.txRefreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+  background: var(--theme-elevation-0, #fff);
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.txRefreshBtn:hover:not(:disabled) {
+  background: var(--theme-elevation-50, #fafafa);
+  border-color: var(--theme-elevation-300, #ccc);
+}
+
+.txRefreshBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.txRefreshIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.txRefreshIconSpinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.txCopyable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .txFilters {

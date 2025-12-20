@@ -16,3 +16,6 @@ export type { SkeletonProps } from './Skeleton'
 
 export { ContextDrawer } from './ContextDrawer'
 export type { ContextDrawerProps } from './ContextDrawer'
+
+export { CopyButton } from './CopyButton'
+export type { CopyButtonProps } from './CopyButton'

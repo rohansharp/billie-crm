@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { useTransactions, TRANSACTION_TYPES, type Transaction } from '@/hooks/queries/useTransactions'
+import { CopyButton } from '@/components/ui'
 import styles from './styles.module.css'
 
 export interface TransactionHistoryProps {
@@ -71,7 +72,16 @@ const TransactionRow: React.FC<{ transaction: Transaction }> = ({ transaction })
           {formatCurrency(totalDelta.toString())}
         </span>
       </td>
-      <td className={styles.txCell}>{transaction.referenceId || '—'}</td>
+      <td className={styles.txCell}>
+        {transaction.referenceId ? (
+          <span className={styles.txCopyable}>
+            <span>{transaction.referenceId}</span>
+            <CopyButton value={transaction.referenceId} label="Copy reference ID" />
+          </span>
+        ) : (
+          '—'
+        )}
+      </td>
       <td className={`${styles.txCell} ${styles.txCellRight}`}>
         {formatCurrency(transaction.totalAfter)}
       </td>
@@ -109,7 +119,10 @@ const TransactionCard: React.FC<{ transaction: Transaction }> = ({ transaction }
         {transaction.referenceId && (
           <div className={styles.txCardRow}>
             <span className={styles.txCardLabel}>Reference</span>
-            <span className={styles.txCardValue}>{transaction.referenceId}</span>
+            <span className={styles.txCopyable}>
+              <span className={styles.txCardValue}>{transaction.referenceId}</span>
+              <CopyButton value={transaction.referenceId} label="Copy reference ID" />
+            </span>
           </div>
         )}
       </div>

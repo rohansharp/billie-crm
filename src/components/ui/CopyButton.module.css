@@ -1,0 +1,55 @@
+/* CopyButton Styles */
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--theme-elevation-500, #888);
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.copyButton:hover {
+  color: var(--theme-text, #1a1a1a);
+  background: var(--theme-elevation-100, #f0f0f0);
+}
+
+.copyButton:active {
+  background: var(--theme-elevation-200, #e5e5e5);
+}
+
+/* Size variants */
+.sm {
+  width: 20px;
+  height: 20px;
+}
+
+.sm .copyIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.md {
+  width: 24px;
+  height: 24px;
+}
+
+.md .copyIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.copyIcon {
+  display: block;
+}
+
+/* Copied state */
+.copyButton:has(.copyIcon polyline) {
+  color: var(--theme-success-500, #22c55e);
+}

@@ -1,5 +1,12 @@
 /* AccountPanel Styles */
 
+/* Shared copyable style */
+.copyable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Account Panel Container */
 .accountPanel {
   background: var(--theme-elevation-0, #fff);
@@ -67,6 +74,50 @@
 .statusWrittenOff {
   background: #f3f4f6;
   color: #6b7280;
+}
+
+.accountHeaderRefresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--theme-elevation-600, #666);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.accountHeaderRefresh:hover:not(:disabled) {
+  background: var(--theme-elevation-50, #fafafa);
+  border-color: var(--theme-elevation-300, #ccc);
+  color: var(--theme-text, #1a1a1a);
+}
+
+.accountHeaderRefresh:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.accountHeaderRefreshIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.accountHeaderRefreshIconSpinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .accountHeaderLive,

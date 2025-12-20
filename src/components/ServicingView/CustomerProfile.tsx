@@ -1,6 +1,7 @@
 'use client'
 
 import type { CustomerData } from '@/hooks/queries/useCustomer'
+import { CopyButton } from '@/components/ui'
 import styles from './styles.module.css'
 
 export interface CustomerProfileProps {
@@ -74,18 +75,35 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({ customer }) =>
         <div className={styles.profileAvatar}>{initials}</div>
         <div className={styles.profileHeaderText}>
           <h2 className={styles.profileName}>{customer.fullName || 'Unknown'}</h2>
-          <span className={styles.profileCustomerId}>{customer.customerId}</span>
+          <span className={styles.profileCopyable}>
+            <span className={styles.profileCustomerId}>{customer.customerId}</span>
+            <CopyButton value={customer.customerId} label="Copy customer ID" />
+          </span>
         </div>
       </div>
 
       <div className={styles.profileDetails}>
         <div className={styles.profileRow}>
           <span className={styles.profileLabel}>Email</span>
-          <span className={styles.profileValue}>{customer.emailAddress || '—'}</span>
+          {customer.emailAddress ? (
+            <span className={styles.profileCopyable}>
+              <span className={styles.profileValue}>{customer.emailAddress}</span>
+              <CopyButton value={customer.emailAddress} label="Copy email address" />
+            </span>
+          ) : (
+            <span className={styles.profileValue}>—</span>
+          )}
         </div>
         <div className={styles.profileRow}>
           <span className={styles.profileLabel}>Phone</span>
-          <span className={styles.profileValue}>{customer.mobilePhoneNumber || '—'}</span>
+          {customer.mobilePhoneNumber ? (
+            <span className={styles.profileCopyable}>
+              <span className={styles.profileValue}>{customer.mobilePhoneNumber}</span>
+              <CopyButton value={customer.mobilePhoneNumber} label="Copy phone number" />
+            </span>
+          ) : (
+            <span className={styles.profileValue}>—</span>
+          )}
         </div>
         <div className={styles.profileRow}>
           <span className={styles.profileLabel}>DOB</span>

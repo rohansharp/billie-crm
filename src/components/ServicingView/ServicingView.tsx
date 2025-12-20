@@ -2,7 +2,9 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import Link from 'next/link'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCustomer, type LoanAccountData } from '@/hooks/queries/useCustomer'
+import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
 import { useFeesCount } from '@/hooks/queries/useFeesCount'
 import { CustomerProfile } from './CustomerProfile'
 import { CustomerProfileSkeleton } from './CustomerProfileSkeleton'
@@ -137,7 +139,9 @@ const AccountSelectionPrompt: React.FC = () => {
  * Uses skeleton loaders while data is being fetched.
  */
 export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
-  const { data: customer, isLoading, isError } = useCustomer(customerId)
+  const queryClient = useQueryClient()
+  const { data: customer, isLoading, isError, isFetching: isCustomerFetching, refetch: refetchCustomer } = useCustomer(customerId)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Account selection and tab state
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null)
@@ -217,6 +221,30 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
     setSelectedFees([])
   }, [])
 
+  // Refresh handler - invalidates appropriate queries based on active tab
+  const handleRefresh = useCallback(async () => {
+    if (!selectedAccountId) return
+
+    setIsRefreshing(true)
+    try {
+      if (activeTab === 'overview' || activeTab === 'actions') {
+        // Refresh customer data (includes account balances)
+        await refetchCustomer()
+      } else if (activeTab === 'transactions' || activeTab === 'fees') {
+        // Refresh transactions (fees are derived from transactions)
+        await queryClient.invalidateQueries({
+          queryKey: transactionsQueryKey(selectedAccountId, {}),
+          exact: false,
+        })
+      }
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [activeTab, selectedAccountId, refetchCustomer, queryClient])
+
+  // Combined refreshing state
+  const isFetchingData = isRefreshing || isCustomerFetching
+
   // Error state
   if (isError) {
     return (
@@ -290,6 +318,8 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
               onRecordRepayment={handleOpenRecordRepayment}
               onBulkWaive={handleBulkWaive}
               feesCount={feesCount}
+              onRefresh={handleRefresh}
+              isRefreshing={isFetchingData}
             />
           ) : (
             <AccountSelectionPrompt />
