@@ -995,6 +995,21 @@
   font-size: 16px;
 }
 
+.pendingWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.pendingIcon {
+  font-size: 16px;
+}
+
 /* Details Action Button */
 .detailsActions {
   display: flex;

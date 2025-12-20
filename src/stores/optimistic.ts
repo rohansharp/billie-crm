@@ -16,6 +16,7 @@ interface OptimisticState {
   getPendingForAccount: (accountId: string) => PendingMutation[]
   getPendingAmount: (accountId: string) => number
   hasPendingMutations: (accountId: string) => boolean
+  hasPendingAction: (accountId: string, action: string) => boolean
 }
 
 export const useOptimisticStore = create<OptimisticState>((set, get) => ({
@@ -72,5 +73,10 @@ export const useOptimisticStore = create<OptimisticState>((set, get) => ({
 
   hasPendingMutations: (accountId) => {
     return get().getPendingForAccount(accountId).length > 0
+  },
+
+  hasPendingAction: (accountId, action) => {
+    const pending = get().getPendingForAccount(accountId)
+    return pending.some((m) => m.action === action && m.stage !== 'failed')
   },
 }))

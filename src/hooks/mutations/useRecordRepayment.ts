@@ -74,10 +74,11 @@ async function recordRepayment(params: RecordRepaymentParams): Promise<RecordRep
  * 4a. On success: update stage to 'confirmed', show toast, invalidate queries
  * 4b. On error: update stage to 'failed', show error toast
  */
-export function useRecordRepayment() {
+export function useRecordRepayment(loanAccountId?: string) {
   const queryClient = useQueryClient()
-  const { setPending, setStage, clearPending } = useOptimisticStore()
+  const { setPending, setStage, clearPending, hasPendingAction } = useOptimisticStore()
   const readOnlyMode = useUIStore((state) => state.readOnlyMode)
+  const hasPendingRepayment = loanAccountId ? hasPendingAction(loanAccountId, 'record-repayment') : false
 
   const mutation = useMutation({
     mutationFn: recordRepayment,
@@ -170,5 +171,6 @@ export function useRecordRepayment() {
     isError: mutation.isError,
     error: mutation.error,
     isReadOnlyMode: readOnlyMode,
+    hasPendingRepayment,
   }
 }

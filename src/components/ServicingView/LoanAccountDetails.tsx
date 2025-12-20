@@ -2,6 +2,7 @@
 
 import type { LoanAccountData } from '@/hooks/queries/useCustomer'
 import { useUIStore } from '@/stores/ui'
+import { useOptimisticStore } from '@/stores/optimistic'
 import { getStatusConfig } from './account-status'
 import styles from './styles.module.css'
 
@@ -52,6 +53,9 @@ export const LoanAccountDetails: React.FC<LoanAccountDetailsProps> = ({
   onRecordRepayment,
 }) => {
   const readOnlyMode = useUIStore((state) => state.readOnlyMode)
+  const hasPendingAction = useOptimisticStore((state) => state.hasPendingAction)
+  const hasPendingWaive = hasPendingAction(account.loanAccountId, 'waive-fee')
+  const hasPendingRepayment = hasPendingAction(account.loanAccountId, 'record-repayment')
   const statusConfig = getStatusConfig(account.accountStatus)
   const hasLiveBalance = account.liveBalance !== null
 
@@ -207,11 +211,17 @@ export const LoanAccountDetails: React.FC<LoanAccountDetailsProps> = ({
               type="button"
               className={styles.detailsActionBtn}
               onClick={onRecordRepayment}
-              disabled={readOnlyMode}
-              title={readOnlyMode ? 'System in read-only mode' : 'Record a manual repayment'}
+              disabled={readOnlyMode || hasPendingRepayment}
+              title={
+                readOnlyMode
+                  ? 'System in read-only mode'
+                  : hasPendingRepayment
+                    ? 'Action in progress'
+                    : 'Record a manual repayment'
+              }
               data-testid="record-repayment-button"
             >
-              💳 Record Payment
+              {hasPendingRepayment ? '⏳ Processing...' : '💳 Record Payment'}
             </button>
           )}
           {onWaiveFee && fees > 0 && (
@@ -219,11 +229,17 @@ export const LoanAccountDetails: React.FC<LoanAccountDetailsProps> = ({
               type="button"
               className={`${styles.detailsActionBtn} ${styles.detailsActionBtnPrimary}`}
               onClick={onWaiveFee}
-              disabled={readOnlyMode}
-              title={readOnlyMode ? 'System in read-only mode' : 'Waive outstanding fees'}
+              disabled={readOnlyMode || hasPendingWaive}
+              title={
+                readOnlyMode
+                  ? 'System in read-only mode'
+                  : hasPendingWaive
+                    ? 'Action in progress'
+                    : 'Waive outstanding fees'
+              }
               data-testid="waive-fee-button"
             >
-              🎁 Waive Fee
+              {hasPendingWaive ? '⏳ Waiving...' : '🎁 Waive Fee'}
             </button>
           )}
         </div>

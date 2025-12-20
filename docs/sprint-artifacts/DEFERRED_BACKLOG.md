@@ -41,12 +41,21 @@ This file tracks items identified during code reviews that were deferred for fut
 | 3.2-D1 | Date field for backdating payments | Low | AC mentioned "Date field (default today)"; uses server timestamp |
 | 3.2-D2 | Pass notes field to API | Low | Form captures notes but API only accepts paymentReference |
 
+### Story 3.3: Idempotency & Duplicate Prevention
+| ID | Item | Priority | Notes |
+|----|------|----------|-------|
+| 3.3-D1 | Server-side idempotency (AC2) | Medium | API routes need to accept/process idempotency keys |
+| 3.3-D2 | Retry with same key (AC4) | Medium | Requires 3.3-D1; currently retries are fresh requests |
+| 3.3-D3 | Zustand selector optimization | Low | `LoanAccountDetails` could use direct selector for better reactivity |
+
 ---
 
 ## Summary by Priority
 
 ### Medium Priority
 - **3.1-D1**: Auth context for `approvedBy` in waive fee (and record repayment)
+- **3.3-D1**: Server-side idempotency (API acceptance of idempotency keys)
+- **3.3-D2**: Retry with same idempotency key (requires 3.3-D1)
 
 ### Low Priority
 - 1.4-D1: Hook behavior tests
@@ -55,7 +64,8 @@ This file tracks items identified during code reviews that were deferred for fut
 - 3.1-D2: Mutation behavior tests
 - 3.2-D1: Date field for backdating
 - 3.2-D2: Notes field to API
+- 3.3-D3: Zustand selector optimization
 
 ---
 
-*Last updated: Story 3.2 completion*
+*Last updated: Story 3.3 completion*

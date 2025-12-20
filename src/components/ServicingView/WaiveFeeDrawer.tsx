@@ -26,7 +26,7 @@ export const WaiveFeeDrawer: React.FC<WaiveFeeDrawerProps> = ({
   const [reason, setReason] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
 
-  const { waiveFee, isPending, isReadOnlyMode } = useWaiveFee()
+  const { waiveFee, isPending, isReadOnlyMode, hasPendingWaive } = useWaiveFee(loanAccountId)
 
   // Reset form when drawer opens
   useEffect(() => {
@@ -80,7 +80,7 @@ export const WaiveFeeDrawer: React.FC<WaiveFeeDrawerProps> = ({
   }, [amount, reason, currentFeeBalance, loanAccountId, waiveFee, onClose])
 
   const isFormValid = amount && reason.trim() && !validationError
-  const isDisabled = isPending || isReadOnlyMode
+  const isDisabled = isPending || isReadOnlyMode || hasPendingWaive
 
   return (
     <ContextDrawer isOpen={isOpen} onClose={onClose} title="Waive Fee">
@@ -90,6 +90,14 @@ export const WaiveFeeDrawer: React.FC<WaiveFeeDrawerProps> = ({
           <div className={styles.readOnlyWarning} role="alert">
             <span className={styles.readOnlyIcon}>🔒</span>
             <span>System is in read-only mode. Actions are disabled.</span>
+          </div>
+        )}
+
+        {/* Pending action warning */}
+        {hasPendingWaive && !isReadOnlyMode && (
+          <div className={styles.pendingWarning} role="alert">
+            <span className={styles.pendingIcon}>⏳</span>
+            <span>Action in progress. Please wait for the current request to complete.</span>
           </div>
         )}
 
@@ -164,9 +172,15 @@ export const WaiveFeeDrawer: React.FC<WaiveFeeDrawerProps> = ({
             type="submit"
             className={styles.waiveFeeSubmitBtn}
             disabled={!isFormValid || isDisabled}
-            title={isReadOnlyMode ? 'System in read-only mode' : undefined}
+            title={
+              isReadOnlyMode
+                ? 'System in read-only mode'
+                : hasPendingWaive
+                  ? 'Action in progress'
+                  : undefined
+            }
           >
-            {isPending ? 'Waiving...' : 'Confirm Waive'}
+            {isPending || hasPendingWaive ? 'Waiving...' : 'Confirm Waive'}
           </button>
         </div>
       </form>

@@ -44,7 +44,7 @@ export const RecordRepaymentDrawer: React.FC<RecordRepaymentDrawerProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null)
   const [showOverpaymentConfirm, setShowOverpaymentConfirm] = useState(false)
 
-  const { recordRepayment, isPending, isReadOnlyMode } = useRecordRepayment()
+  const { recordRepayment, isPending, isReadOnlyMode, hasPendingRepayment } = useRecordRepayment(loanAccountId)
 
   // Reset form when drawer opens
   useEffect(() => {
@@ -127,7 +127,7 @@ export const RecordRepaymentDrawer: React.FC<RecordRepaymentDrawerProps> = ({
   }, [])
 
   const isFormValid = amount && paymentReference.trim() && !validationError
-  const isDisabled = isPending || isReadOnlyMode
+  const isDisabled = isPending || isReadOnlyMode || hasPendingRepayment
 
   return (
     <ContextDrawer isOpen={isOpen} onClose={onClose} title="Record Repayment">
@@ -137,6 +137,14 @@ export const RecordRepaymentDrawer: React.FC<RecordRepaymentDrawerProps> = ({
           <div className={styles.readOnlyWarning} role="alert">
             <span className={styles.readOnlyIcon}>🔒</span>
             <span>System is in read-only mode. Actions are disabled.</span>
+          </div>
+        )}
+
+        {/* Pending action warning */}
+        {hasPendingRepayment && !isReadOnlyMode && (
+          <div className={styles.pendingWarning} role="alert">
+            <span className={styles.pendingIcon}>⏳</span>
+            <span>Action in progress. Please wait for the current request to complete.</span>
           </div>
         )}
 
@@ -272,9 +280,15 @@ export const RecordRepaymentDrawer: React.FC<RecordRepaymentDrawerProps> = ({
             type="submit"
             className={styles.repaymentSubmitBtn}
             disabled={!isFormValid || isDisabled || showOverpaymentConfirm}
-            title={isReadOnlyMode ? 'System in read-only mode' : undefined}
+            title={
+              isReadOnlyMode
+                ? 'System in read-only mode'
+                : hasPendingRepayment
+                  ? 'Action in progress'
+                  : undefined
+            }
           >
-            {isPending ? 'Processing...' : 'Record Payment'}
+            {isPending || hasPendingRepayment ? 'Processing...' : 'Record Payment'}
           </button>
         </div>
       </form>

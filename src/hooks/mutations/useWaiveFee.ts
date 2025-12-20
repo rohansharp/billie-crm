@@ -59,10 +59,11 @@ async function waiveFee(params: WaiveFeeParams): Promise<WaiveFeeResponse> {
  * 4a. On success: update stage to 'confirmed', show toast, invalidate queries
  * 4b. On error: update stage to 'failed', show error toast
  */
-export function useWaiveFee() {
+export function useWaiveFee(loanAccountId?: string) {
   const queryClient = useQueryClient()
-  const { setPending, setStage, clearPending } = useOptimisticStore()
+  const { setPending, setStage, clearPending, hasPendingAction } = useOptimisticStore()
   const readOnlyMode = useUIStore((state) => state.readOnlyMode)
+  const hasPendingWaive = loanAccountId ? hasPendingAction(loanAccountId, 'waive-fee') : false
 
   const mutation = useMutation({
     mutationFn: waiveFee,
@@ -145,5 +146,6 @@ export function useWaiveFee() {
     isError: mutation.isError,
     error: mutation.error,
     isReadOnlyMode: readOnlyMode,
+    hasPendingWaive,
   }
 }
