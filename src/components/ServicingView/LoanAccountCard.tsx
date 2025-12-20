@@ -6,6 +6,7 @@ import styles from './styles.module.css'
 
 export interface LoanAccountCardProps {
   account: LoanAccountData
+  isSelected?: boolean
   onSelect: (account: LoanAccountData) => void
 }
 
@@ -17,9 +18,13 @@ const currencyFormatter = new Intl.NumberFormat('en-AU', {
 
 /**
  * LoanAccountCard - Displays a loan account summary with balance info.
- * Clickable to open details drawer.
+ * Clickable to open details panel. Shows selected state.
  */
-export const LoanAccountCard: React.FC<LoanAccountCardProps> = ({ account, onSelect }) => {
+export const LoanAccountCard: React.FC<LoanAccountCardProps> = ({
+  account,
+  isSelected = false,
+  onSelect,
+}) => {
   const statusConfig = getStatusConfig(account.accountStatus)
   const hasLiveBalance = account.liveBalance !== null
 
@@ -39,8 +44,9 @@ export const LoanAccountCard: React.FC<LoanAccountCardProps> = ({ account, onSel
   return (
     <button
       type="button"
-      className={styles.accountCard}
+      className={`${styles.accountCard} ${isSelected ? styles.accountCardSelected : ''}`}
       onClick={() => onSelect(account)}
+      aria-pressed={isSelected}
       data-testid={`loan-account-card-${account.loanAccountId}`}
     >
       <div className={styles.accountCardHeader}>
@@ -83,7 +89,9 @@ export const LoanAccountCard: React.FC<LoanAccountCardProps> = ({ account, onSel
       </div>
 
       <div className={styles.accountCardFooter}>
-        <span className={styles.accountCardHint}>Click for details →</span>
+        <span className={styles.accountCardHint}>
+          {isSelected ? '✓ Selected' : 'Click for details →'}
+        </span>
       </div>
     </button>
   )

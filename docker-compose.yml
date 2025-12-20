@@ -17,7 +17,7 @@ services:
       - .env
     environment:
       - DATABASE_URI=mongodb://mongo:27017/billie-servicing
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6383
       - LEDGER_SERVICE_URL=${LEDGER_SERVICE_URL:-ledger-service:50051}
 
   # MongoDB for Payload CMS collections
@@ -36,7 +36,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - '6379:6379'
+      - '6383:6383'
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
@@ -48,7 +48,7 @@ services:
       args:
         - GITHUB_TOKEN=${GITHUB_TOKEN}
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://redis:6383
       - MONGODB_URL=mongodb://mongo:27017
       - DB_NAME=billie-servicing
       - LOG_LEVEL=INFO

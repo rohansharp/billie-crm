@@ -66,7 +66,7 @@ Environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `REDIS_URL` | `redis://localhost:6379` | Redis connection URL |
+| `REDIS_URL` | `redis://localhost:6383` | Redis connection URL |
 | `MONGODB_URL` | `mongodb://localhost:27017` | MongoDB connection URL |
 | `DB_NAME` | `billie-servicing` | MongoDB database name |
 | `MAX_RETRIES` | `3` | Max retries before DLQ |

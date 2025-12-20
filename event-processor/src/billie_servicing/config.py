@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Redis configuration
-    redis_url: str = "redis://localhost:6379"
+    redis_url: str = "redis://localhost:6383"
     inbox_stream: str = "inbox:billie-servicing"
     consumer_group: str = "billie-servicing-processor"
     dlq_stream: str = "dlq:billie-servicing"

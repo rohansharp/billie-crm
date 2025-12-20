@@ -1,0 +1,528 @@
+/* AccountPanel Styles */
+
+/* Account Panel Container */
+.accountPanel {
+  background: var(--theme-elevation-0, #fff);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.accountPanelContent {
+  padding: 0;
+}
+
+/* Account Header */
+.accountHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--theme-elevation-50, #fafafa);
+  border-bottom: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.accountHeaderInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.accountHeaderIcon {
+  font-size: 16px;
+}
+
+.accountHeaderNumber {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-family: monospace;
+}
+
+.accountHeaderStatus {
+  display: inline-flex;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+/* Status colors - reuse from parent styles */
+.statusActive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusPaidOff {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.statusArrears {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.statusWrittenOff {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.accountHeaderLive,
+.accountHeaderCached {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.accountHeaderLive {
+  color: #166534;
+}
+
+.accountHeaderCached {
+  color: #b45309;
+}
+
+.accountHeaderLiveDot,
+.accountHeaderCachedDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.accountHeaderLiveDot {
+  background: #22c55e;
+}
+
+.accountHeaderCachedDot {
+  background: #f59e0b;
+}
+
+.accountHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.accountHeaderBalance {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.accountHeaderClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--theme-elevation-600, #666);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.accountHeaderClose:hover {
+  background: var(--theme-elevation-100, #f0f0f0);
+  border-color: var(--theme-elevation-300, #ccc);
+  color: var(--theme-text, #1a1a1a);
+}
+
+/* Tab Navigation */
+.tabNav {
+  display: flex;
+  border-bottom: 1px solid var(--theme-elevation-100, #e5e5e5);
+  background: var(--theme-elevation-0, #fff);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabNavItem {
+  flex-shrink: 0;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-elevation-600, #666);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.tabNavItem:hover {
+  color: var(--theme-text, #1a1a1a);
+}
+
+.tabNavItemActive {
+  color: var(--theme-text, #1a1a1a);
+  border-bottom-color: var(--theme-elevation-800, #333);
+}
+
+.tabNavBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 10px;
+}
+
+/* Tab Panel */
+.tabPanel {
+  padding: 0;
+}
+
+/* Overview Tab */
+.overviewTab {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.overviewSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overviewSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0;
+}
+
+.overviewLiveTag {
+  display: inline-flex;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 4px;
+}
+
+.overviewCachedTag {
+  display: inline-flex;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 4px;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.overviewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overviewLabel {
+  font-size: 12px;
+  color: var(--theme-elevation-600, #666);
+}
+
+.overviewValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.overviewValueHighlight {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.overviewValueMono {
+  font-size: 13px;
+  font-family: monospace;
+  color: var(--theme-elevation-600, #666);
+}
+
+.overviewTimestamp {
+  font-size: 11px;
+  color: var(--theme-elevation-500, #888);
+  margin: 0;
+}
+
+/* Actions Tab */
+.actionsTab {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.actionsTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0 0 8px;
+}
+
+.actionsReadOnlyWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.actionsWarningIcon {
+  font-size: 16px;
+}
+
+.actionCard {
+  background: var(--theme-elevation-50, #fafafa);
+  border: 1px solid var(--theme-elevation-100, #e5e5e5);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.actionCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.actionCardIcon {
+  font-size: 20px;
+}
+
+.actionCardTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.actionCardDescription {
+  font-size: 13px;
+  color: var(--theme-elevation-600, #666);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.actionCardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.actionCardMeta {
+  font-size: 13px;
+  color: var(--theme-elevation-600, #666);
+  font-variant-numeric: tabular-nums;
+}
+
+.actionCardBtn {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--theme-elevation-0, #fff);
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.actionCardBtn:hover:not(:disabled) {
+  background: var(--theme-elevation-50, #fafafa);
+  border-color: var(--theme-elevation-300, #ccc);
+}
+
+.actionCardBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actionCardBtnPrimary {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+
+.actionCardBtnPrimary:hover:not(:disabled) {
+  background: #059669;
+  border-color: #059669;
+}
+
+.actionsFuture {
+  padding: 16px;
+  background: var(--theme-elevation-50, #fafafa);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.actionsFutureText {
+  font-size: 13px;
+  color: var(--theme-elevation-500, #888);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Account Switcher */
+.accountSwitcher {
+  padding: 16px 20px;
+  border-top: 1px solid var(--theme-elevation-100, #e5e5e5);
+  background: var(--theme-elevation-50, #fafafa);
+}
+
+.accountSwitcherTitle {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--theme-elevation-600, #666);
+  margin-bottom: 12px;
+}
+
+.accountSwitcherList {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.accountSwitcherCard {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--theme-elevation-0, #fff);
+  border: 1px solid var(--theme-elevation-200, #ddd);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.accountSwitcherCard:hover {
+  border-color: var(--theme-elevation-400, #aaa);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.accountSwitcherNumber {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-family: monospace;
+}
+
+.accountSwitcherStatus {
+  display: inline-flex;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.accountSwitcherBalance {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Overview Empty State */
+.overviewPlaceholder {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.overviewPlaceholderIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.overviewPlaceholderTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0 0 8px;
+}
+
+.overviewPlaceholderText {
+  font-size: 14px;
+  color: var(--theme-elevation-600, #666);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .accountHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .accountHeaderRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tabNavItem {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .overviewTab,
+  .actionsTab {
+    padding: 16px;
+  }
+
+  .overviewGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actionCardFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .actionCardMeta {
+    text-align: center;
+  }
+
+  .actionCardBtn {
+    width: 100%;
+    text-align: center;
+  }
+}

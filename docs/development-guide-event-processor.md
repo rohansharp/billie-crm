@@ -27,7 +27,7 @@ Controlled via environment variables (see `src/billie_servicing/config.py`).
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `REDIS_URL` | `redis://localhost:6379` | Redis connection. |
+| `REDIS_URL` | `redis://localhost:6383` | Redis connection. |
 | `MONGODB_URL` | `mongodb://localhost:27017` | Mongo connection. |
 | `DB_NAME` | `billie-servicing` | Target database name. |
 | `INBOX_STREAM` | `inbox:billie-servicing` | Redis stream key. |

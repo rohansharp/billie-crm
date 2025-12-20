@@ -17,7 +17,7 @@ cp .env.example .env
 # Required vars:
 # PAYLOAD_SECRET=...
 # DATABASE_URI=mongodb://localhost:27017/billie-servicing
-# REDIS_URL=redis://localhost:6379
+# REDIS_URL=redis://localhost:6383
 # LEDGER_SERVICE_URL=localhost:50051
 ```
 

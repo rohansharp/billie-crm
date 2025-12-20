@@ -1,21 +1,19 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useCustomer, type LoanAccountData } from '@/hooks/queries/useCustomer'
-import { ContextDrawer } from '@/components/ui/ContextDrawer'
 import { CustomerProfile } from './CustomerProfile'
 import { CustomerProfileSkeleton } from './CustomerProfileSkeleton'
 import { LoanAccountsSkeleton } from './LoanAccountsSkeleton'
 import { TransactionsSkeleton } from './TransactionsSkeleton'
 import { VulnerableCustomerBanner } from './VulnerableCustomerBanner'
 import { LoanAccountCard } from './LoanAccountCard'
-import { LoanAccountDetails } from './LoanAccountDetails'
-import { TransactionHistory } from './TransactionHistory'
 import { WaiveFeeDrawer } from './WaiveFeeDrawer'
 import { RecordRepaymentDrawer } from './RecordRepaymentDrawer'
-import { FeeList, type SelectedFee } from './FeeList'
 import { BulkWaiveFeeDrawer } from './BulkWaiveFeeDrawer'
+import { AccountPanel, type TabId } from './AccountPanel'
+import type { SelectedFee } from './FeeList'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -55,10 +53,31 @@ const CustomerNotFound: React.FC = () => {
  */
 interface LoanAccountsListProps {
   accounts: LoanAccountData[]
+  selectedAccountId: string | null
   onSelectAccount: (account: LoanAccountData) => void
 }
 
-const LoanAccountsList: React.FC<LoanAccountsListProps> = ({ accounts, onSelectAccount }) => {
+// Hoisted currency formatter
+const currencyFormatter = new Intl.NumberFormat('en-AU', {
+  style: 'currency',
+  currency: 'AUD',
+})
+
+const LoanAccountsList: React.FC<LoanAccountsListProps> = ({
+  accounts,
+  selectedAccountId,
+  onSelectAccount,
+}) => {
+  // Calculate total across all accounts
+  const total = useMemo(() => {
+    return accounts.reduce((sum, account) => {
+      const outstanding = account.liveBalance
+        ? account.liveBalance.totalOutstanding
+        : account.balances?.totalOutstanding ?? 0
+      return sum + outstanding
+    }, 0)
+  }, [accounts])
+
   if (accounts.length === 0) {
     return (
       <div className={styles.accountsSection}>
@@ -70,14 +89,20 @@ const LoanAccountsList: React.FC<LoanAccountsListProps> = ({ accounts, onSelectA
 
   return (
     <div className={styles.accountsSection}>
-      <h3 className={styles.sectionTitle}>
-        Loan Accounts ({accounts.length})
-      </h3>
+      <div className={styles.accountsSectionHeader}>
+        <h3 className={styles.sectionTitle}>Loan Accounts ({accounts.length})</h3>
+        {accounts.length > 1 && (
+          <span className={styles.accountsTotal}>
+            Total: {currencyFormatter.format(total)}
+          </span>
+        )}
+      </div>
       <div className={styles.accountsList}>
         {accounts.map((account) => (
           <LoanAccountCard
             key={account.id}
             account={account}
+            isSelected={account.loanAccountId === selectedAccountId}
             onSelect={onSelectAccount}
           />
         ))}
@@ -86,29 +111,75 @@ const LoanAccountsList: React.FC<LoanAccountsListProps> = ({ accounts, onSelectA
   )
 }
 
+/**
+ * Placeholder shown when no account is selected.
+ */
+const AccountSelectionPrompt: React.FC = () => {
+  return (
+    <div className={styles.selectionPrompt}>
+      <div className={styles.selectionPromptIcon}>👆</div>
+      <h3 className={styles.selectionPromptTitle}>Select an Account</h3>
+      <p className={styles.selectionPromptText}>
+        Click on a loan account above to view details, transactions, and take actions.
+      </p>
+    </div>
+  )
+}
 
 /**
  * ServicingView - Main customer servicing dashboard.
- * 
- * Displays customer profile, loan accounts, and transaction history.
+ *
+ * Displays customer profile, loan accounts with tabbed detail panel.
  * Uses skeleton loaders while data is being fetched.
  */
 export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   const { data: customer, isLoading, isError } = useCustomer(customerId)
-  const [selectedAccount, setSelectedAccount] = useState<LoanAccountData | null>(null)
+
+  // Account selection and tab state
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<TabId>('overview')
+
+  // Action drawer states
   const [waiveFeeOpen, setWaiveFeeOpen] = useState(false)
   const [recordRepaymentOpen, setRecordRepaymentOpen] = useState(false)
   const [bulkWaiveOpen, setBulkWaiveOpen] = useState(false)
   const [selectedFees, setSelectedFees] = useState<SelectedFee[]>([])
 
+  // Derive accounts and selected account
+  const accounts = customer?.loanAccounts ?? []
+  const selectedAccount = useMemo(() => {
+    if (!selectedAccountId) return null
+    return accounts.find((a) => a.loanAccountId === selectedAccountId) ?? null
+  }, [accounts, selectedAccountId])
+
+  // Auto-select single account
+  useEffect(() => {
+    if (accounts.length === 1 && !selectedAccountId) {
+      setSelectedAccountId(accounts[0].loanAccountId)
+    }
+  }, [accounts, selectedAccountId])
+
+  // Account selection handlers
   const handleSelectAccount = useCallback((account: LoanAccountData) => {
-    setSelectedAccount(account)
+    setSelectedAccountId(account.loanAccountId)
+    setActiveTab('overview') // Reset to overview on new selection
   }, [])
 
-  const handleCloseDrawer = useCallback(() => {
-    setSelectedAccount(null)
+  const handleClosePanel = useCallback(() => {
+    setSelectedAccountId(null)
+    setActiveTab('overview')
   }, [])
 
+  const handleSwitchAccount = useCallback((accountId: string) => {
+    setSelectedAccountId(accountId)
+    setActiveTab('overview') // Reset to overview on switch
+  }, [])
+
+  const handleTabChange = useCallback((tab: TabId) => {
+    setActiveTab(tab)
+  }, [])
+
+  // Action handlers
   const handleOpenWaiveFee = useCallback(() => {
     setWaiveFeeOpen(true)
   }, [])
@@ -136,7 +207,6 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   }, [])
 
   const handleBulkWaiveSuccess = useCallback(() => {
-    // Clear selections after successful bulk waive
     setSelectedFees([])
   }, [])
 
@@ -174,7 +244,6 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   }
 
   // Data loaded
-  const accounts = customer?.loanAccounts ?? []
   const isVulnerable = customer?.vulnerableFlag ?? false
 
   return (
@@ -194,43 +263,43 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
           {customer && <CustomerProfile customer={customer} />}
         </div>
         <div className={styles.main}>
-          <LoanAccountsList accounts={accounts} onSelectAccount={handleSelectAccount} />
-          <FeeList
-            loanAccountId={selectedAccount?.loanAccountId ?? null}
-            onBulkWaive={handleBulkWaive}
+          {/* Account cards - always visible */}
+          <LoanAccountsList
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            onSelectAccount={handleSelectAccount}
           />
-          <TransactionHistory loanAccountId={selectedAccount?.loanAccountId ?? null} />
+
+          {/* Account panel - shown when account selected */}
+          {selectedAccount ? (
+            <AccountPanel
+              account={selectedAccount}
+              allAccounts={accounts}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              onClose={handleClosePanel}
+              onSwitchAccount={handleSwitchAccount}
+              onWaiveFee={handleOpenWaiveFee}
+              onRecordRepayment={handleOpenRecordRepayment}
+              onBulkWaive={handleBulkWaive}
+            />
+          ) : (
+            <AccountSelectionPrompt />
+          )}
         </div>
       </div>
 
-      {/* Account Details Drawer */}
-      <ContextDrawer
-        isOpen={selectedAccount !== null}
-        onClose={handleCloseDrawer}
-        title="Account Details"
-      >
-        {selectedAccount && (
-          <LoanAccountDetails
-            account={selectedAccount}
-            onWaiveFee={handleOpenWaiveFee}
-            onRecordRepayment={handleOpenRecordRepayment}
-          />
-        )}
-      </ContextDrawer>
-
-      {/* Waive Fee Drawer */}
+      {/* Waive Fee Drawer - overlay */}
       {selectedAccount && (
         <WaiveFeeDrawer
           isOpen={waiveFeeOpen}
           onClose={handleCloseWaiveFee}
           loanAccountId={selectedAccount.loanAccountId}
-          currentFeeBalance={
-            selectedAccount.liveBalance?.feeBalance ?? 0
-          }
+          currentFeeBalance={selectedAccount.liveBalance?.feeBalance ?? 0}
         />
       )}
 
-      {/* Record Repayment Drawer */}
+      {/* Record Repayment Drawer - overlay */}
       {selectedAccount && (
         <RecordRepaymentDrawer
           isOpen={recordRepaymentOpen}
@@ -244,7 +313,7 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
         />
       )}
 
-      {/* Bulk Waive Fee Drawer */}
+      {/* Bulk Waive Fee Drawer - overlay */}
       {selectedAccount && selectedFees.length > 0 && (
         <BulkWaiveFeeDrawer
           isOpen={bulkWaiveOpen}

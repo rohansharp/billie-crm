@@ -54,7 +54,7 @@ Internal staff application for managing customer loan accounts at Billie, a smal
 cat > .env << 'EOF'
 PAYLOAD_SECRET=your-secret-key-change-in-production
 DATABASE_URI=mongodb://mongo:27017/billie-servicing
-REDIS_URL=redis://redis:6379
+REDIS_URL=redis://redis:6383
 LEDGER_SERVICE_URL=localhost:50051
 GITHUB_TOKEN=your_github_token_here
 EOF
@@ -72,14 +72,14 @@ docker-compose up --build
 **Prerequisites:**
 - Node.js 18+ and pnpm
 - MongoDB running on `localhost:27017`
-- Redis running on `localhost:6379`
+- Redis running on `localhost:6383`
 
 ```bash
 # 1. Create .env file
 cat > .env << 'EOF'
 PAYLOAD_SECRET=your-secret-key-change-in-production
 DATABASE_URI=mongodb://localhost:27017/billie-servicing
-REDIS_URL=redis://localhost:6379
+REDIS_URL=redis://localhost:6383
 LEDGER_SERVICE_URL=localhost:50051
 EOF
 
@@ -254,7 +254,7 @@ pnpm test:e2e
 |----------|-------------|---------|
 | `PAYLOAD_SECRET` | Payload CMS secret key | (required) |
 | `DATABASE_URI` | MongoDB connection string | (required) |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6383` |
 | `LEDGER_SERVICE_URL` | gRPC ledger service URL | `localhost:50051` |
 | `GITHUB_TOKEN` | GitHub token for SDK installation | (required for event-processor) |
 

@@ -1,0 +1,195 @@
+'use client'
+
+import type { LoanAccountData } from '@/hooks/queries/useCustomer'
+import styles from './styles.module.css'
+
+export interface OverviewTabProps {
+  account: LoanAccountData
+}
+
+// Hoisted for performance
+const currencyFormatter = new Intl.NumberFormat('en-AU', {
+  style: 'currency',
+  currency: 'AUD',
+})
+
+const dateFormatter = new Intl.DateTimeFormat('en-AU', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+})
+
+function formatDate(dateString: string | null): string {
+  if (!dateString) return '—'
+  try {
+    return dateFormatter.format(new Date(dateString))
+  } catch {
+    return '—'
+  }
+}
+
+function formatFrequency(freq: string | null): string {
+  if (!freq) return '—'
+  const map: Record<string, string> = {
+    weekly: 'Weekly',
+    fortnightly: 'Fortnightly',
+    monthly: 'Monthly',
+  }
+  return map[freq] || freq
+}
+
+/**
+ * OverviewTab - Displays account balance details, loan terms, and payment info.
+ * Refactored from LoanAccountDetails (minus action buttons).
+ */
+export const OverviewTab: React.FC<OverviewTabProps> = ({ account }) => {
+  const hasLiveBalance = account.liveBalance !== null
+
+  const principal = hasLiveBalance
+    ? account.liveBalance!.principalBalance
+    : account.balances?.currentBalance ?? 0
+  const fees = hasLiveBalance ? account.liveBalance!.feeBalance : 0
+  const totalOutstanding = hasLiveBalance
+    ? account.liveBalance!.totalOutstanding
+    : account.balances?.totalOutstanding ?? 0
+
+  return (
+    <div
+      className={styles.overviewTab}
+      role="tabpanel"
+      id="tabpanel-overview"
+      aria-labelledby="tab-overview"
+      data-testid="overview-tab"
+    >
+      {/* Balance Section */}
+      <div className={styles.overviewSection}>
+        <h4 className={styles.overviewSectionTitle}>
+          Current Balance
+          {hasLiveBalance ? (
+            <span className={styles.overviewLiveTag}>Live</span>
+          ) : (
+            <span className={styles.overviewCachedTag}>Cached</span>
+          )}
+        </h4>
+        <div className={styles.overviewGrid}>
+          <div className={styles.overviewItem}>
+            <span className={styles.overviewLabel}>Principal</span>
+            <span className={styles.overviewValue}>{currencyFormatter.format(principal)}</span>
+          </div>
+          {hasLiveBalance && (
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Fees</span>
+              <span className={styles.overviewValue}>{currencyFormatter.format(fees)}</span>
+            </div>
+          )}
+          <div className={styles.overviewItem}>
+            <span className={styles.overviewLabel}>Total Outstanding</span>
+            <span className={`${styles.overviewValue} ${styles.overviewValueHighlight}`}>
+              {currencyFormatter.format(totalOutstanding)}
+            </span>
+          </div>
+          {account.balances?.totalPaid !== null && account.balances?.totalPaid !== undefined && (
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Total Paid</span>
+              <span className={styles.overviewValue}>
+                {currencyFormatter.format(account.balances.totalPaid)}
+              </span>
+            </div>
+          )}
+        </div>
+        {hasLiveBalance && account.liveBalance?.asOf && (
+          <p className={styles.overviewTimestamp}>
+            Balance as of {formatDate(account.liveBalance.asOf)}
+          </p>
+        )}
+      </div>
+
+      {/* Loan Terms */}
+      {account.loanTerms && (
+        <div className={styles.overviewSection}>
+          <h4 className={styles.overviewSectionTitle}>Loan Terms</h4>
+          <div className={styles.overviewGrid}>
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Loan Amount</span>
+              <span className={styles.overviewValue}>
+                {account.loanTerms.loanAmount
+                  ? currencyFormatter.format(account.loanTerms.loanAmount)
+                  : '—'}
+              </span>
+            </div>
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Loan Fee</span>
+              <span className={styles.overviewValue}>
+                {account.loanTerms.loanFee
+                  ? currencyFormatter.format(account.loanTerms.loanFee)
+                  : '—'}
+              </span>
+            </div>
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Total Payable</span>
+              <span className={styles.overviewValue}>
+                {account.loanTerms.totalPayable
+                  ? currencyFormatter.format(account.loanTerms.totalPayable)
+                  : '—'}
+              </span>
+            </div>
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Opened</span>
+              <span className={styles.overviewValue}>{formatDate(account.loanTerms.openedDate)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Repayment Schedule */}
+      {account.repaymentSchedule && (
+        <div className={styles.overviewSection}>
+          <h4 className={styles.overviewSectionTitle}>Repayment Schedule</h4>
+          <div className={styles.overviewGrid}>
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Frequency</span>
+              <span className={styles.overviewValue}>
+                {formatFrequency(account.repaymentSchedule.paymentFrequency)}
+              </span>
+            </div>
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Payments</span>
+              <span className={styles.overviewValue}>
+                {account.repaymentSchedule.numberOfPayments ?? '—'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Last Payment */}
+      {account.lastPayment && (account.lastPayment.date || account.lastPayment.amount) && (
+        <div className={styles.overviewSection}>
+          <h4 className={styles.overviewSectionTitle}>Last Payment</h4>
+          <div className={styles.overviewGrid}>
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Date</span>
+              <span className={styles.overviewValue}>{formatDate(account.lastPayment.date)}</span>
+            </div>
+            <div className={styles.overviewItem}>
+              <span className={styles.overviewLabel}>Amount</span>
+              <span className={styles.overviewValue}>
+                {account.lastPayment.amount
+                  ? currencyFormatter.format(account.lastPayment.amount)
+                  : '—'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loan ID */}
+      <div className={styles.overviewSection}>
+        <div className={styles.overviewItem}>
+          <span className={styles.overviewLabel}>Loan Account ID</span>
+          <span className={styles.overviewValueMono}>{account.loanAccountId}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
