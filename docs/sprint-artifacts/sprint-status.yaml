@@ -66,7 +66,7 @@ development_status:
   # Epic 4: Write-Off & Approval Workflow
   epic-4: in-progress
   4-1-write-off-request-form: done
-  4-2-approvalsview-custom-payload-view: backlog
+  4-2-approvalsview-custom-payload-view: done
   4-3-approve-reject-actions-with-comments: backlog
   4-4-approval-notifications: backlog
   4-5-audit-log-history: backlog
