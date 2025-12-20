@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useCustomer, type LoanAccountData } from '@/hooks/queries/useCustomer'
+import { useFeesCount } from '@/hooks/queries/useFeesCount'
 import { CustomerProfile } from './CustomerProfile'
 import { CustomerProfileSkeleton } from './CustomerProfileSkeleton'
 import { LoanAccountsSkeleton } from './LoanAccountsSkeleton'
@@ -122,6 +123,9 @@ const AccountSelectionPrompt: React.FC = () => {
       <p className={styles.selectionPromptText}>
         Click on a loan account above to view details, transactions, and take actions.
       </p>
+      <p className={styles.selectionPromptHint}>
+        Use <kbd>1</kbd>-<kbd>4</kbd> to switch tabs, <kbd>↑</kbd><kbd>↓</kbd> to navigate accounts
+      </p>
     </div>
   )
 }
@@ -151,6 +155,9 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
     if (!selectedAccountId) return null
     return accounts.find((a) => a.loanAccountId === selectedAccountId) ?? null
   }, [accounts, selectedAccountId])
+
+  // Get fees count for badge
+  const feesCount = useFeesCount(selectedAccountId)
 
   // Auto-select single account
   useEffect(() => {
@@ -282,6 +289,7 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
               onWaiveFee={handleOpenWaiveFee}
               onRecordRepayment={handleOpenRecordRepayment}
               onBulkWaive={handleBulkWaive}
+              feesCount={feesCount}
             />
           ) : (
             <AccountSelectionPrompt />

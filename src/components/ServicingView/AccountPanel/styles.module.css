@@ -147,6 +147,9 @@
 
 .tabNavItem {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 14px 20px;
   font-size: 14px;
   font-weight: 500;
@@ -157,6 +160,30 @@
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
   white-space: nowrap;
+}
+
+.tabNavLabel {
+  /* Label text */
+}
+
+.tabNavShortcut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--theme-elevation-100, #f0f0f0);
+  color: var(--theme-elevation-500, #888);
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.tabNavItemActive .tabNavShortcut {
+  background: var(--theme-elevation-200, #e5e5e5);
+  color: var(--theme-elevation-700, #555);
 }
 
 .tabNavItem:hover {

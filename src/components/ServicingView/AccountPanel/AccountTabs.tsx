@@ -8,6 +8,7 @@ export type TabId = 'overview' | 'transactions' | 'fees' | 'actions'
 export interface TabConfig {
   id: TabId
   label: string
+  shortcut: string
   badge?: number
 }
 
@@ -15,23 +16,26 @@ export interface AccountTabsProps {
   activeTab: TabId
   onTabChange: (tab: TabId) => void
   feesCount?: number
+  /** Show keyboard shortcut hints on tabs */
+  showKeyboardHints?: boolean
 }
 
 const TABS: TabConfig[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'transactions', label: 'Transactions' },
-  { id: 'fees', label: 'Fees' },
-  { id: 'actions', label: 'Actions' },
+  { id: 'overview', label: 'Overview', shortcut: '1' },
+  { id: 'transactions', label: 'Transactions', shortcut: '2' },
+  { id: 'fees', label: 'Fees', shortcut: '3' },
+  { id: 'actions', label: 'Actions', shortcut: '4' },
 ]
 
 /**
  * AccountTabs - Tab navigation for account panel.
- * Supports keyboard navigation with arrow keys.
+ * Supports keyboard navigation with arrow keys and number keys.
  */
 export const AccountTabs: React.FC<AccountTabsProps> = ({
   activeTab,
   onTabChange,
   feesCount,
+  showKeyboardHints = false,
 }) => {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -73,7 +77,10 @@ export const AccountTabs: React.FC<AccountTabsProps> = ({
             onKeyDown={handleKeyDown}
             data-testid={`tab-${tab.id}`}
           >
-            {tab.label}
+            <span className={styles.tabNavLabel}>{tab.label}</span>
+            {showKeyboardHints && (
+              <span className={styles.tabNavShortcut}>{tab.shortcut}</span>
+            )}
             {badge !== undefined && (
               <span className={styles.tabNavBadge}>{badge}</span>
             )}

@@ -21,3 +21,5 @@ export type { FeesTabProps } from './FeesTab'
 
 export { ActionsTab } from './ActionsTab'
 export type { ActionsTabProps } from './ActionsTab'
+
+export { useAccountPanelHotkeys } from './useAccountPanelHotkeys'
