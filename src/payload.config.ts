@@ -33,6 +33,8 @@ export default buildConfig({
         '@/components/navigation/NavApprovalsLink#NavApprovalsLink',
       ],
       afterNavLinks: ['@/components/navigation/NavSystemStatus#NavSystemStatus'],
+      // Settings menu additions (Story 6.6)
+      settingsMenu: ['@/components/navigation/NavSettingsMenu#NavSettingsMenu'],
     },
   },
   collections: [Users, Media, Customers, Conversations, Applications, LoanAccounts, WriteOffRequests],

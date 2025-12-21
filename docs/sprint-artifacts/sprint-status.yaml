@@ -82,12 +82,12 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: Navigation UX (Sidebar-First Approach)
-  epic-6: in-progress
+  epic-6: done
   6-1-enhanced-sidebar-navigation: done
   6-2-dashboard-home-page: done
   6-3-breadcrumb-navigation: done
   6-4-recent-customers-store: done
   6-5-mobile-responsive-navigation: cancelled  # Payload handles natively
-  6-6-user-menu-enhancements: backlog  # Reduced scope
+  6-6-user-menu-enhancements: done  # Reduced scope
   6-7-role-based-collection-visibility: done  # New story from party mode
   epic-6-retrospective: optional
