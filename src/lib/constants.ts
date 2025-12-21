@@ -88,3 +88,18 @@ export const MAX_FAILED_ACTIONS = 50
  * Maximum retry attempts before disabling retry button.
  */
 export const MAX_RETRY_ATTEMPTS = 5
+
+// =============================================================================
+// Version Conflict Detection Constants
+// =============================================================================
+
+/**
+ * Feature flag for version conflict checking.
+ * Set to false to disable version checks during migration.
+ */
+export const VERSION_CONFLICT_CHECK_ENABLED = true
+
+/**
+ * Error code returned when a version conflict is detected.
+ */
+export const VERSION_CONFLICT_ERROR_CODE = 'VERSION_CONFLICT'

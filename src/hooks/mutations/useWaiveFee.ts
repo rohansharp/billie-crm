@@ -4,8 +4,10 @@ import { toast } from 'sonner'
 import { useOptimisticStore } from '@/stores/optimistic'
 import { useUIStore } from '@/stores/ui'
 import { useFailedActionsStore } from '@/stores/failed-actions'
+import { useVersionStore } from '@/stores/version'
 import { generateIdempotencyKey } from '@/lib/utils/idempotency'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
+import { VERSION_CONFLICT_ERROR_CODE } from '@/lib/constants'
 import type { PendingMutation } from '@/types/mutation'
 
 /** Custom event detail for retry action */
@@ -21,6 +23,8 @@ export interface WaiveFeeParams {
   waiverAmount: number
   reason: string
   approvedBy: string
+  /** Expected version for conflict detection (optional for backward compatibility) */
+  expectedVersion?: string
 }
 
 export interface WaiveFeeResponse {
@@ -48,11 +52,20 @@ async function waiveFee(params: WaiveFeeParams): Promise<WaiveFeeResponse> {
       waiverAmount: params.waiverAmount.toString(),
       reason: params.reason,
       approvedBy: params.approvedBy,
+      expectedVersion: params.expectedVersion,
     }),
   })
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: 'Failed to waive fee' }))
+    // Preserve error code for version conflict detection
+    if (error.error === VERSION_CONFLICT_ERROR_CODE) {
+      const err = new Error(error.message || 'Version conflict detected')
+      ;(err as any).code = VERSION_CONFLICT_ERROR_CODE
+      ;(err as any).currentVersion = error.currentVersion
+      ;(err as any).expectedVersion = error.expectedVersion
+      throw err
+    }
     throw new Error(error.error || error.details || 'Failed to waive fee')
   }
 
@@ -78,6 +91,7 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
   const readOnlyMode = useUIStore((state) => state.readOnlyMode)
   const addFailedAction = useFailedActionsStore((state) => state.addFailedAction)
   const removeAction = useFailedActionsStore((state) => state.removeAction)
+  const getExpectedVersion = useVersionStore((state) => state.getExpectedVersion)
   const hasPendingWaive = loanAccountId ? hasPendingAction(loanAccountId, 'waive-fee') : false
 
   const mutation = useMutation({
@@ -123,6 +137,12 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
         queryKey: transactionsQueryKey(params.loanAccountId, {}),
       })
 
+      // Invalidate customer query to refresh account data and update version store
+      // This ensures the version store has the latest updatedAt for subsequent mutations
+      queryClient.invalidateQueries({
+        queryKey: ['customer'],
+      })
+
       // Clear from store after short delay (allow UI to show confirmed state)
       setTimeout(() => {
         clearPending(context.loanAccountId, context.mutationId)
@@ -133,9 +153,20 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
       if (!context) return
 
       const errorMessage = error instanceof Error ? error.message : 'Failed to waive fee'
+      const errorCode = (error as any)?.code
 
       // Update stage to failed
       setStage(context.loanAccountId, context.mutationId, 'failed', errorMessage)
+
+      // Check if this is a version conflict (handled separately via callback)
+      if (errorCode === VERSION_CONFLICT_ERROR_CODE) {
+        // Version conflicts are not added to failed actions - they need user intervention
+        // The onVersionConflict callback will be invoked by the calling component
+        toast.error('Data has changed', {
+          description: 'This record was modified. Please refresh and try again.',
+        })
+        return
+      }
 
       // Check if this is a system error (not validation)
       // NOTE: This regex-based detection is a heuristic. It may incorrectly categorize
@@ -187,12 +218,13 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
       // Only handle waive-fee retry events
       if (type !== 'waive-fee') return
 
-      // Extract params
+      // Extract params with current version for conflict detection
       const waiveParams: WaiveFeeParams = {
         loanAccountId: accountId,
         waiverAmount: params.waiverAmount as number,
         reason: params.reason as string,
         approvedBy: params.approvedBy as string,
+        expectedVersion: getExpectedVersion(accountId),
       }
 
       // Execute the mutation and remove from failed actions on success
@@ -206,7 +238,7 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
           // The action stays in the queue for another retry attempt
         })
     },
-    [mutation, removeAction]
+    [mutation, removeAction, getExpectedVersion]
   )
 
   // Listen for retry events
@@ -217,14 +249,35 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
     }
   }, [handleRetryEvent])
 
+  /**
+   * Wrapper that automatically includes expectedVersion from the version store.
+   */
+  const waiveFeeWithVersion = useCallback(
+    (params: Omit<WaiveFeeParams, 'expectedVersion'>) => {
+      const expectedVersion = getExpectedVersion(params.loanAccountId)
+      mutation.mutate({ ...params, expectedVersion })
+    },
+    [mutation, getExpectedVersion]
+  )
+
+  const waiveFeeAsyncWithVersion = useCallback(
+    async (params: Omit<WaiveFeeParams, 'expectedVersion'>) => {
+      const expectedVersion = getExpectedVersion(params.loanAccountId)
+      return mutation.mutateAsync({ ...params, expectedVersion })
+    },
+    [mutation, getExpectedVersion]
+  )
+
   return {
-    waiveFee: mutation.mutate,
-    waiveFeeAsync: mutation.mutateAsync,
+    waiveFee: waiveFeeWithVersion,
+    waiveFeeAsync: waiveFeeAsyncWithVersion,
     isPending: mutation.isPending,
     isSuccess: mutation.isSuccess,
     isError: mutation.isError,
     error: mutation.error,
     isReadOnlyMode: readOnlyMode,
     hasPendingWaive,
+    /** Check if last error was a version conflict */
+    isVersionConflict: (mutation.error as any)?.code === VERSION_CONFLICT_ERROR_CODE,
   }
 }

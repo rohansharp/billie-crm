@@ -7,6 +7,7 @@ import {
   WaiveFeeParams,
   WaiveFeeResponse,
 } from '@/hooks/mutations/useWaiveFee'
+import { VERSION_CONFLICT_ERROR_CODE } from '@/lib/constants'
 
 describe('useWaiveFee', () => {
   describe('exports', () => {
@@ -149,6 +150,46 @@ describe('useWaiveFee', () => {
         eventId: 'evt-abc-123',
       }
       expect(response.eventId).toBe('evt-abc-123')
+    })
+  })
+
+  describe('Version Conflict Handling', () => {
+    it('should support expectedVersion in WaiveFeeParams', () => {
+      const params: WaiveFeeParams = {
+        loanAccountId: 'LA-001',
+        waiverAmount: 50.0,
+        reason: 'Test reason',
+        approvedBy: 'admin',
+        expectedVersion: '2025-12-11T06:00:00.000Z',
+      }
+      expect(params.expectedVersion).toBe('2025-12-11T06:00:00.000Z')
+    })
+
+    it('should allow expectedVersion to be optional for backward compatibility', () => {
+      const params: WaiveFeeParams = {
+        loanAccountId: 'LA-001',
+        waiverAmount: 50.0,
+        reason: 'Test reason',
+        approvedBy: 'admin',
+        // expectedVersion intentionally omitted
+      }
+      expect(params.expectedVersion).toBeUndefined()
+    })
+
+    it('should export VERSION_CONFLICT_ERROR_CODE constant', () => {
+      expect(VERSION_CONFLICT_ERROR_CODE).toBe('VERSION_CONFLICT')
+    })
+
+    it('should create error with code property for version conflicts', () => {
+      // Simulate how the hook creates version conflict errors
+      const err = new Error('Version conflict detected')
+      ;(err as any).code = VERSION_CONFLICT_ERROR_CODE
+      ;(err as any).currentVersion = '2025-12-11T07:00:00.000Z'
+      ;(err as any).expectedVersion = '2025-12-11T06:00:00.000Z'
+
+      expect((err as any).code).toBe(VERSION_CONFLICT_ERROR_CODE)
+      expect((err as any).currentVersion).toBeDefined()
+      expect((err as any).expectedVersion).toBeDefined()
     })
   })
 })

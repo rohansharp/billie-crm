@@ -9,6 +9,7 @@
  * - paymentId (required): External payment reference
  * - paymentMethod (optional): e.g., "direct_debit", "card"
  * - paymentReference (optional): Additional reference
+ * - expectedVersion (optional): Expected updatedAt for version conflict detection
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -17,6 +18,7 @@ import {
   timestampToDate,
   getTransactionTypeLabel,
 } from '@/server/grpc-client'
+import { checkVersion, createVersionConflictResponse } from '@/lib/utils/version-check'
 
 interface RecordRepaymentBody {
   loanAccountId: string
@@ -24,6 +26,7 @@ interface RecordRepaymentBody {
   paymentId: string
   paymentMethod?: string
   paymentReference?: string
+  expectedVersion?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -39,6 +42,12 @@ export async function POST(request: NextRequest) {
     }
     if (!body.paymentId) {
       return NextResponse.json({ error: 'paymentId is required' }, { status: 400 })
+    }
+
+    // Version conflict check (if expectedVersion provided)
+    const versionResult = await checkVersion(body.loanAccountId, body.expectedVersion)
+    if (!versionResult.isValid) {
+      return NextResponse.json(createVersionConflictResponse(versionResult), { status: 409 })
     }
 
     const client = getLedgerClient()

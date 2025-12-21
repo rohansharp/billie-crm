@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useVersionStore } from '@/stores/version'
 
 /**
  * Live balance data from gRPC ledger service.
@@ -42,6 +44,8 @@ export interface LoanAccountData {
     paymentFrequency: 'weekly' | 'fortnightly' | 'monthly' | null
   } | null
   createdAt: string
+  /** Last update timestamp for version conflict detection */
+  updatedAt: string
 }
 
 /**
@@ -105,15 +109,34 @@ async function fetchCustomer(customerId: string): Promise<CustomerData> {
 /**
  * Hook to fetch a single customer by customerId.
  * 
+ * Automatically tracks loan account versions for conflict detection.
+ * When customer data is loaded, each loan account's version (updatedAt)
+ * is stored in the version store for later comparison during mutations.
+ * 
  * @param customerId - The customer's unique ID
  * @returns TanStack Query result with customer data
  */
 export function useCustomer(customerId: string) {
-  return useQuery({
+  const setVersion = useVersionStore((state) => state.setVersion)
+
+  const query = useQuery({
     queryKey: ['customer', customerId],
     queryFn: () => fetchCustomer(customerId),
     enabled: !!customerId,
     staleTime: 60_000, // 1 minute - customer data doesn't change often
     retry: false, // Don't retry on 404
   })
+
+  // Track loan account versions when data is loaded/updated
+  useEffect(() => {
+    if (query.data?.loanAccounts) {
+      query.data.loanAccounts.forEach((account) => {
+        if (account.loanAccountId && account.updatedAt) {
+          setVersion(account.loanAccountId, account.updatedAt, account.id)
+        }
+      })
+    }
+  }, [query.data, setVersion])
+
+  return query
 }
