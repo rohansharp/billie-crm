@@ -1,0 +1,76 @@
+/* Read-Only Banner Styles */
+
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.bannerIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.bannerText {
+  text-align: center;
+}
+
+.bannerMessage {
+  display: block;
+}
+
+.bannerSubtext {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+/*
+ * Future variants - currently unused but available for:
+ * - .bannerWarning: For degraded mode (amber instead of red)
+ * - .bannerPulse: For attention-grabbing emphasis
+ * These can be applied when treatDegradedAsOffline option is used.
+ */
+
+/* Warning variant (for degraded) */
+.bannerWarning {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+/* Pulse animation for emphasis */
+.bannerPulse {
+  animation: slideDown 0.3s ease-out, pulse-subtle 2s ease-in-out infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}

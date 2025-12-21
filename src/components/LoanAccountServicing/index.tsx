@@ -11,6 +11,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useDocumentInfo } from '@payloadcms/ui'
+import { useUIStore } from '@/stores/ui'
 import styles from './styles.module.css'
 
 // Sub-components
@@ -30,6 +31,7 @@ export const LoanAccountServicing: React.FC = () => {
   const [activeModal, setActiveModal] = useState<ModalType>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [accountStatus, setAccountStatus] = useState<string>('active')
+  const readOnlyMode = useUIStore((state) => state.readOnlyMode)
 
   // Fetch the loanAccountId from the document
   useEffect(() => {
@@ -71,11 +73,19 @@ export const LoanAccountServicing: React.FC = () => {
       {/* Action Buttons */}
       <div className={styles.actionsSection}>
         <h3 className={styles.sectionTitle}>Account Actions</h3>
+
+        {readOnlyMode && (
+          <p className={styles.disabledNote} role="alert">
+            🔒 System is in read-only mode. Actions are temporarily disabled.
+          </p>
+        )}
+
         <div className={styles.actionButtons}>
           <button
             className={`${styles.actionBtn} ${styles.primary}`}
             onClick={() => setActiveModal('payment')}
-            disabled={isWrittenOff || isPaidOff}
+            disabled={readOnlyMode || isWrittenOff || isPaidOff}
+            title={readOnlyMode ? 'System in read-only mode' : undefined}
           >
             <span className={styles.icon}>💳</span>
             Record Payment
@@ -83,7 +93,8 @@ export const LoanAccountServicing: React.FC = () => {
           <button
             className={`${styles.actionBtn} ${styles.warning}`}
             onClick={() => setActiveModal('lateFee')}
-            disabled={isWrittenOff || isPaidOff}
+            disabled={readOnlyMode || isWrittenOff || isPaidOff}
+            title={readOnlyMode ? 'System in read-only mode' : undefined}
           >
             <span className={styles.icon}>⚠️</span>
             Apply Late Fee
@@ -91,7 +102,8 @@ export const LoanAccountServicing: React.FC = () => {
           <button
             className={`${styles.actionBtn} ${styles.success}`}
             onClick={() => setActiveModal('waiveFee')}
-            disabled={isWrittenOff}
+            disabled={readOnlyMode || isWrittenOff}
+            title={readOnlyMode ? 'System in read-only mode' : undefined}
           >
             <span className={styles.icon}>🎁</span>
             Waive Fee
@@ -99,7 +111,8 @@ export const LoanAccountServicing: React.FC = () => {
           <button
             className={`${styles.actionBtn} ${styles.neutral}`}
             onClick={() => setActiveModal('adjustment')}
-            disabled={isWrittenOff}
+            disabled={readOnlyMode || isWrittenOff}
+            title={readOnlyMode ? 'System in read-only mode' : undefined}
           >
             <span className={styles.icon}>📝</span>
             Adjustment
@@ -107,13 +120,14 @@ export const LoanAccountServicing: React.FC = () => {
           <button
             className={`${styles.actionBtn} ${styles.danger}`}
             onClick={() => setActiveModal('writeOff')}
-            disabled={isWrittenOff || isPaidOff}
+            disabled={readOnlyMode || isWrittenOff || isPaidOff}
+            title={readOnlyMode ? 'System in read-only mode' : undefined}
           >
             <span className={styles.icon}>❌</span>
             Write Off
           </button>
         </div>
-        {(isWrittenOff || isPaidOff) && (
+        {!readOnlyMode && (isWrittenOff || isPaidOff) && (
           <p className={styles.disabledNote}>
             {isWrittenOff 
               ? 'This account has been written off. Most actions are disabled.'

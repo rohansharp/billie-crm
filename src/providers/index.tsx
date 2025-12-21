@@ -13,10 +13,21 @@ import {
 } from '@/components/ui/CommandPalette'
 import { NotificationIndicatorWrapper } from '@/components/Notifications'
 import { LedgerStatusIndicator } from '@/components/LedgerStatus'
+import { ReadOnlyBanner } from '@/components/ReadOnlyBanner'
 import { useUIStore } from '@/stores/ui'
 import { useCommandPaletteHotkeys } from '@/hooks/useGlobalHotkeys'
+import { useReadOnlyMode } from '@/hooks/useReadOnlyMode'
 import { useCustomerSearch } from '@/hooks/queries/useCustomerSearch'
 import { useLoanAccountSearch } from '@/hooks/queries/useLoanAccountSearch'
+
+/**
+ * Component that syncs ledger health with read-only mode.
+ * Must be inside QueryClientProvider.
+ */
+const ReadOnlyModeSync: React.FC = () => {
+  useReadOnlyMode()
+  return null
+}
 
 /**
  * Global command palette wrapper that connects to UI store.
@@ -115,6 +126,9 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   return (
     <QueryClientProvider>
+      {/* Read-only mode sync - must be first to set state before render */}
+      <ReadOnlyModeSync />
+      <ReadOnlyBanner />
       {children}
       <Toaster position="top-right" richColors />
       <GlobalCommandPalette />

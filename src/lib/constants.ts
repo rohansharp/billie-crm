@@ -53,3 +53,13 @@ export const HEALTH_CHECK_TEST_ACCOUNT = 'health-check-ping'
  * Latency is only shown if response time exceeds this value.
  */
 export const LATENCY_DISPLAY_THRESHOLD_MS = 500
+
+// =============================================================================
+// Toast IDs (for deduplication)
+// =============================================================================
+
+/**
+ * Toast ID for system restored notification.
+ * Used to prevent duplicate toasts when ledger recovers.
+ */
+export const TOAST_ID_SYSTEM_RESTORED = 'system-restored'
