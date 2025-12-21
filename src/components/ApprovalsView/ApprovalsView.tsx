@@ -1,10 +1,13 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { stringify } from 'qs-esm'
 import { ApprovalsList } from './ApprovalsList'
+import { HistoryTab } from './HistoryTab'
 import styles from './styles.module.css'
+
+export type ApprovalTab = 'pending' | 'history'
 
 export interface ApprovalsViewProps {
   /** Current user's role (for access control) */
@@ -13,17 +16,29 @@ export interface ApprovalsViewProps {
   userId?: string
   /** Current user's display name (for audit trail) */
   userName?: string
+  /** Initial tab to display */
+  initialTab?: ApprovalTab
 }
 
 /**
  * Main view for the approvals queue.
- * Displays pending write-off requests for approvers to review.
+ * Displays pending write-off requests and approval history.
  *
  * Access Control:
  * - Allowed: admin, supervisor
  * - Denied: operations, readonly
  */
-export const ApprovalsView: React.FC<ApprovalsViewProps> = ({ userRole, userId, userName }) => {
+export const ApprovalsView: React.FC<ApprovalsViewProps> = ({
+  userRole,
+  userId,
+  userName,
+  initialTab = 'pending',
+}) => {
+  const [activeTab, setActiveTab] = useState<ApprovalTab>(initialTab)
+
+  const handleTabChange = useCallback((tab: ApprovalTab) => {
+    setActiveTab(tab)
+  }, [])
   // Check access - only admin and supervisor can access
   const allowedRoles = ['admin', 'supervisor']
   const hasAccess = userRole && allowedRoles.includes(userRole)
@@ -65,15 +80,54 @@ export const ApprovalsView: React.FC<ApprovalsViewProps> = ({ userRole, userId, 
       {/* Header */}
       <div className={styles.approvalsHeader}>
         <h1 className={styles.approvalsTitle}>
-          Pending Approvals
-          {typeof pendingCount === 'number' && (
-            <span className={styles.approvalsCount}>({pendingCount})</span>
-          )}
+          Write-Off Approvals
         </h1>
       </div>
 
-      {/* Approvals List */}
-      <ApprovalsList currentUserId={userId} currentUserName={userName} />
+      {/* Tab Navigation */}
+      <div className={styles.tabNav} role="tablist" aria-label="Approval views">
+        <button
+          type="button"
+          role="tab"
+          id="tab-pending"
+          className={styles.tabButton}
+          data-active={activeTab === 'pending'}
+          aria-selected={activeTab === 'pending'}
+          aria-controls="panel-pending"
+          onClick={() => handleTabChange('pending')}
+          data-testid="tab-pending"
+        >
+          Pending
+          {typeof pendingCount === 'number' && pendingCount > 0 && (
+            <span className={styles.tabBadge}>{pendingCount}</span>
+          )}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-history"
+          className={styles.tabButton}
+          data-active={activeTab === 'history'}
+          aria-selected={activeTab === 'history'}
+          aria-controls="panel-history"
+          onClick={() => handleTabChange('history')}
+          data-testid="tab-history"
+        >
+          History
+        </button>
+      </div>
+
+      {/* Tab Content Panels */}
+      {activeTab === 'pending' && (
+        <div role="tabpanel" id="panel-pending" aria-labelledby="tab-pending">
+          <ApprovalsList currentUserId={userId} currentUserName={userName} />
+        </div>
+      )}
+      {activeTab === 'history' && (
+        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history">
+          <HistoryTab />
+        </div>
+      )}
     </div>
   )
 }

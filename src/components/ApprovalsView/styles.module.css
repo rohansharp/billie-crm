@@ -37,6 +37,12 @@
   align-items: center;
 }
 
+/*
+ * Sort select - Used in pending approvals list header.
+ * Note: .filterSelect (in History tab) has similar styling with
+ * slight differences (darker background, min-width constraint).
+ * Both are intentionally separate to allow independent styling.
+ */
 .sortSelect {
   padding: 8px 12px;
   font-size: 13px;
@@ -711,4 +717,194 @@
 
 .modalConfirmReject:hover:not(:disabled) {
   background: #dc2626;
+}
+
+/* Tab Navigation */
+.tabNav {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--theme-elevation-100, #2a2a2a);
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--theme-elevation-500, #888);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tabButton:hover {
+  color: var(--theme-text, #fff);
+}
+
+.tabButton[data-active="true"] {
+  background: var(--theme-elevation-200, #333);
+  color: var(--theme-text, #fff);
+}
+
+.tabBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: var(--theme-elevation-300, #444);
+  color: var(--theme-text, #fff);
+}
+
+/* History Tab */
+.historyContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.historyControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--theme-elevation-100, #2a2a2a);
+  border-radius: 8px;
+}
+
+.historyFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.historySort {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.historyResultsInfo {
+  font-size: 13px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filterLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--theme-elevation-500, #888);
+}
+
+.filterSelect {
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1px solid var(--theme-elevation-200, #444);
+  border-radius: 6px;
+  background: var(--theme-elevation-50, #1a1a1a);
+  color: var(--theme-text, #fff);
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.filterSelect:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.filterInput {
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1px solid var(--theme-elevation-200, #444);
+  border-radius: 6px;
+  background: var(--theme-elevation-50, #1a1a1a);
+  color: var(--theme-text, #fff);
+  min-width: 140px;
+}
+
+.filterInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.filterResetBtn {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--theme-elevation-300, #555);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--theme-text, #fff);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.filterResetBtn:hover {
+  background: var(--theme-elevation-100, #2a2a2a);
+}
+
+/* History Status Badges */
+.historyStatusBadge {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+.historyStatusApproved {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.historyStatusRejected {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* History Detail Drawer */
+.historyDecisionSection {
+  background: var(--theme-elevation-100, #2a2a2a);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.historyComment {
+  margin-top: 16px;
+}
+
+.historyAuditNotice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #3b82f6;
+  margin-top: 24px;
+}
+
+.textSuccess {
+  color: #22c55e !important;
+}
+
+.textDanger {
+  color: #ef4444 !important;
 }
