@@ -12,6 +12,7 @@ import {
   LoanAccountSearchResult,
 } from '@/components/ui/CommandPalette'
 import { NotificationIndicatorWrapper } from '@/components/Notifications'
+import { LedgerStatusIndicator } from '@/components/LedgerStatus'
 import { useUIStore } from '@/stores/ui'
 import { useCommandPaletteHotkeys } from '@/hooks/useGlobalHotkeys'
 import { useCustomerSearch } from '@/hooks/queries/useCustomerSearch'
@@ -118,6 +119,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({
       <Toaster position="top-right" richColors />
       <GlobalCommandPalette />
       <NotificationIndicatorWrapper />
+      <LedgerStatusIndicator />
       {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}
