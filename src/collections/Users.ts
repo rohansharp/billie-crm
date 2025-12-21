@@ -1,17 +1,20 @@
 import type { CollectionConfig, Access } from 'payload'
+import { hideFromNonAdmins, isAdmin } from '@/lib/access'
 
 const canReadUsers: Access = ({ req, id }) => {
-  if ((req.user as any)?.role === 'admin') {
+  if (isAdmin(req.user)) {
     return true
   }
-  return (req.user as any)?.id === id
+  // Users can read their own record
+  return (req.user as { id?: string })?.id === id
 }
 
 const canUpdateUsers: Access = ({ req, id }) => {
-  if ((req.user as any)?.role === 'admin') {
+  if (isAdmin(req.user)) {
     return true
   }
-  return (req.user as any)?.id === id
+  // Users can update their own record
+  return (req.user as { id?: string })?.id === id
 }
 
 export const Users: CollectionConfig = {
@@ -19,17 +22,15 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     group: 'Administration',
+    // Hide from sidebar for non-admins (Story 6.7)
+    hidden: hideFromNonAdmins,
   },
   auth: true,
   access: {
     read: canReadUsers,
-    create: ({ req: { user } }) => {
-      return user?.role === 'admin'
-    },
+    create: ({ req: { user } }) => isAdmin(user),
     update: canUpdateUsers,
-    delete: ({ req: { user } }) => {
-      return user?.role === 'admin'
-    },
+    delete: ({ req: { user } }) => isAdmin(user),
   },
   fields: [
     {

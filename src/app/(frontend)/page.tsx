@@ -1,58 +1,53 @@
 import { headers as getHeaders } from 'next/headers.js'
+import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { getPayload } from 'payload'
 import React from 'react'
-import { fileURLToPath } from 'url'
 
 import config from '@/payload.config'
 import './styles.css'
 
+/**
+ * Homepage - Redirects authenticated users to the dashboard.
+ *
+ * Story 6.7: Role-Based Collection Visibility
+ * - Authenticated users are redirected to /admin/dashboard
+ * - Unauthenticated users see a login prompt
+ */
 export default async function HomePage() {
   const headers = await getHeaders()
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
   const { user } = await payload.auth({ headers })
 
-  const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`
+  // Redirect authenticated users to the dashboard (Story 6.7)
+  if (user) {
+    redirect('/admin/dashboard')
+  }
 
+  // Unauthenticated users see login prompt
   return (
     <div className="home">
       <div className="content">
         <picture>
           <source srcSet="https://raw.githubusercontent.com/payloadcms/payload/main/packages/ui/src/assets/payload-favicon.svg" />
           <Image
-            alt="Payload Logo"
+            alt="Billie Logo"
             height={65}
             src="https://raw.githubusercontent.com/payloadcms/payload/main/packages/ui/src/assets/payload-favicon.svg"
             width={65}
           />
         </picture>
-        {!user && <h1>Welcome to your new project.</h1>}
-        {user && <h1>Welcome back, {user.email}</h1>}
+        <h1>Welcome to Billie CRM</h1>
+        <p className="subtitle">Customer servicing and support platform</p>
         <div className="links">
           <a
             className="admin"
-            href={payloadConfig.routes.admin}
-            rel="noopener noreferrer"
-            target="_blank"
+            href="/admin/login"
           >
-            Go to admin panel
-          </a>
-          <a
-            className="docs"
-            href="https://payloadcms.com/docs"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Documentation
+            Sign In
           </a>
         </div>
-      </div>
-      <div className="footer">
-        <p>Update this page by editing</p>
-        <a className="codeLink" href={fileURL}>
-          <code>app/(frontend)/page.tsx</code>
-        </a>
       </div>
     </div>
   )

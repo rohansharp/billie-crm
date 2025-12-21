@@ -1,13 +1,5 @@
 import type { CollectionConfig, Access } from 'payload'
-import type { User } from '@/payload-types'
-
-/** Helper to safely get role from user with proper typing */
-function getUserRole(user: unknown): User['role'] | undefined {
-  if (user && typeof user === 'object' && 'role' in user) {
-    return (user as User).role
-  }
-  return undefined
-}
+import { hideFromNonAdmins, isAdmin, hasApprovalAuthority, canService } from '@/lib/access'
 
 /**
  * Access control: Any authenticated user can read write-off requests
@@ -20,23 +12,21 @@ const canRead: Access = ({ req }) => {
  * Access control: Operations, Supervisor, and Admin can create write-off requests
  */
 const canCreate: Access = ({ req }) => {
-  const role = getUserRole(req.user)
-  return role !== undefined && ['admin', 'supervisor', 'operations'].includes(role)
+  return canService(req.user)
 }
 
 /**
  * Access control: Only Admin and Supervisor can update (approve/reject)
  */
 const canUpdate: Access = ({ req }) => {
-  const role = getUserRole(req.user)
-  return role !== undefined && ['admin', 'supervisor'].includes(role)
+  return hasApprovalAuthority(req.user)
 }
 
 /**
  * Access control: Only Admin can delete write-off requests
  */
 const canDelete: Access = ({ req }) => {
-  return getUserRole(req.user) === 'admin'
+  return isAdmin(req.user)
 }
 
 /**
@@ -52,6 +42,8 @@ export const WriteOffRequests: CollectionConfig = {
     group: 'Servicing',
     defaultColumns: ['requestNumber', 'status', 'loanAccountId', 'amount', 'createdAt'],
     description: 'Write-off requests requiring approval',
+    // Hide from sidebar for non-admins - use ApprovalsView instead (Story 6.7)
+    hidden: hideFromNonAdmins,
   },
   access: {
     read: canRead,

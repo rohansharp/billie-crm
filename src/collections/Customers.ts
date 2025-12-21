@@ -1,9 +1,8 @@
 import type { CollectionConfig, Access } from 'payload'
-import type { User, Customer } from '../payload-types'
+import { hideFromNonAdmins, hasAnyRole } from '@/lib/access'
 
 const servicingAccess: Access = ({ req: { user } }) => {
-  if (!user) return false
-  return ['admin', 'supervisor', 'operations', 'readonly'].includes(user.role)
+  return hasAnyRole(user)
 }
 
 export const Customers: CollectionConfig = {
@@ -12,6 +11,8 @@ export const Customers: CollectionConfig = {
     useAsTitle: 'fullName',
     defaultColumns: ['fullName', 'email', 'customerId'],
     group: 'Supervisor Dashboard',
+    // Hide from sidebar for non-admins - use ServicingView instead (Story 6.7)
+    hidden: hideFromNonAdmins,
   },
   access: {
     read: servicingAccess,

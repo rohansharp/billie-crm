@@ -1,8 +1,8 @@
 import type { CollectionConfig, Access } from 'payload'
+import { hideFromNonAdmins, hasAnyRole } from '@/lib/access'
 
 const servicingAccess: Access = ({ req: { user } }) => {
-  if (!user) return false
-  return ['admin', 'supervisor', 'operations', 'readonly'].includes(user.role)
+  return hasAnyRole(user)
 }
 
 export const LoanAccounts: CollectionConfig = {
@@ -18,6 +18,8 @@ export const LoanAccounts: CollectionConfig = {
     ],
     group: 'Servicing',
     description: 'Loan accounts projected from ledger events',
+    // Hide from sidebar for non-admins - use ServicingView instead (Story 6.7)
+    hidden: hideFromNonAdmins,
     components: {
       views: {
         edit: {

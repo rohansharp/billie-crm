@@ -1,13 +1,9 @@
 import type { CollectionConfig, Access } from 'payload'
+import { hideFromNonAdmins, hasApprovalAuthority } from '@/lib/access'
 
 const supervisorOrAdmin: Access = ({ req: { user } }) => {
-  if (user?.role === 'admin') {
-    return true
-  }
-  return user?.role === 'supervisor'
+  return hasApprovalAuthority(user)
 }
-
-
 
 export const Conversations: CollectionConfig = {
   slug: 'conversations',
@@ -15,6 +11,8 @@ export const Conversations: CollectionConfig = {
     useAsTitle: 'applicationNumber',
     defaultColumns: ['applicationNumber', 'customerId', 'status', 'startedAt'],
     group: 'Supervisor Dashboard',
+    // Hide from sidebar for non-admins (Story 6.7)
+    hidden: hideFromNonAdmins,
   },
   access: {
     read: supervisorOrAdmin,
