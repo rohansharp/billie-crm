@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { ApprovalNotification } from '@/hooks/queries/useApprovalNotifications'
-import { formatCurrency } from '@/lib/formatters'
+import { formatCurrency, formatRelativeTime } from '@/lib/formatters'
 import styles from './styles.module.css'
 
 export interface NotificationPanelProps {
@@ -14,24 +14,6 @@ export interface NotificationPanelProps {
   isLoading: boolean
   onMarkAllAsRead: () => void
   onMarkAsRead: (id: string) => void
-}
-
-/**
- * Format relative time (e.g., "2h ago", "3d ago")
- */
-function formatRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  if (diffDays < 7) return `${diffDays}d ago`
-  return date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
 }
 
 /**
@@ -215,7 +197,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
                           {notification.requestNumber}
                         </span>
                         <span className={styles.notificationTime}>
-                          {formatRelativeTime(notification.createdAt)}
+                          {formatRelativeTime(notification.createdAt, true)}
                         </span>
                       </div>
                       <div className={styles.notificationBody}>

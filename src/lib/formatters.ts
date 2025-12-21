@@ -59,3 +59,27 @@ export function formatDateMedium(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date
   return dateFormatterMedium.format(d)
 }
+
+/**
+ * Format a timestamp as relative time (e.g., "5 minutes ago").
+ * Used in notifications and failed actions panels.
+ * @param timestamp - ISO date string or Date object
+ * @param showAbsoluteAfterWeek - If true, shows absolute date after 7 days (default: false)
+ * @returns Human-readable relative time string
+ */
+export function formatRelativeTime(timestamp: string | Date, showAbsoluteAfterWeek = false): string {
+  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (showAbsoluteAfterWeek && diffDays >= 7) {
+    return date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+  }
+  return `${diffDays}d ago`
+}

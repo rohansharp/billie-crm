@@ -3,6 +3,8 @@
 import React, { useRef, useEffect } from 'react'
 import { useFailedActionsStore, FailedAction, FailedActionType } from '@/stores/failed-actions'
 import { useUIStore } from '@/stores/ui'
+import { formatRelativeTime } from '@/lib/formatters'
+import { MAX_RETRY_ATTEMPTS } from '@/lib/constants'
 import styles from './styles.module.css'
 
 export interface FailedActionsPanelProps {
@@ -42,22 +44,6 @@ function getActionIcon(type: FailedActionType): string {
   }
 }
 
-/**
- * Format relative time (e.g., "5 minutes ago").
- */
-function formatRelativeTime(timestamp: string): string {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  return `${diffDays}d ago`
-}
 
 /**
  * Individual failed action item component.
@@ -101,11 +87,17 @@ const ActionItem: React.FC<ActionItemProps> = ({
           type="button"
           className={styles.retryBtn}
           onClick={() => onRetry(action)}
-          disabled={isRetrying || readOnlyMode}
-          title={readOnlyMode ? 'System in read-only mode' : 'Retry this action'}
+          disabled={isRetrying || readOnlyMode || action.retryCount >= MAX_RETRY_ATTEMPTS}
+          title={
+            action.retryCount >= MAX_RETRY_ATTEMPTS
+              ? 'Maximum retry attempts reached'
+              : readOnlyMode
+                ? 'System in read-only mode'
+                : 'Retry this action'
+          }
           data-testid={`retry-action-${action.id}`}
         >
-          {isRetrying ? '⏳ Retrying...' : '🔄 Retry'}
+          {isRetrying ? '⏳ Retrying...' : action.retryCount >= MAX_RETRY_ATTEMPTS ? '❌ Max retries' : '🔄 Retry'}
         </button>
         <button
           type="button"

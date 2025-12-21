@@ -1,3 +1,4 @@
+import { useEffect, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useOptimisticStore } from '@/stores/optimistic'
@@ -6,6 +7,14 @@ import { useFailedActionsStore } from '@/stores/failed-actions'
 import { generateIdempotencyKey } from '@/lib/utils/idempotency'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
 import type { PendingMutation } from '@/types/mutation'
+
+/** Custom event detail for retry action */
+interface RetryEventDetail {
+  id: string
+  type: string
+  accountId: string
+  params: Record<string, unknown>
+}
 
 export interface WaiveFeeParams {
   loanAccountId: string
@@ -59,6 +68,9 @@ async function waiveFee(params: WaiveFeeParams): Promise<WaiveFeeResponse> {
  * 3. Submit API request
  * 4a. On success: update stage to 'confirmed', show toast, invalidate queries
  * 4b. On error: update stage to 'failed', show error toast
+ * 
+ * Also listens for `billie-retry-action` custom events to retry failed actions
+ * from the Failed Actions Notification Center.
  */
 export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
   const queryClient = useQueryClient()
@@ -126,7 +138,9 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
       setStage(context.loanAccountId, context.mutationId, 'failed', errorMessage)
 
       // Check if this is a system error (not validation)
-      // Validation errors typically contain "validation", "invalid", "required"
+      // NOTE: This regex-based detection is a heuristic. It may incorrectly categorize
+      // errors that happen to contain these words (e.g., "Connection to validation service failed").
+      // Consider using error codes from the API for more robust detection.
       const isSystemError = !/(validation|invalid|required|must be|cannot be)/i.test(errorMessage)
 
       // Add to failed actions queue for retry later (only system errors)
@@ -159,6 +173,49 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
       })
     },
   })
+
+  /**
+   * Handle retry events from the Failed Actions Notification Center.
+   * When a retry event for 'waive-fee' is received, execute the mutation
+   * and remove the action from the store on success.
+   */
+  const handleRetryEvent = useCallback(
+    (event: Event) => {
+      const customEvent = event as CustomEvent<RetryEventDetail>
+      const { id, type, accountId, params } = customEvent.detail
+
+      // Only handle waive-fee retry events
+      if (type !== 'waive-fee') return
+
+      // Extract params
+      const waiveParams: WaiveFeeParams = {
+        loanAccountId: accountId,
+        waiverAmount: params.waiverAmount as number,
+        reason: params.reason as string,
+        approvedBy: params.approvedBy as string,
+      }
+
+      // Execute the mutation and remove from failed actions on success
+      mutation.mutateAsync(waiveParams)
+        .then(() => {
+          // Successfully retried - remove from failed actions
+          removeAction(id)
+        })
+        .catch(() => {
+          // Error will be handled by onError callback
+          // The action stays in the queue for another retry attempt
+        })
+    },
+    [mutation, removeAction]
+  )
+
+  // Listen for retry events
+  useEffect(() => {
+    window.addEventListener('billie-retry-action', handleRetryEvent)
+    return () => {
+      window.removeEventListener('billie-retry-action', handleRetryEvent)
+    }
+  }, [handleRetryEvent])
 
   return {
     waiveFee: mutation.mutate,

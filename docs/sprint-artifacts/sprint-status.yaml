@@ -76,7 +76,7 @@ development_status:
   epic-5: in-progress
   5-1-ledger-health-check-status-indicator: done (reviewed)
   5-2-read-only-mode-activation: done (reviewed)
-  5-3-failed-action-notification-center: done
+  5-3-failed-action-notification-center: done (reviewed)
   5-4-version-conflict-detection: backlog
   5-5-graceful-error-handling: backlog
   epic-5-retrospective: optional

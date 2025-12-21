@@ -246,6 +246,89 @@ describe('FailedActionsPanel', () => {
     })
   })
 
+  describe('Retry Event Dispatch', () => {
+    it('should dispatch billie-retry-action event when retry is clicked', () => {
+      const eventListener = vi.fn()
+      window.addEventListener('billie-retry-action', eventListener)
+
+      useFailedActionsStore.setState({
+        actions: [
+          {
+            id: 'action-1',
+            type: 'waive-fee',
+            accountId: 'ACC-123',
+            params: { waiverAmount: 10, reason: 'Test' },
+            errorMessage: 'Error',
+            timestamp: new Date().toISOString(),
+            retryCount: 0,
+          },
+        ],
+      })
+      render(<FailedActionsPanel onClose={mockOnClose} />)
+
+      fireEvent.click(screen.getByTestId('retry-action-action-1'))
+
+      expect(eventListener).toHaveBeenCalled()
+      const event = eventListener.mock.calls[0][0] as CustomEvent
+      expect(event.detail).toEqual({
+        id: 'action-1',
+        type: 'waive-fee',
+        accountId: 'ACC-123',
+        params: { waiverAmount: 10, reason: 'Test' },
+      })
+
+      window.removeEventListener('billie-retry-action', eventListener)
+    })
+
+    it('should increment retry count when retry is clicked', () => {
+      useFailedActionsStore.setState({
+        actions: [
+          { id: '1', type: 'waive-fee', accountId: 'A', params: {}, errorMessage: 'E', timestamp: new Date().toISOString(), retryCount: 0 },
+        ],
+      })
+      render(<FailedActionsPanel onClose={mockOnClose} />)
+
+      fireEvent.click(screen.getByTestId('retry-action-1'))
+
+      expect(useFailedActionsStore.getState().actions[0].retryCount).toBe(1)
+    })
+  })
+
+  describe('Maximum Retry Limit', () => {
+    it('should disable retry button after max attempts', () => {
+      useFailedActionsStore.setState({
+        actions: [
+          { id: '1', type: 'waive-fee', accountId: 'A', params: {}, errorMessage: 'E', timestamp: new Date().toISOString(), retryCount: 5 },
+        ],
+      })
+      render(<FailedActionsPanel onClose={mockOnClose} />)
+
+      expect(screen.getByTestId('retry-action-1')).toBeDisabled()
+    })
+
+    it('should show "Max retries" text after max attempts', () => {
+      useFailedActionsStore.setState({
+        actions: [
+          { id: '1', type: 'waive-fee', accountId: 'A', params: {}, errorMessage: 'E', timestamp: new Date().toISOString(), retryCount: 5 },
+        ],
+      })
+      render(<FailedActionsPanel onClose={mockOnClose} />)
+
+      expect(screen.getByText(/Max retries/)).toBeInTheDocument()
+    })
+
+    it('should show max retries tooltip after max attempts', () => {
+      useFailedActionsStore.setState({
+        actions: [
+          { id: '1', type: 'waive-fee', accountId: 'A', params: {}, errorMessage: 'E', timestamp: new Date().toISOString(), retryCount: 5 },
+        ],
+      })
+      render(<FailedActionsPanel onClose={mockOnClose} />)
+
+      expect(screen.getByTestId('retry-action-1')).toHaveAttribute('title', 'Maximum retry attempts reached')
+    })
+  })
+
   describe('Action Type Icons', () => {
     it('should show correct icon for waive-fee', () => {
       useFailedActionsStore.setState({

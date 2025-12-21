@@ -87,6 +87,45 @@ describe('useFailedActionsStore', () => {
       const actions = useFailedActionsStore.getState().actions
       expect(actions.length).toBeLessThanOrEqual(MAX_FAILED_ACTIONS)
     })
+
+    it('should prevent duplicate actions with same type and accountId', () => {
+      const store = useFailedActionsStore.getState()
+
+      // Add first action
+      const id1 = store.addFailedAction('waive-fee', 'ACC-123', { amount: 10 }, 'Error 1')
+      expect(useFailedActionsStore.getState().actions).toHaveLength(1)
+
+      // Add duplicate (same type + accountId)
+      const id2 = store.addFailedAction('waive-fee', 'ACC-123', { amount: 20 }, 'Error 2')
+      
+      // Should still have only 1 action
+      const actions = useFailedActionsStore.getState().actions
+      expect(actions).toHaveLength(1)
+      
+      // Should return the existing ID
+      expect(id2).toBe(id1)
+      
+      // Should update the error message and timestamp
+      expect(actions[0].errorMessage).toBe('Error 2')
+    })
+
+    it('should allow different action types for same account', () => {
+      const store = useFailedActionsStore.getState()
+
+      store.addFailedAction('waive-fee', 'ACC-123', {}, 'Error 1')
+      store.addFailedAction('record-repayment', 'ACC-123', {}, 'Error 2')
+
+      expect(useFailedActionsStore.getState().actions).toHaveLength(2)
+    })
+
+    it('should allow same action type for different accounts', () => {
+      const store = useFailedActionsStore.getState()
+
+      store.addFailedAction('waive-fee', 'ACC-123', {}, 'Error 1')
+      store.addFailedAction('waive-fee', 'ACC-456', {}, 'Error 2')
+
+      expect(useFailedActionsStore.getState().actions).toHaveLength(2)
+    })
   })
 
   describe('removeAction', () => {

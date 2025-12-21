@@ -83,3 +83,8 @@ export const FAILED_ACTIONS_TTL_MS = 24 * 60 * 60 * 1000
  * Maximum number of failed actions to store.
  */
 export const MAX_FAILED_ACTIONS = 50
+
+/**
+ * Maximum retry attempts before disabling retry button.
+ */
+export const MAX_RETRY_ATTEMPTS = 5

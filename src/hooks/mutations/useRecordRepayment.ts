@@ -1,3 +1,4 @@
+import { useEffect, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useOptimisticStore } from '@/stores/optimistic'
@@ -6,6 +7,14 @@ import { useFailedActionsStore } from '@/stores/failed-actions'
 import { generateIdempotencyKey } from '@/lib/utils/idempotency'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
 import type { PendingMutation } from '@/types/mutation'
+
+/** Custom event detail for retry action */
+interface RetryEventDetail {
+  id: string
+  type: string
+  accountId: string
+  params: Record<string, unknown>
+}
 
 export interface RecordRepaymentParams {
   loanAccountId: string
@@ -74,12 +83,16 @@ async function recordRepayment(params: RecordRepaymentParams): Promise<RecordRep
  * 3. Submit API request
  * 4a. On success: update stage to 'confirmed', show toast, invalidate queries
  * 4b. On error: update stage to 'failed', show error toast
+ * 
+ * Also listens for `billie-retry-action` custom events to retry failed actions
+ * from the Failed Actions Notification Center.
  */
 export function useRecordRepayment(loanAccountId?: string, accountLabel?: string) {
   const queryClient = useQueryClient()
   const { setPending, setStage, clearPending, hasPendingAction } = useOptimisticStore()
   const readOnlyMode = useUIStore((state) => state.readOnlyMode)
   const addFailedAction = useFailedActionsStore((state) => state.addFailedAction)
+  const removeAction = useFailedActionsStore((state) => state.removeAction)
   const hasPendingRepayment = loanAccountId ? hasPendingAction(loanAccountId, 'record-repayment') : false
 
   const mutation = useMutation({
@@ -152,6 +165,9 @@ export function useRecordRepayment(loanAccountId?: string, accountLabel?: string
       setStage(context.loanAccountId, context.mutationId, 'failed', errorMessage)
 
       // Check if this is a system error (not validation)
+      // NOTE: This regex-based detection is a heuristic. It may incorrectly categorize
+      // errors that happen to contain these words (e.g., "Connection to validation service failed").
+      // Consider using error codes from the API for more robust detection.
       const isSystemError = !/(validation|invalid|required|must be|cannot be)/i.test(errorMessage)
 
       // Add to failed actions queue for retry later (only system errors)
@@ -183,6 +199,50 @@ export function useRecordRepayment(loanAccountId?: string, accountLabel?: string
       })
     },
   })
+
+  /**
+   * Handle retry events from the Failed Actions Notification Center.
+   * When a retry event for 'record-repayment' is received, execute the mutation
+   * and remove the action from the store on success.
+   */
+  const handleRetryEvent = useCallback(
+    (event: Event) => {
+      const customEvent = event as CustomEvent<RetryEventDetail>
+      const { id, type, accountId, params } = customEvent.detail
+
+      // Only handle record-repayment retry events
+      if (type !== 'record-repayment') return
+
+      // Extract params
+      const repaymentParams: RecordRepaymentParams = {
+        loanAccountId: accountId,
+        amount: params.amount as number,
+        paymentReference: params.paymentReference as string,
+        paymentMethod: params.paymentMethod as string,
+        notes: params.notes as string | undefined,
+      }
+
+      // Execute the mutation and remove from failed actions on success
+      mutation.mutateAsync(repaymentParams)
+        .then(() => {
+          // Successfully retried - remove from failed actions
+          removeAction(id)
+        })
+        .catch(() => {
+          // Error will be handled by onError callback
+          // The action stays in the queue for another retry attempt
+        })
+    },
+    [mutation, removeAction]
+  )
+
+  // Listen for retry events
+  useEffect(() => {
+    window.addEventListener('billie-retry-action', handleRetryEvent)
+    return () => {
+      window.removeEventListener('billie-retry-action', handleRetryEvent)
+    }
+  }, [handleRetryEvent])
 
   return {
     recordRepayment: mutation.mutate,

@@ -133,6 +133,27 @@ export const useFailedActionsStore = create<FailedActionsState>((set, get) => ({
   actions: [],
   
   addFailedAction: (type, accountId, params, errorMessage, accountLabel) => {
+    // Check for existing action with same type and accountId to prevent duplicates
+    const existingActions = get().actions
+    const existingIndex = existingActions.findIndex(
+      (a) => a.type === type && a.accountId === accountId && !isExpired(a)
+    )
+    
+    // If duplicate exists, update it instead of adding new
+    if (existingIndex >= 0) {
+      const existingAction = existingActions[existingIndex]
+      set((state) => {
+        const newActions = state.actions.map((a, i) =>
+          i === existingIndex
+            ? { ...a, errorMessage, timestamp: new Date().toISOString() }
+            : a
+        )
+        saveToLocalStorage(newActions)
+        return { actions: newActions }
+      })
+      return existingAction.id
+    }
+    
     const id = nanoid()
     const action: FailedAction = {
       id,
