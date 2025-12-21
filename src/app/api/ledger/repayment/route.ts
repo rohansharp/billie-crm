@@ -19,6 +19,7 @@ import {
   getTransactionTypeLabel,
 } from '@/server/grpc-client'
 import { checkVersion, createVersionConflictResponse } from '@/lib/utils/version-check'
+import { createValidationError, handleApiError } from '@/lib/utils/api-error'
 
 interface RecordRepaymentBody {
   loanAccountId: string
@@ -30,18 +31,19 @@ interface RecordRepaymentBody {
 }
 
 export async function POST(request: NextRequest) {
+  let body: RecordRepaymentBody | undefined
   try {
-    const body: RecordRepaymentBody = await request.json()
+    body = await request.json()
 
     // Validation
     if (!body.loanAccountId) {
-      return NextResponse.json({ error: 'loanAccountId is required' }, { status: 400 })
+      return createValidationError('loanAccountId')
     }
     if (!body.amount) {
-      return NextResponse.json({ error: 'amount is required' }, { status: 400 })
+      return createValidationError('amount')
     }
     if (!body.paymentId) {
-      return NextResponse.json({ error: 'paymentId is required' }, { status: 400 })
+      return createValidationError('paymentId')
     }
 
     // Version conflict check (if expectedVersion provided)
@@ -87,11 +89,10 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error recording repayment:', error)
-    return NextResponse.json(
-      { error: 'Failed to record repayment', details: (error as Error).message },
-      { status: 500 },
-    )
+    return handleApiError(error, {
+      action: 'record-repayment',
+      accountId: body?.loanAccountId,
+    })
   }
 }
 

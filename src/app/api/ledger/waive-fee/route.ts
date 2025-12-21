@@ -18,6 +18,7 @@ import {
   getTransactionTypeLabel,
 } from '@/server/grpc-client'
 import { checkVersion, createVersionConflictResponse } from '@/lib/utils/version-check'
+import { createValidationError, handleApiError } from '@/lib/utils/api-error'
 
 interface WaiveFeeBody {
   loanAccountId: string
@@ -28,21 +29,22 @@ interface WaiveFeeBody {
 }
 
 export async function POST(request: NextRequest) {
+  let body: WaiveFeeBody | undefined
   try {
-    const body: WaiveFeeBody = await request.json()
+    body = await request.json()
 
     // Validation
     if (!body.loanAccountId) {
-      return NextResponse.json({ error: 'loanAccountId is required' }, { status: 400 })
+      return createValidationError('loanAccountId')
     }
     if (!body.waiverAmount) {
-      return NextResponse.json({ error: 'waiverAmount is required' }, { status: 400 })
+      return createValidationError('waiverAmount')
     }
     if (!body.reason) {
-      return NextResponse.json({ error: 'reason is required' }, { status: 400 })
+      return createValidationError('reason')
     }
     if (!body.approvedBy) {
-      return NextResponse.json({ error: 'approvedBy is required' }, { status: 400 })
+      return createValidationError('approvedBy')
     }
 
     // Version conflict check (if expectedVersion provided)
@@ -77,11 +79,10 @@ export async function POST(request: NextRequest) {
       eventId: response.eventId,
     })
   } catch (error) {
-    console.error('Error waiving fee:', error)
-    return NextResponse.json(
-      { error: 'Failed to waive fee', details: (error as Error).message },
-      { status: 500 },
-    )
+    return handleApiError(error, {
+      action: 'waive-fee',
+      accountId: body?.loanAccountId,
+    })
   }
 }
 

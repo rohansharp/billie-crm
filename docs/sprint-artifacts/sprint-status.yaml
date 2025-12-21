@@ -78,5 +78,5 @@ development_status:
   5-2-read-only-mode-activation: done (reviewed)
   5-3-failed-action-notification-center: done (reviewed)
   5-4-version-conflict-detection: done (reviewed)
-  5-5-graceful-error-handling: backlog
+  5-5-graceful-error-handling: done (reviewed)
   epic-5-retrospective: optional

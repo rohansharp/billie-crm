@@ -7,7 +7,10 @@ import { useFailedActionsStore } from '@/stores/failed-actions'
 import { useVersionStore } from '@/stores/version'
 import { generateIdempotencyKey } from '@/lib/utils/idempotency'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
-import { VERSION_CONFLICT_ERROR_CODE } from '@/lib/constants'
+import { toAppError, parseApiError } from '@/lib/utils/error'
+import { copyErrorDetails } from '@/lib/utils/error-toast'
+import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout'
+import { ERROR_CODES } from '@/lib/errors/codes'
 import type { PendingMutation } from '@/types/mutation'
 
 /** Custom event detail for retry action */
@@ -44,7 +47,8 @@ export interface WaiveFeeResponse {
 }
 
 async function waiveFee(params: WaiveFeeParams): Promise<WaiveFeeResponse> {
-  const res = await fetch('/api/ledger/waive-fee', {
+  // Use fetchWithTimeout for network timeout handling
+  const res = await fetchWithTimeout('/api/ledger/waive-fee', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -57,16 +61,9 @@ async function waiveFee(params: WaiveFeeParams): Promise<WaiveFeeResponse> {
   })
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Failed to waive fee' }))
-    // Preserve error code for version conflict detection
-    if (error.error === VERSION_CONFLICT_ERROR_CODE) {
-      const err = new Error(error.message || 'Version conflict detected')
-      ;(err as any).code = VERSION_CONFLICT_ERROR_CODE
-      ;(err as any).currentVersion = error.currentVersion
-      ;(err as any).expectedVersion = error.expectedVersion
-      throw err
-    }
-    throw new Error(error.error || error.details || 'Failed to waive fee')
+    // Parse structured API error response
+    const appError = await parseApiError(res, 'Failed to waive fee')
+    throw appError
   }
 
   return res.json()
@@ -152,30 +149,24 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
     onError: (error, params, context) => {
       if (!context) return
 
-      const errorMessage = error instanceof Error ? error.message : 'Failed to waive fee'
-      const errorCode = (error as any)?.code
+      // Convert to AppError for consistent handling
+      const appError = toAppError(error, 'Failed to waive fee')
 
       // Update stage to failed
-      setStage(context.loanAccountId, context.mutationId, 'failed', errorMessage)
+      setStage(context.loanAccountId, context.mutationId, 'failed', appError.message)
 
       // Check if this is a version conflict (handled separately via callback)
-      if (errorCode === VERSION_CONFLICT_ERROR_CODE) {
+      if (appError.code === ERROR_CODES.VERSION_CONFLICT) {
         // Version conflicts are not added to failed actions - they need user intervention
-        // The onVersionConflict callback will be invoked by the calling component
         toast.error('Data has changed', {
           description: 'This record was modified. Please refresh and try again.',
         })
         return
       }
 
-      // Check if this is a system error (not validation)
-      // NOTE: This regex-based detection is a heuristic. It may incorrectly categorize
-      // errors that happen to contain these words (e.g., "Connection to validation service failed").
-      // Consider using error codes from the API for more robust detection.
-      const isSystemError = !/(validation|invalid|required|must be|cannot be)/i.test(errorMessage)
-
       // Add to failed actions queue for retry later (only system errors)
-      if (isSystemError) {
+      // Uses error code instead of brittle regex detection
+      if (appError.isSystemError()) {
         addFailedAction(
           'waive-fee',
           params.loanAccountId,
@@ -184,23 +175,31 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
             reason: params.reason,
             approvedBy: params.approvedBy,
           },
-          errorMessage,
+          appError.message,
           accountLabel
         )
       }
 
-      // Show error toast with retry option
+      // Show error toast with retry option and copy details
       toast.error('Failed to waive fee', {
-        description: errorMessage,
-        action: {
-          label: 'Retry',
-          onClick: () => {
-            // Clear the failed mutation first
-            clearPending(context.loanAccountId, context.mutationId)
-            // Retry
-            mutation.mutate(params)
-          },
-        },
+        description: appError.code === ERROR_CODES.UNKNOWN_ERROR
+          ? `${appError.message} (${appError.errorId})`
+          : appError.message,
+        action: appError.isRetryable()
+          ? {
+              label: 'Retry',
+              onClick: () => {
+                clearPending(context.loanAccountId, context.mutationId)
+                mutation.mutate(params)
+              },
+            }
+          : {
+              label: '📋 Copy details',
+              onClick: () => copyErrorDetails(appError, {
+                action: 'waive-fee',
+                accountId: params.loanAccountId,
+              }),
+            },
       })
     },
   })
@@ -278,6 +277,8 @@ export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
     isReadOnlyMode: readOnlyMode,
     hasPendingWaive,
     /** Check if last error was a version conflict */
-    isVersionConflict: (mutation.error as any)?.code === VERSION_CONFLICT_ERROR_CODE,
+    isVersionConflict: mutation.error
+      ? toAppError(mutation.error).code === ERROR_CODES.VERSION_CONFLICT
+      : false,
   }
 }

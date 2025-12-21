@@ -8,6 +8,7 @@ export const ERROR_MESSAGES = {
   ACCOUNT_NOT_FOUND: 'The requested account could not be found.',
   SELF_APPROVAL_FORBIDDEN: 'You cannot approve your own request.',
   NETWORK_ERROR: 'A network error occurred. Please check your connection.',
+  NETWORK_TIMEOUT: 'The request timed out. Please try again.',
   UNKNOWN_ERROR:
     'An unexpected error occurred. Please try again or contact support.',
 } as const

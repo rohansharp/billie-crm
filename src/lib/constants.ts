@@ -103,3 +103,19 @@ export const VERSION_CONFLICT_CHECK_ENABLED = true
  * Error code returned when a version conflict is detected.
  */
 export const VERSION_CONFLICT_ERROR_CODE = 'VERSION_CONFLICT'
+
+// =============================================================================
+// Error Handling Constants
+// =============================================================================
+
+/**
+ * Network timeout for fetch requests (in milliseconds).
+ * Default: 30 seconds
+ */
+export const NETWORK_TIMEOUT_MS = 30_000
+
+/**
+ * Prefix for generated error IDs.
+ * Format: ERR-{nanoid}
+ */
+export const ERROR_ID_PREFIX = 'ERR'

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { MIN_APPROVAL_COMMENT_LENGTH, UNKNOWN_USER_FALLBACK } from '@/lib/constants'
+import { showErrorToast } from '@/lib/utils/error-toast'
 
 export interface RejectWriteOffParams {
   /** Write-off request ID */
@@ -82,8 +83,9 @@ export function useRejectWriteOff() {
       queryClient.invalidateQueries({ queryKey: ['write-off-requests'] })
     },
     onError: (error) => {
-      toast.error('Failed to reject request', {
-        description: error instanceof Error ? error.message : 'Unknown error',
+      showErrorToast(error, {
+        title: 'Failed to reject request',
+        action: 'reject-write-off',
       })
     },
   })
