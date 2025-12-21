@@ -31,15 +31,23 @@ export function NavSystemStatus() {
     )
   }
 
+  const tooltipText = status === 'connected'
+    ? `Ledger Service: Online (${latencyMs}ms latency)`
+    : status === 'degraded'
+      ? 'Ledger Service: Degraded - Responses may be slow'
+      : 'Ledger Service: Offline - Financial actions unavailable'
+
   return (
     <div className={`${styles.status} ${config.className}`} role="status" aria-live="polite">
       <span className={styles.icon} aria-hidden="true">
         {config.icon}
       </span>
-      <span className={styles.label}>Ledger {config.label}</span>
+      <span className={styles.label}>{config.label}</span>
       {status === 'connected' && latencyMs > 0 && (
-        <span className={styles.latency}>{latencyMs}ms</span>
+        <span className={styles.latency}>({latencyMs}ms)</span>
       )}
+      {/* Tooltip appears to the right on hover */}
+      <span className={styles.tooltip}>{tooltipText}</span>
     </div>
   )
 }

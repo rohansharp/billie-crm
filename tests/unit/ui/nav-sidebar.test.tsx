@@ -357,13 +357,13 @@ describe('NavSystemStatus', () => {
   })
 
   describe('Connected state (AC7)', () => {
-    it('should show "Ledger Online" when connected', async () => {
+    it('should show "Online" label when connected', async () => {
       setupMockFetch({ health: mockConnectedResponse })
 
       render(<NavSystemStatus />, { wrapper: createWrapper() })
 
       await waitFor(() => {
-        expect(screen.getByText('Ledger Online')).toBeInTheDocument()
+        expect(screen.getByText('Online')).toBeInTheDocument()
       })
     })
 
@@ -383,19 +383,19 @@ describe('NavSystemStatus', () => {
       render(<NavSystemStatus />, { wrapper: createWrapper() })
 
       await waitFor(() => {
-        expect(screen.getByText('150ms')).toBeInTheDocument()
+        expect(screen.getByText('(150ms)')).toBeInTheDocument()
       })
     })
   })
 
   describe('Degraded state', () => {
-    it('should show "Ledger Degraded" when degraded', async () => {
+    it('should show "Degraded" label when degraded', async () => {
       setupMockFetch({ health: mockDegradedResponse })
 
       render(<NavSystemStatus />, { wrapper: createWrapper() })
 
       await waitFor(() => {
-        expect(screen.getByText('Ledger Degraded')).toBeInTheDocument()
+        expect(screen.getByText('Degraded')).toBeInTheDocument()
       })
     })
 
@@ -411,13 +411,13 @@ describe('NavSystemStatus', () => {
   })
 
   describe('Offline state', () => {
-    it('should show "Ledger Offline" when offline', async () => {
+    it('should show "Offline" label when offline', async () => {
       setupMockFetch({ health: mockOfflineResponse })
 
       render(<NavSystemStatus />, { wrapper: createWrapper() })
 
       await waitFor(() => {
-        expect(screen.getByText('Ledger Offline')).toBeInTheDocument()
+        expect(screen.getByText('Offline')).toBeInTheDocument()
       })
     })
 

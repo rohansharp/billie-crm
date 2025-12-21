@@ -76,8 +76,6 @@ export function DashboardView() {
   const firstName = data?.user?.firstName ?? 'there'
   const pendingApprovals = data?.actionItems?.pendingApprovalsCount ?? 0
   const canSeeApprovals = data?.user?.role === 'admin' || data?.user?.role === 'supervisor'
-  const ledgerStatus = data?.systemStatus?.ledger ?? 'offline'
-  const ledgerLatency = data?.systemStatus?.latencyMs ?? 0
 
   // Map customer IDs to summaries from API response
   const customerSummaryMap = new Map(
@@ -125,64 +123,54 @@ export function DashboardView() {
       {/* Main Grid */}
       <div className={styles.grid}>
         {/* Action Items Card */}
-        {(canSeeApprovals || failedActionsCount > 0) && (
-          <div className={styles.card} data-testid="action-items-card">
-            <h2 className={styles.cardTitle}>Action Items</h2>
-            <div className={styles.actionList}>
-              {canSeeApprovals && pendingApprovals > 0 && (
-                <Link
-                  href="/admin/approvals"
-                  className={styles.actionItem}
-                  data-testid="pending-approvals-link"
-                >
-                  <span className={styles.actionIcon}>✅</span>
-                  <span className={styles.actionText}>
-                    {pendingApprovals} Pending Approval{pendingApprovals !== 1 ? 's' : ''}
-                  </span>
-                  <span className={styles.actionArrow}>→</span>
-                </Link>
-              )}
-              {canSeeApprovals && pendingApprovals === 0 && (
-                <div className={styles.actionItemEmpty}>
-                  <span className={styles.actionIcon}>✅</span>
-                  <span className={styles.actionText}>No pending approvals</span>
-                </div>
-              )}
-              {failedActionsCount > 0 && (
-                <button
-                  type="button"
-                  className={styles.actionItem}
-                  data-testid="failed-actions-link"
-                  onClick={() => {
-                    // TODO: Open failed actions panel
-                  }}
-                >
-                  <span className={styles.actionIcon}>⚠️</span>
-                  <span className={styles.actionText}>
-                    {failedActionsCount} Failed Action{failedActionsCount !== 1 ? 's' : ''}
-                  </span>
-                  <span className={styles.actionArrow}>→</span>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* System Status Card */}
-        <div className={styles.card} data-testid="system-status-card">
-          <h2 className={styles.cardTitle}>System Status</h2>
-          <div className={styles.statusList}>
-            <div className={styles.statusItem}>
-              <span
-                className={styles.statusDot}
-                data-status={ledgerStatus}
-                aria-label={`Ledger service ${ledgerStatus}`}
-              />
-              <span className={styles.statusLabel}>Ledger Service</span>
-              <span className={styles.statusValue}>
-                {ledgerStatus === 'online' ? `Online (${ledgerLatency}ms)` : ledgerStatus}
-              </span>
-            </div>
+        <div className={styles.card} data-testid="action-items-card">
+          <h2 className={styles.cardTitle}>Action Items</h2>
+          <div className={styles.actionList}>
+            {canSeeApprovals && pendingApprovals > 0 && (
+              <Link
+                href="/admin/approvals"
+                className={styles.actionItem}
+                data-testid="pending-approvals-link"
+              >
+                <span className={styles.actionIcon}>✅</span>
+                <span className={styles.actionText}>
+                  {pendingApprovals} Pending Approval{pendingApprovals !== 1 ? 's' : ''}
+                </span>
+                <span className={styles.actionArrow}>→</span>
+              </Link>
+            )}
+            {canSeeApprovals && pendingApprovals === 0 && (
+              <div className={styles.actionItemEmpty}>
+                <span className={styles.actionIcon}>✅</span>
+                <span className={styles.actionText}>No pending approvals</span>
+              </div>
+            )}
+            {failedActionsCount > 0 && (
+              <button
+                type="button"
+                className={styles.actionItem}
+                data-testid="failed-actions-link"
+                onClick={() => {
+                  // TODO: Open failed actions panel
+                }}
+              >
+                <span className={styles.actionIcon}>⚠️</span>
+                <span className={styles.actionText}>
+                  {failedActionsCount} Failed Action{failedActionsCount !== 1 ? 's' : ''}
+                </span>
+                <span className={styles.actionArrow}>→</span>
+              </button>
+            )}
+            {/* My Activity Link */}
+            <Link
+              href="/admin/my-activity"
+              className={styles.actionItem}
+              data-testid="my-activity-link"
+            >
+              <span className={styles.actionIcon}>📋</span>
+              <span className={styles.actionText}>My Activity</span>
+              <span className={styles.actionArrow}>→</span>
+            </Link>
           </div>
         </div>
 

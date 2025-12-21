@@ -7,19 +7,54 @@
   border-top: 1px solid var(--theme-elevation-150, #e0e0e0);
   font-size: 13px;
   color: var(--theme-elevation-600, #666);
+  position: relative;
+  cursor: default;
+  min-width: 0; /* Allow flex children to shrink */
 }
 
 .icon {
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 .label {
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .latency {
   font-size: 11px;
   color: var(--theme-elevation-500, #888);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Tooltip - positioned to appear to the right on hover */
+.tooltip {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px 10px;
+  background: var(--theme-elevation-800, #333);
+  color: var(--theme-text, #fff);
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.status:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Status-specific styles */
