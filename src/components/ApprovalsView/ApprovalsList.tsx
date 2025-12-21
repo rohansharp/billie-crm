@@ -14,6 +14,10 @@ import styles from './styles.module.css'
 export interface ApprovalsListProps {
   /** Initial sort option */
   initialSort?: PendingApprovalsOptions['sort']
+  /** Current user's ID for segregation of duties */
+  currentUserId?: string
+  /** Current user's name for audit trail */
+  currentUserName?: string
 }
 
 /**
@@ -22,6 +26,8 @@ export interface ApprovalsListProps {
  */
 export const ApprovalsList: React.FC<ApprovalsListProps> = ({
   initialSort = 'oldest',
+  currentUserId,
+  currentUserName,
 }) => {
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState<PendingApprovalsOptions['sort']>(initialSort)
@@ -256,6 +262,8 @@ export const ApprovalsList: React.FC<ApprovalsListProps> = ({
         approval={selectedApproval}
         isOpen={drawerOpen}
         onClose={handleCloseDrawer}
+        currentUserId={currentUserId}
+        currentUserName={currentUserName}
       />
     </>
   )

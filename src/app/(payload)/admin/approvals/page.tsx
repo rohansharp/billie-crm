@@ -47,5 +47,11 @@ export default async function ApprovalsPage() {
   // Extract and validate role with proper type guard
   const userRole = isValidRole(user?.role) ? user.role : undefined
 
-  return <ApprovalsView userRole={userRole} />
+  // Extract user ID and name for segregation of duties and audit trail
+  const userId = user?.id
+  const userName = user?.firstName && user?.lastName
+    ? `${user.firstName} ${user.lastName}`
+    : user?.email || undefined
+
+  return <ApprovalsView userRole={userRole} userId={userId} userName={userName} />
 }

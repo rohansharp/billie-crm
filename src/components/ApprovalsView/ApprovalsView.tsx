@@ -9,6 +9,10 @@ import styles from './styles.module.css'
 export interface ApprovalsViewProps {
   /** Current user's role (for access control) */
   userRole?: 'admin' | 'supervisor' | 'operations' | 'readonly'
+  /** Current user's ID (for segregation of duties) */
+  userId?: string
+  /** Current user's display name (for audit trail) */
+  userName?: string
 }
 
 /**
@@ -19,7 +23,7 @@ export interface ApprovalsViewProps {
  * - Allowed: admin, supervisor
  * - Denied: operations, readonly
  */
-export const ApprovalsView: React.FC<ApprovalsViewProps> = ({ userRole }) => {
+export const ApprovalsView: React.FC<ApprovalsViewProps> = ({ userRole, userId, userName }) => {
   // Check access - only admin and supervisor can access
   const allowedRoles = ['admin', 'supervisor']
   const hasAccess = userRole && allowedRoles.includes(userRole)
@@ -69,7 +73,7 @@ export const ApprovalsView: React.FC<ApprovalsViewProps> = ({ userRole }) => {
       </div>
 
       {/* Approvals List */}
-      <ApprovalsList />
+      <ApprovalsList currentUserId={userId} currentUserName={userName} />
     </div>
   )
 }

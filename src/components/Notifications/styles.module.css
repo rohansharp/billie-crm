@@ -1,0 +1,329 @@
+/* Fixed Position Indicator (for Payload admin) */
+.indicatorContainer {
+  position: fixed;
+  top: 16px;
+  right: 80px;
+  z-index: 100;
+}
+
+/* Notification Badge */
+.badgeContainer {
+  position: relative;
+  display: inline-flex;
+}
+
+.badgeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--theme-elevation-500, #888);
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.badgeButton:hover {
+  background: var(--theme-elevation-100, #2a2a2a);
+  color: var(--theme-text, #fff);
+}
+
+.badgeButton[data-active="true"] {
+  background: var(--theme-elevation-150, #333);
+  color: var(--theme-text, #fff);
+}
+
+.badgeCount {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  color: #fff;
+  background: #ef4444;
+  border-radius: 9px;
+  pointer-events: none;
+}
+
+.badgeCountLarge {
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+/* Notification Panel Overlay */
+.panelOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+}
+
+/* Notification Panel */
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  max-width: 100vw;
+  height: 100vh;
+  background: var(--theme-elevation-50, #1a1a1a);
+  border-left: 1px solid var(--theme-elevation-200, #333);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--theme-elevation-200, #333);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text, #fff);
+}
+
+.panelActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.panelCloseBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--theme-elevation-500, #888);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.panelCloseBtn:hover {
+  background: var(--theme-elevation-100, #2a2a2a);
+}
+
+.markAllReadBtn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--theme-elevation-200, #444);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--theme-text, #fff);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.markAllReadBtn:hover {
+  background: var(--theme-elevation-100, #2a2a2a);
+}
+
+.markAllReadBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Panel Content */
+.panelContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Notification Items */
+.notificationList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notificationItem {
+  display: block;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--theme-elevation-100, #2a2a2a);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notificationItem:hover {
+  background: var(--theme-elevation-100, #2a2a2a);
+}
+
+.notificationItem[data-unread="true"] {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.notificationItem[data-unread="true"]:hover {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.notificationTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #fff);
+  font-family: var(--font-mono, monospace);
+}
+
+.notificationTime {
+  font-size: 11px;
+  color: var(--theme-elevation-500, #888);
+  white-space: nowrap;
+}
+
+.notificationBody {
+  font-size: 13px;
+  color: var(--theme-elevation-600, #aaa);
+  line-height: 1.4;
+}
+
+.notificationAmount {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.notificationMeta {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.notificationTag {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 4px;
+  background: var(--theme-elevation-100, #333);
+  color: var(--theme-elevation-600, #aaa);
+  text-transform: capitalize;
+}
+
+.notificationTagSenior {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.unreadDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--theme-text, #fff);
+  margin: 0 0 8px;
+}
+
+.emptyDescription {
+  font-size: 14px;
+  color: var(--theme-elevation-500, #888);
+  margin: 0;
+}
+
+/* Panel Footer */
+.panelFooter {
+  padding: 12px 20px;
+  border-top: 1px solid var(--theme-elevation-200, #333);
+  text-align: center;
+}
+
+.viewAllLink {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3b82f6;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.viewAllLink:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.loadingSpinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--theme-elevation-200, #333);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

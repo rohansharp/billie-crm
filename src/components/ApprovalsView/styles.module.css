@@ -476,3 +476,239 @@
   color: var(--theme-text, #fff);
   text-transform: capitalize;
 }
+
+/* Action Buttons in Drawer */
+.actionButtons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--theme-elevation-200, #333);
+}
+
+.actionBtn {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.actionBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actionBtnApprove {
+  background: #22c55e;
+  color: #fff;
+}
+
+.actionBtnApprove:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.actionBtnReject {
+  background: #ef4444;
+  color: #fff;
+}
+
+.actionBtnReject:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.actionBtnDisabledReason {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modalContent {
+  background: var(--theme-elevation-50, #1a1a1a);
+  border: 1px solid var(--theme-elevation-200, #333);
+  border-radius: 12px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--theme-elevation-200, #333);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #fff);
+}
+
+.modalCloseBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--theme-elevation-500, #888);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.modalCloseBtn:hover:not(:disabled) {
+  background: var(--theme-elevation-100, #2a2a2a);
+}
+
+.modalCloseBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modalBody {
+  padding: 20px;
+}
+
+.modalRequestInfo {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.modalRequestInfo strong {
+  color: var(--theme-text, #fff);
+  font-family: var(--font-mono, monospace);
+}
+
+.modalLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-text, #fff);
+}
+
+.modalTextarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--theme-elevation-200, #444);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  outline: none;
+  background: var(--theme-elevation-100, #2a2a2a);
+  color: var(--theme-text, #fff);
+}
+
+.modalTextarea:focus {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.modalTextarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modalCharCount {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.modalError {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  font-size: 13px;
+  color: #ef4444;
+}
+
+.modalFooter {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--theme-elevation-200, #333);
+}
+
+.modalCancelBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--theme-elevation-200, #444);
+  border-radius: 6px;
+  background: var(--theme-elevation-100, #2a2a2a);
+  color: var(--theme-text, #fff);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.modalCancelBtn:hover:not(:disabled) {
+  background: var(--theme-elevation-150, #333);
+}
+
+.modalCancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modalConfirmBtn {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.modalConfirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modalConfirmApprove {
+  background: #22c55e;
+  color: #fff;
+}
+
+.modalConfirmApprove:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.modalConfirmReject {
+  background: #ef4444;
+  color: #fff;
+}
+
+.modalConfirmReject:hover:not(:disabled) {
+  background: #dc2626;
+}

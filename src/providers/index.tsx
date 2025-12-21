@@ -11,6 +11,7 @@ import {
   CustomerSearchResult,
   LoanAccountSearchResult,
 } from '@/components/ui/CommandPalette'
+import { NotificationIndicatorWrapper } from '@/components/Notifications'
 import { useUIStore } from '@/stores/ui'
 import { useCommandPaletteHotkeys } from '@/hooks/useGlobalHotkeys'
 import { useCustomerSearch } from '@/hooks/queries/useCustomerSearch'
@@ -116,6 +117,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({
       {children}
       <Toaster position="top-right" richColors />
       <GlobalCommandPalette />
+      <NotificationIndicatorWrapper />
       {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}

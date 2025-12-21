@@ -1,26 +1,88 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useCallback } from 'react'
 import { ContextDrawer, CopyButton } from '@/components/ui'
 import type { WriteOffApproval } from '@/hooks/queries/usePendingApprovals'
+import { useApproveWriteOff } from '@/hooks/mutations/useApproveWriteOff'
+import { useRejectWriteOff } from '@/hooks/mutations/useRejectWriteOff'
+import { SENIOR_APPROVAL_THRESHOLD } from '@/hooks/mutations/useWriteOffRequest'
 import { formatCurrency, formatDateMedium } from '@/lib/formatters'
+import { ApprovalActionModal, type ActionType } from './ApprovalActionModal'
 import styles from './styles.module.css'
 
 export interface ApprovalDetailDrawerProps {
   approval: WriteOffApproval | null
   isOpen: boolean
   onClose: () => void
+  /** Current user's ID for segregation of duties check */
+  currentUserId?: string
+  /** Current user's name for audit trail */
+  currentUserName?: string
 }
 
 /**
  * Drawer showing detailed information about a write-off approval request.
- * Actions (approve/reject) are handled in Story 4.3.
+ * Includes approve/reject actions with segregation of duties.
  */
 export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
   approval,
   isOpen,
   onClose,
+  currentUserId,
+  currentUserName,
 }) => {
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalAction, setModalAction] = useState<ActionType>('approve')
+
+  const { approveRequestAsync, isPending: isApproving } = useApproveWriteOff()
+  const { rejectRequestAsync, isPending: isRejecting } = useRejectWriteOff()
+
+  const isPending = isApproving || isRejecting
+
+  // Segregation of duties: cannot approve own request
+  const isOwnRequest = Boolean(currentUserId && approval?.requestedBy === currentUserId)
+
+  const handleApproveClick = useCallback(() => {
+    setModalAction('approve')
+    setModalOpen(true)
+  }, [])
+
+  const handleRejectClick = useCallback(() => {
+    setModalAction('reject')
+    setModalOpen(true)
+  }, [])
+
+  const handleModalClose = useCallback(() => {
+    setModalOpen(false)
+  }, [])
+
+  const handleModalConfirm = useCallback(
+    async (comment: string) => {
+      if (!approval) return
+
+      if (modalAction === 'approve') {
+        await approveRequestAsync({
+          requestId: approval.id,
+          comment,
+          approverId: currentUserId,
+          approverName: currentUserName,
+        })
+      } else {
+        await rejectRequestAsync({
+          requestId: approval.id,
+          reason: comment,
+          rejectorId: currentUserId,
+          rejectorName: currentUserName,
+        })
+      }
+
+      // Close modal and drawer after successful action
+      setModalOpen(false)
+      onClose()
+    },
+    [approval, modalAction, approveRequestAsync, rejectRequestAsync, currentUserId, currentUserName, onClose]
+  )
+
   if (!approval) return null
 
   const requestDate = new Date(approval.requestedAt || approval.createdAt)
@@ -41,7 +103,7 @@ export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
       {approval.requiresSeniorApproval && (
         <div className={styles.seniorApprovalFlag}>
           <span className={styles.seniorApprovalIcon}>⚠️</span>
-          <span>This request requires senior approval (amount ≥ $10,000)</span>
+          <span>This request requires senior approval (amount ≥ {formatCurrency(SENIOR_APPROVAL_THRESHOLD)})</span>
         </div>
       )}
 
@@ -135,7 +197,45 @@ export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
         )}
       </div>
 
-      {/* Action buttons will be added in Story 4.3 */}
+      {/* Action Buttons */}
+      {approval.status === 'pending' && (
+        <div className={styles.actionButtons}>
+          <button
+            type="button"
+            className={`${styles.actionBtn} ${styles.actionBtnApprove}`}
+            onClick={handleApproveClick}
+            disabled={isPending || isOwnRequest}
+            title={isOwnRequest ? 'Cannot approve your own request' : 'Approve this request'}
+            data-testid="approve-button"
+          >
+            ✓ Approve
+            {isOwnRequest && (
+              <span className={styles.actionBtnDisabledReason}>
+                Cannot approve own request
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            className={`${styles.actionBtn} ${styles.actionBtnReject}`}
+            onClick={handleRejectClick}
+            disabled={isPending}
+            data-testid="reject-button"
+          >
+            ✕ Reject
+          </button>
+        </div>
+      )}
+
+      {/* Approval Action Modal */}
+      <ApprovalActionModal
+        isOpen={modalOpen}
+        onClose={handleModalClose}
+        onConfirm={handleModalConfirm}
+        actionType={modalAction}
+        requestNumber={approval.requestNumber}
+        isPending={isPending}
+      />
     </ContextDrawer>
   )
 }
