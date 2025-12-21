@@ -63,3 +63,23 @@ export const LATENCY_DISPLAY_THRESHOLD_MS = 500
  * Used to prevent duplicate toasts when ledger recovers.
  */
 export const TOAST_ID_SYSTEM_RESTORED = 'system-restored'
+
+// =============================================================================
+// Failed Actions Constants
+// =============================================================================
+
+/**
+ * localStorage key for persisting failed actions.
+ */
+export const FAILED_ACTIONS_STORAGE_KEY = 'billie-crm-failed-actions'
+
+/**
+ * Time-to-live for failed actions in localStorage (in milliseconds).
+ * Default: 24 hours
+ */
+export const FAILED_ACTIONS_TTL_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Maximum number of failed actions to store.
+ */
+export const MAX_FAILED_ACTIONS = 50

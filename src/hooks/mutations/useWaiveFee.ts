@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useOptimisticStore } from '@/stores/optimistic'
 import { useUIStore } from '@/stores/ui'
+import { useFailedActionsStore } from '@/stores/failed-actions'
 import { generateIdempotencyKey } from '@/lib/utils/idempotency'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
 import type { PendingMutation } from '@/types/mutation'
@@ -59,10 +60,12 @@ async function waiveFee(params: WaiveFeeParams): Promise<WaiveFeeResponse> {
  * 4a. On success: update stage to 'confirmed', show toast, invalidate queries
  * 4b. On error: update stage to 'failed', show error toast
  */
-export function useWaiveFee(loanAccountId?: string) {
+export function useWaiveFee(loanAccountId?: string, accountLabel?: string) {
   const queryClient = useQueryClient()
   const { setPending, setStage, clearPending, hasPendingAction } = useOptimisticStore()
   const readOnlyMode = useUIStore((state) => state.readOnlyMode)
+  const addFailedAction = useFailedActionsStore((state) => state.addFailedAction)
+  const removeAction = useFailedActionsStore((state) => state.removeAction)
   const hasPendingWaive = loanAccountId ? hasPendingAction(loanAccountId, 'waive-fee') : false
 
   const mutation = useMutation({
@@ -121,6 +124,25 @@ export function useWaiveFee(loanAccountId?: string) {
 
       // Update stage to failed
       setStage(context.loanAccountId, context.mutationId, 'failed', errorMessage)
+
+      // Check if this is a system error (not validation)
+      // Validation errors typically contain "validation", "invalid", "required"
+      const isSystemError = !/(validation|invalid|required|must be|cannot be)/i.test(errorMessage)
+
+      // Add to failed actions queue for retry later (only system errors)
+      if (isSystemError) {
+        addFailedAction(
+          'waive-fee',
+          params.loanAccountId,
+          {
+            waiverAmount: params.waiverAmount,
+            reason: params.reason,
+            approvedBy: params.approvedBy,
+          },
+          errorMessage,
+          accountLabel
+        )
+      }
 
       // Show error toast with retry option
       toast.error('Failed to waive fee', {

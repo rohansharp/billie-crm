@@ -14,6 +14,7 @@ import {
 import { NotificationIndicatorWrapper } from '@/components/Notifications'
 import { LedgerStatusIndicator } from '@/components/LedgerStatus'
 import { ReadOnlyBanner } from '@/components/ReadOnlyBanner'
+import { FailedActionsBadge } from '@/components/FailedActions'
 import { useUIStore } from '@/stores/ui'
 import { useCommandPaletteHotkeys } from '@/hooks/useGlobalHotkeys'
 import { useReadOnlyMode } from '@/hooks/useReadOnlyMode'
@@ -134,6 +135,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({
       <GlobalCommandPalette />
       <NotificationIndicatorWrapper />
       <LedgerStatusIndicator />
+      <FailedActionsBadge />
       {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}

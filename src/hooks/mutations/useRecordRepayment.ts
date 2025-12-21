@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useOptimisticStore } from '@/stores/optimistic'
 import { useUIStore } from '@/stores/ui'
+import { useFailedActionsStore } from '@/stores/failed-actions'
 import { generateIdempotencyKey } from '@/lib/utils/idempotency'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
 import type { PendingMutation } from '@/types/mutation'
@@ -74,10 +75,11 @@ async function recordRepayment(params: RecordRepaymentParams): Promise<RecordRep
  * 4a. On success: update stage to 'confirmed', show toast, invalidate queries
  * 4b. On error: update stage to 'failed', show error toast
  */
-export function useRecordRepayment(loanAccountId?: string) {
+export function useRecordRepayment(loanAccountId?: string, accountLabel?: string) {
   const queryClient = useQueryClient()
   const { setPending, setStage, clearPending, hasPendingAction } = useOptimisticStore()
   const readOnlyMode = useUIStore((state) => state.readOnlyMode)
+  const addFailedAction = useFailedActionsStore((state) => state.addFailedAction)
   const hasPendingRepayment = loanAccountId ? hasPendingAction(loanAccountId, 'record-repayment') : false
 
   const mutation = useMutation({
@@ -148,6 +150,25 @@ export function useRecordRepayment(loanAccountId?: string) {
 
       // Update stage to failed
       setStage(context.loanAccountId, context.mutationId, 'failed', errorMessage)
+
+      // Check if this is a system error (not validation)
+      const isSystemError = !/(validation|invalid|required|must be|cannot be)/i.test(errorMessage)
+
+      // Add to failed actions queue for retry later (only system errors)
+      if (isSystemError) {
+        addFailedAction(
+          'record-repayment',
+          params.loanAccountId,
+          {
+            amount: params.amount,
+            paymentReference: params.paymentReference,
+            paymentMethod: params.paymentMethod,
+            notes: params.notes,
+          },
+          errorMessage,
+          accountLabel
+        )
+      }
 
       // Show error toast with retry option
       toast.error('Failed to record repayment', {
