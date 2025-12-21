@@ -20,6 +20,7 @@ import { AccountPanel, type TabId } from './AccountPanel'
 import type { SelectedFee } from './FeeList'
 import { usePendingWriteOff } from '@/hooks/queries/usePendingWriteOff'
 import { useTrackCustomerView } from '@/hooks/useTrackCustomerView'
+import { Breadcrumb } from '@/components/Breadcrumb'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -279,11 +280,15 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   if (isLoading) {
     return (
       <div className={styles.container}>
+        {/* Breadcrumb navigation (Story 6.3) */}
+        <Breadcrumb
+          items={[
+            { label: `Customer ${customerId}` },
+            { label: 'Loading...' },
+          ]}
+        />
         <div className={styles.header}>
           <h1 className={styles.headerTitle}>Customer Servicing</h1>
-          <div className={styles.headerBreadcrumb}>
-            <Link href="/admin">Dashboard</Link> / Loading...
-          </div>
         </div>
 
         <div className={styles.grid}>
@@ -304,11 +309,15 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
 
   return (
     <div className={styles.container}>
+      {/* Breadcrumb navigation (Story 6.3) */}
+      <Breadcrumb
+        items={[
+          { label: `Customer ${customerId}` },
+          { label: customer?.fullName || 'Loading...' },
+        ]}
+      />
       <div className={styles.header}>
         <h1 className={styles.headerTitle}>Customer Servicing</h1>
-        <div className={styles.headerBreadcrumb}>
-          <Link href="/admin">Dashboard</Link> / {customer?.fullName || 'Customer'}
-        </div>
       </div>
 
       {/* Vulnerable customer warning banner */}

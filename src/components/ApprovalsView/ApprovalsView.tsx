@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { stringify } from 'qs-esm'
 import { ApprovalsList } from './ApprovalsList'
 import { HistoryTab } from './HistoryTab'
+import { Breadcrumb } from '@/components/Breadcrumb'
 import styles from './styles.module.css'
 
 export type ApprovalTab = 'pending' | 'history'
@@ -77,6 +78,9 @@ export const ApprovalsView: React.FC<ApprovalsViewProps> = ({
 
   return (
     <div className={styles.approvalsContainer} data-testid="approvals-view">
+      {/* Breadcrumb navigation (Story 6.3) */}
+      <Breadcrumb items={[{ label: 'Approvals' }]} />
+
       {/* Header */}
       <div className={styles.approvalsHeader}>
         <h1 className={styles.approvalsTitle}>
