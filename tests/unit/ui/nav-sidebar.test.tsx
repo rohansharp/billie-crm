@@ -210,7 +210,7 @@ describe('NavApprovalsLink', () => {
     vi.clearAllMocks()
     global.fetch = vi.fn()
     mockUsePathname.mockReturnValue('/admin/customers')
-    mockUseAuth.mockReturnValue({ user: { roles: ['approver'] } })
+    mockUseAuth.mockReturnValue({ user: { role: 'supervisor' } })
   })
 
   afterEach(() => {
@@ -218,8 +218,8 @@ describe('NavApprovalsLink', () => {
   })
 
   describe('RBAC - Role-based visibility (AC6)', () => {
-    it('should render for users with approver role', () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['approver'] } })
+    it('should render for users with supervisor role', () => {
+      mockUseAuth.mockReturnValue({ user: { role: 'supervisor' } })
       setupMockFetch()
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })
@@ -228,7 +228,7 @@ describe('NavApprovalsLink', () => {
     })
 
     it('should render for users with admin role', () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['admin'] } })
+      mockUseAuth.mockReturnValue({ user: { role: 'admin' } })
       setupMockFetch()
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })
@@ -236,8 +236,8 @@ describe('NavApprovalsLink', () => {
       expect(screen.getByRole('link', { name: /approvals/i })).toBeInTheDocument()
     })
 
-    it('should NOT render for users without approver/admin roles', () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['user'] } })
+    it('should NOT render for users with operations role', () => {
+      mockUseAuth.mockReturnValue({ user: { role: 'operations' } })
       setupMockFetch()
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })
@@ -245,8 +245,8 @@ describe('NavApprovalsLink', () => {
       expect(screen.queryByRole('link', { name: /approvals/i })).not.toBeInTheDocument()
     })
 
-    it('should NOT render when user has no roles', () => {
-      mockUseAuth.mockReturnValue({ user: { roles: [] } })
+    it('should NOT render for users with readonly role', () => {
+      mockUseAuth.mockReturnValue({ user: { role: 'readonly' } })
       setupMockFetch()
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })
@@ -266,7 +266,7 @@ describe('NavApprovalsLink', () => {
 
   describe('Navigation (AC5)', () => {
     it('should link to /admin/approvals', () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['approver'] } })
+      mockUseAuth.mockReturnValue({ user: { role: 'supervisor' } })
       setupMockFetch()
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })
@@ -276,7 +276,7 @@ describe('NavApprovalsLink', () => {
     })
 
     it('should mark as active when on approvals page', () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['approver'] } })
+      mockUseAuth.mockReturnValue({ user: { role: 'supervisor' } })
       mockUsePathname.mockReturnValue('/admin/approvals')
       setupMockFetch()
 
@@ -289,7 +289,7 @@ describe('NavApprovalsLink', () => {
 
   describe('Badge - Pending count (AC2)', () => {
     it('should show badge with pending count', async () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['approver'] } })
+      mockUseAuth.mockReturnValue({ user: { role: 'supervisor' } })
       setupMockFetch({ approvals: { ...mockPendingApprovalsResponse, totalDocs: 3 } })
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })
@@ -300,7 +300,7 @@ describe('NavApprovalsLink', () => {
     })
 
     it('should show 99+ when count exceeds 99', async () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['approver'] } })
+      mockUseAuth.mockReturnValue({ user: { role: 'supervisor' } })
       setupMockFetch({ approvals: { ...mockPendingApprovalsResponse, totalDocs: 150 } })
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })
@@ -311,7 +311,7 @@ describe('NavApprovalsLink', () => {
     })
 
     it('should not show badge when count is 0', async () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['approver'] } })
+      mockUseAuth.mockReturnValue({ user: { role: 'supervisor' } })
       setupMockFetch({ approvals: { ...mockPendingApprovalsResponse, totalDocs: 0 } })
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })
@@ -326,7 +326,7 @@ describe('NavApprovalsLink', () => {
     })
 
     it('should have aria-label for pending count', async () => {
-      mockUseAuth.mockReturnValue({ user: { roles: ['approver'] } })
+      mockUseAuth.mockReturnValue({ user: { role: 'supervisor' } })
       setupMockFetch({ approvals: { ...mockPendingApprovalsResponse, totalDocs: 5 } })
 
       render(<NavApprovalsLink />, { wrapper: createWrapper() })

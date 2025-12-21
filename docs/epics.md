@@ -1125,6 +1125,40 @@ So that I can review actions I've taken.
 
 ---
 
+### Story 6.7: Role-Based Collection Visibility
+
+As a **system administrator**,
+I want Payload's sidebar to show different collections based on user roles,
+So that operational staff see a clean, task-focused interface while admins retain full system access.
+
+**Acceptance Criteria:**
+
+**Given** I am logged in with role "operations" or "supervisor" or "readonly"
+**When** the sidebar renders
+**Then** I do NOT see Payload's default collection links (Users, Media, etc.)
+**And** I only see our custom navigation items (Search, Dashboard, Approvals)
+
+**Given** I am logged in with role "admin"
+**When** the sidebar renders
+**Then** I see all Payload collection links AND our custom navigation items
+
+**Given** I successfully authenticate
+**When** Payload completes the login process
+**Then** I am redirected to /admin/dashboard (not the default collection list)
+
+**Role Definitions:**
+- `admin` - Full system access (sees all collections)
+- `supervisor` - Operations + approval authority (no raw collections)
+- `operations` - Day-to-day servicing (no raw collections)
+- `readonly` - View-only access (no raw collections)
+
+**Technical Notes:**
+- Use `admin.hidden` on collections to control sidebar visibility
+- Configure `admin.custom.afterLogin` for dashboard redirect
+- Redirect authenticated users from `/` to `/admin/dashboard`
+
+---
+
 ## Summary
 
 ### Epic Overview
@@ -1136,11 +1170,11 @@ So that I can review actions I've taken.
 | Epic 3: Financial Actions | 4 | FR8-FR12 | 2 sprints |
 | Epic 4: Write-Off & Approval | 5 | FR10, FR13-FR19 | 2-3 sprints |
 | Epic 5: System Health | 5 | FR20-FR24 | 1-2 sprints |
-| Epic 6: Navigation UX | 5 (1 cancelled) | UX Enhancement | 0.5-1 sprint |
+| Epic 6: Navigation UX | 6 (1 cancelled) | UX Enhancement | 0.5-1 sprint |
 
-**Total: 27 active stories across 6 epics (~9-12 sprints)**
+**Total: 28 active stories across 6 epics (~9-12 sprints)**
 
-*Note: Epic 6 reduced from 6 to 5 stories after adopting sidebar-first architecture.*
+*Note: Epic 6 had Story 6.5 cancelled (Payload handles mobile natively). Story 6.7 added for role-based visibility.*
 
 ### Implementation Order
 

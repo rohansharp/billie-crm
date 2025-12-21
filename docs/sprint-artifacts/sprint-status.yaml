@@ -89,4 +89,5 @@ development_status:
   6-4-recent-customers-store: done
   6-5-mobile-responsive-navigation: cancelled  # Payload handles natively
   6-6-user-menu-enhancements: backlog  # Reduced scope
+  6-7-role-based-collection-visibility: ready-for-dev  # New story from party mode
   epic-6-retrospective: optional

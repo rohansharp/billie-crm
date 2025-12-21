@@ -16,11 +16,12 @@ export function NavApprovalsLink() {
   const { user } = useAuth()
   const pathname = usePathname()
 
-  // RBAC check - only show to approvers and admins
-  const userRoles = (user?.roles as string[] | undefined) ?? []
+  // RBAC check - only show to supervisors and admins (they have approval authority)
+  // Uses singular 'role' field from Users collection
+  const userRole = (user?.role as string | undefined) ?? ''
   const isApprover = useMemo(
-    () => userRoles.includes('approver') || userRoles.includes('admin'),
-    [userRoles],
+    () => userRole === 'supervisor' || userRole === 'admin',
+    [userRole],
   )
 
   // Only fetch pending count if user is an approver (performance optimization)
