@@ -1318,6 +1318,348 @@ The architecture respects the existing Payload CMS/Next.js foundation while addi
 
 ---
 
+## Epic 6: Navigation UX - Architectural Addendum
+
+*Added: 2025-12-11 (Post Epic 5 completion)*
+
+### Zustand Persist Pattern
+
+For client-side persistence of **non-PII data only**:
+
+```typescript
+// src/stores/recentCustomers.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface RecentCustomer {
+  customerId: string;  // ID only - NO PII
+  viewedAt: number;    // Timestamp
+}
+
+interface RecentCustomersStore {
+  customers: RecentCustomer[];
+  addCustomer: (customerId: string) => void;
+  clearHistory: () => void;
+}
+
+export const useRecentCustomersStore = create<RecentCustomersStore>()(
+  persist(
+    (set, get) => ({
+      customers: [],
+      addCustomer: (customerId) => {
+        const now = Date.now();
+        const filtered = get().customers.filter(c => c.customerId !== customerId);
+        const updated = [{ customerId, viewedAt: now }, ...filtered].slice(0, 10);
+        set({ customers: updated });
+      },
+      clearHistory: () => set({ customers: [] }),
+    }),
+    {
+      name: 'billie-recent-customers', // localStorage key
+      version: 1,
+    }
+  )
+);
+```
+
+**Persist Pattern Rules:**
+- ❌ NEVER persist PII (names, emails, phone numbers, financial data)
+- ✅ Store only IDs and timestamps in localStorage
+- ✅ Fetch display data fresh from authenticated API
+- ✅ Use semantic localStorage key names prefixed with `billie-`
+- ✅ Include version number for migration support
+
+### Responsive Design Guidelines
+
+**Standard Breakpoints:**
+
+| Breakpoint | Width | Target | CSS Variable |
+|------------|-------|--------|--------------|
+| Mobile | < 768px | Phone | `--breakpoint-mobile` |
+| Tablet | 768-1024px | Tablet | `--breakpoint-tablet` |
+| Desktop | > 1024px | Desktop | `--breakpoint-desktop` |
+
+**CSS Module Pattern (Mobile-First):**
+
+```css
+/* Mobile first - base styles */
+.container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .container {
+    padding: 24px;
+    flex-direction: row;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+}
+```
+
+**React Hook for Media Queries:**
+
+```typescript
+// src/hooks/useMediaQuery.ts
+import { useState, useEffect } from 'react';
+
+export function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mediaQuery.matches);
+    
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+  
+  return isMobile;
+}
+
+export function useIsTablet(): boolean {
+  // Similar pattern for 768-1024px range
+}
+```
+
+### Dashboard Aggregation API Pattern
+
+For endpoints that combine multiple data sources (avoiding N+1 queries):
+
+**Route:** `GET /api/dashboard`
+
+**Response Schema:**
+
+```typescript
+// src/lib/schemas/dashboard.ts
+import { z } from 'zod';
+
+export const DashboardResponseSchema = z.object({
+  user: z.object({
+    firstName: z.string(),
+    role: z.enum(['support', 'approver', 'admin']),
+  }),
+  actionItems: z.object({
+    pendingApprovalsCount: z.number(),
+    failedActionsCount: z.number(), // Client-side, passed as query param
+  }),
+  recentCustomersSummary: z.array(z.object({
+    customerId: z.string(),
+    name: z.string(),
+    accountCount: z.number(),
+    totalOutstanding: z.string(),
+  })),
+  systemStatus: z.object({
+    ledger: z.enum(['online', 'degraded', 'offline']),
+    latencyMs: z.number(),
+    lastChecked: z.string(), // ISO timestamp
+  }),
+});
+
+export type DashboardResponse = z.infer<typeof DashboardResponseSchema>;
+```
+
+**Implementation Pattern:**
+
+```typescript
+// src/app/api/dashboard/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { getPayloadUser } from '@/lib/auth';
+import { ledgerClient } from '@/server/grpc-client';
+import { payload } from '@/payload';
+
+export async function GET(request: NextRequest) {
+  const user = await getPayloadUser(request);
+  if (!user) {
+    return NextResponse.json({ error: { code: 'UNAUTHENTICATED' } }, { status: 401 });
+  }
+
+  // Get recent customer IDs from query param (client sends from localStorage)
+  const recentIds = request.nextUrl.searchParams.get('recentCustomerIds')?.split(',') || [];
+
+  // Parallel fetch for performance
+  const [approvalsResult, ledgerHealth, customersSummary] = await Promise.all([
+    user.roles?.includes('approver') 
+      ? payload.find({ 
+          collection: 'write-off-requests', 
+          where: { status: { equals: 'pending' } },
+          limit: 0, // Count only
+        })
+      : Promise.resolve({ totalDocs: 0 }),
+    ledgerClient.healthCheck().catch(() => ({ status: 'offline', latency: 0 })),
+    recentIds.length > 0
+      ? payload.find({
+          collection: 'customers',
+          where: { id: { in: recentIds } },
+          limit: 10,
+        })
+      : Promise.resolve({ docs: [] }),
+  ]);
+
+  return NextResponse.json({
+    user: { firstName: user.firstName, role: user.roles?.[0] || 'support' },
+    actionItems: {
+      pendingApprovalsCount: approvalsResult.totalDocs,
+      failedActionsCount: 0, // Client tracks this
+    },
+    recentCustomersSummary: customersSummary.docs.map(c => ({
+      customerId: c.id,
+      name: c.name,
+      accountCount: c.loanAccounts?.length || 0,
+      totalOutstanding: c.totalOutstanding || '$0.00',
+    })),
+    systemStatus: {
+      ledger: ledgerHealth.status,
+      latencyMs: ledgerHealth.latency,
+      lastChecked: new Date().toISOString(),
+    },
+  });
+}
+```
+
+### Payload Sidebar Enhancement Pattern (Revised)
+
+**Decision:** Work WITH Payload's sidebar architecture, not against it.
+
+Payload v3 does not support a `header` override. Instead, we enhance the sidebar using `admin.components.Nav`:
+
+```typescript
+// payload.config.ts
+export default buildConfig({
+  admin: {
+    components: {
+      // Wrap Payload's default nav with our custom wrapper
+      Nav: '@/components/navigation/PayloadNavWrapper',
+      
+      views: {
+        // Dashboard as a custom view
+        DashboardView: {
+          Component: '@/components/views/DashboardView',
+          path: '/dashboard',  // Renders at /admin/dashboard
+        },
+        // ... existing views
+      },
+    },
+  },
+});
+```
+
+**PayloadNavWrapper Implementation:**
+
+```typescript
+// src/components/navigation/PayloadNavWrapper/PayloadNavWrapper.tsx
+'use client';
+
+import React from 'react';
+import { useAuth } from '@payloadcms/ui';
+import { NavSearchTrigger } from '../NavSearchTrigger';
+import { NavDashboardLink } from '../NavDashboardLink';
+import { NavApprovalsLink } from '../NavApprovalsLink';
+import { NavSystemStatus } from '../NavSystemStatus';
+import styles from './styles.module.css';
+
+interface PayloadNavWrapperProps {
+  children?: React.ReactNode;  // Payload's DefaultNav content
+}
+
+export const PayloadNavWrapper: React.FC<PayloadNavWrapperProps> = ({ children }) => {
+  const { user } = useAuth();
+  const isApprover = user?.roles?.includes('approver') || user?.roles?.includes('admin');
+
+  return (
+    <nav className={styles.sidebar}>
+      {/* Our custom navigation items */}
+      <div className={styles.customNav}>
+        <NavSearchTrigger />
+        <NavDashboardLink />
+        {isApprover && <NavApprovalsLink />}
+      </div>
+      
+      <div className={styles.divider} />
+      
+      {/* Payload's default nav (collections, globals, etc) */}
+      <div className={styles.payloadNav}>
+        {children}
+      </div>
+      
+      {/* System status at bottom */}
+      <div className={styles.statusArea}>
+        <NavSystemStatus />
+      </div>
+    </nav>
+  );
+};
+```
+
+### Navigation Component Structure (Revised)
+
+```
+src/components/
+├── navigation/                      # Navigation Feature Folder
+│   ├── index.ts                     # Barrel export
+│   │
+│   ├── PayloadNavWrapper/           # Main sidebar wrapper
+│   │   ├── index.tsx
+│   │   ├── PayloadNavWrapper.tsx
+│   │   └── styles.module.css
+│   │
+│   ├── NavSearchTrigger/            # Search button (opens Command Palette)
+│   │   ├── index.tsx
+│   │   └── styles.module.css
+│   │
+│   ├── NavDashboardLink/            # Dashboard link with icon
+│   │   ├── index.tsx
+│   │   └── styles.module.css
+│   │
+│   ├── NavApprovalsLink/            # Approvals link with badge
+│   │   ├── index.tsx
+│   │   └── styles.module.css
+│   │
+│   ├── NavSystemStatus/             # Bottom status indicator
+│   │   ├── index.tsx
+│   │   └── styles.module.css
+│   │
+│   └── Breadcrumbs/                 # Content area breadcrumbs
+│       ├── index.tsx
+│       ├── Breadcrumbs.tsx
+│       ├── useBreadcrumbs.ts
+│       └── styles.module.css
+```
+
+**Note:** `MobileMenu/` and `UserMenu/` folders removed - Payload handles these natively.
+
+### New Files Required for Epic 6 (Revised)
+
+| File | Story | Purpose |
+|------|-------|---------|
+| `src/stores/recentCustomers.ts` | 6.4 | Zustand store with localStorage persist |
+| `src/app/api/dashboard/route.ts` | 6.2 | Dashboard aggregation endpoint |
+| `src/components/navigation/PayloadNavWrapper/*` | 6.1 | Sidebar wrapper component |
+| `src/components/navigation/NavSearchTrigger/*` | 6.1 | Search button |
+| `src/components/navigation/NavDashboardLink/*` | 6.1 | Dashboard nav link |
+| `src/components/navigation/NavApprovalsLink/*` | 6.1 | Approvals with badge |
+| `src/components/navigation/NavSystemStatus/*` | 6.1 | System status indicator |
+| `src/components/navigation/Breadcrumbs/*` | 6.3 | Breadcrumb component |
+| `src/components/views/DashboardView/*` | 6.2 | Dashboard home page |
+| `src/lib/schemas/dashboard.ts` | 6.2 | Zod schema for dashboard API |
+
+**Removed (Payload handles natively):**
+- ~~`src/hooks/useMediaQuery.ts`~~ - Not needed, Payload handles responsive
+- ~~`src/components/navigation/MobileMenu/*`~~ - Payload's mobile sidebar
+- ~~`src/components/navigation/UserMenu/*`~~ - Payload's user dropdown
+
+---
+
 **Architecture Status:** READY FOR IMPLEMENTATION ✅
 
 **Next Phase:** Begin implementation using the architectural decisions and patterns documented herein.

@@ -108,6 +108,9 @@ This document provides the complete epic and story breakdown for billie-crm, dec
 - UX5: Implement responsive table-to-card transformation for mobile
 - UX6: Implement skeleton loaders for loading states
 - UX7: Implement `aria-live` announcements for optimistic updates (accessibility)
+- UX8: Implement dashboard home page with actionable items
+- UX9: Implement breadcrumb navigation for wayfinding
+- UX10: Implement recent customers tracking (localStorage persistence)
 
 ### FR Coverage Map
 
@@ -142,6 +145,11 @@ This document provides the complete epic and story breakdown for billie-crm, dec
 | FR22 | Epic 5 | Sync status display |
 | FR23 | Epic 5 | Persistent alert center |
 | FR24 | Epic 5 | Version conflict detection |
+| UX4 | Epic 6 | Keyboard-first navigation (persistent nav) |
+| UX5 | Epic 6 | Responsive design (mobile nav) |
+| UX8 | Epic 6 | Dashboard home page |
+| UX9 | Epic 6 | Breadcrumb navigation |
+| UX10 | Epic 6 | Recent customers tracking |
 
 ## Epic List
 
@@ -851,6 +859,272 @@ So that I understand what went wrong and what to do next.
 
 ---
 
+## Epic 6: Navigation UX
+
+Staff have persistent navigation, a dashboard home page, and clear wayfinding throughout the application.
+
+**User Outcome:** Staff can navigate the application intuitively via an enhanced sidebar (Dashboard, Approvals, Search, System Status), understand where they are via breadcrumbs, and start their day from a dashboard showing actionable items.
+
+**Architectural Decision:** Sidebar-first approach - works with Payload's native sidebar architecture rather than fighting it. This reduces implementation effort and leverages Payload's built-in mobile responsiveness.
+
+**FRs Covered:** None (UX Enhancement)
+**NFRs Addressed:** NFR9 (Keyboard Nav)
+**UX Covered:** UX4 (Keyboard Navigation), UX5 (Responsive)
+
+**Implementation Notes:**
+- **Sidebar-first approach:** Work with Payload's existing sidebar architecture, not against it
+- Custom `Nav` component wraps Payload's `DefaultNav` to add our navigation items
+- Dashboard consolidates action items from multiple sources
+- Recent customers stored in localStorage for persistence (IDs only, no PII)
+- Mobile responsive handled by Payload's built-in mobile sidebar
+- Story 6.5 (Mobile Responsive) cancelled - Payload handles this natively
+
+---
+
+### Story 6.1: Enhanced Sidebar Navigation
+
+As a **support staff member**,
+I want the Payload sidebar to include quick navigation to key areas,
+So that I can access Dashboard, Approvals, and Search without leaving the admin interface.
+
+**Acceptance Criteria:**
+
+**Given** I am logged into the Payload admin
+**When** viewing any page in the application
+**Then** the sidebar displays our custom navigation items above Payload's default collection links
+
+**Given** the enhanced sidebar renders
+**When** viewing the top section
+**Then** I see: Search trigger (🔍), Dashboard link (🏠), and Approvals link (✅) with pending count badge
+
+**Given** I click the Search trigger (🔍)
+**When** the click is processed
+**Then** the Command Palette opens (existing functionality from Epic 1)
+
+**Given** I click the Dashboard link (🏠)
+**When** the click is processed
+**Then** I navigate to `/admin/dashboard`
+
+**Given** I click the Approvals link (✅)
+**When** logged in with Approver role
+**Then** I navigate to `/admin/approvals`
+
+**Given** I am NOT logged in with Approver role
+**When** the sidebar renders
+**Then** the Approvals link is not visible
+
+**Given** the sidebar renders
+**When** viewing the bottom section
+**Then** I see the Ledger Status indicator (🟢/🟡/🔴 Online/Degraded/Offline) with latency
+
+**Given** I am on mobile/tablet
+**When** using the application
+**Then** Payload's built-in mobile sidebar handles responsive behavior (no custom implementation needed)
+
+**Technical Requirements:**
+
+**Given** the sidebar implementation
+**When** configuring Payload
+**Then** use `admin.components.Nav` to wrap `DefaultNav` with our custom `PayloadNavWrapper`
+
+**Given** the PayloadNavWrapper component
+**When** rendering
+**Then** structure as: [Custom Nav Items] → [Divider] → [Payload DefaultNav] → [System Status]
+
+---
+
+### Story 6.2: Dashboard Home Page
+
+As a **support staff member**,
+I want a dashboard home page that shows actionable items,
+So that I can quickly see what needs my attention when I log in.
+
+**Acceptance Criteria:**
+
+**Given** I navigate to `/admin/dashboard`
+**When** the dashboard loads
+**Then** I see a personalized greeting "Good morning/afternoon/evening, {firstName}!"
+
+**Given** I log in successfully
+**When** Payload redirects after authentication
+**Then** I am redirected to `/admin/dashboard` (not the default Payload collection list)
+
+**Given** the dashboard loads
+**When** there are pending approvals (and I have approver role)
+**Then** an "Action Items" card shows: "✅ {count} Pending Approvals" with "Review Approvals →" link
+
+**Given** the dashboard loads
+**When** I do NOT have approver role
+**Then** the "Pending Approvals" card is not shown
+
+**Given** the dashboard loads
+**When** there are failed actions in localStorage
+**Then** an "Action Items" card shows: "⚠️ {count} Failed Actions" with "View Failed →" link
+
+**Given** the dashboard loads
+**When** viewing "Recent Customers" section
+**Then** I see my last 5 viewed customers with: Customer ID, Name, Account count, Total outstanding, "Last viewed" timestamp
+
+**Given** I click on a recent customer row
+**When** the click is processed
+**Then** I navigate to `/admin/servicing/{customerId}`
+
+**Given** the dashboard loads
+**When** viewing "System Status" section
+**Then** I see: Ledger Service status + response time, Database connection status
+
+**Given** the dashboard loads
+**When** viewing the tip section
+**Then** I see a contextual tip like "💡 Press ⌘K to quickly search for any customer"
+
+**Technical Requirements:**
+
+**Given** the dashboard component mounts
+**When** fetching dashboard data
+**Then** call `GET /api/dashboard?recentCustomerIds={ids}` with IDs from localStorage store
+
+**Given** the dashboard API is called
+**When** the response returns
+**Then** it includes: `user`, `actionItems`, `recentCustomersSummary`, `systemStatus`
+
+**Given** the dashboard is registered in Payload
+**When** configuring `payload.config.ts`
+**Then** use `admin.components.views.DashboardView` with `path: '/dashboard'`
+
+---
+
+### Story 6.3: Breadcrumb Navigation
+
+As a **support staff member**,
+I want to see breadcrumbs showing my location in the application,
+So that I can understand the page hierarchy and navigate back easily.
+
+**Acceptance Criteria:**
+
+**Given** I am on the Dashboard (`/admin`)
+**When** viewing breadcrumbs
+**Then** no breadcrumb is displayed (root page)
+
+**Given** I am on ServicingView for customer "John Smith"
+**When** viewing breadcrumbs
+**Then** I see: "🏠 › Customer CUST-001 › John Smith"
+
+**Given** I am on ApprovalsView
+**When** viewing breadcrumbs
+**Then** I see: "🏠 › Approvals"
+
+**Given** I click "🏠" in the breadcrumb
+**When** the click is processed
+**Then** I navigate to the dashboard home
+
+**Given** I am viewing a nested page
+**When** the breadcrumb displays
+**Then** the current page name is bold and not a link
+
+---
+
+### Story 6.4: Recent Customers Store
+
+As a **support staff member**,
+I want my recently viewed customers to persist across sessions,
+So that I can quickly return to customers I was helping.
+
+**Acceptance Criteria:**
+
+**Given** I navigate to a customer's ServicingView
+**When** the page loads
+**Then** the customer is added to my "recent customers" list
+
+**Given** I view the same customer multiple times
+**When** the recent customers list updates
+**Then** the customer appears only once, moved to the top with updated timestamp
+
+**Given** I have viewed more than 10 customers
+**When** viewing the recent customers list
+**Then** only the most recent 10 are stored (FIFO)
+
+**Given** I close my browser and return later
+**When** viewing the dashboard
+**Then** my recent customers persist (stored in localStorage)
+
+**Given** I click "Clear History" on the recent customers section
+**When** the action completes
+**Then** all recent customers are removed from storage
+
+**Security Requirements:**
+
+**Given** the localStorage persistence mechanism
+**When** storing recent customer data
+**Then** ONLY store non-PII data: `customerId` (string) and `viewedAt` (timestamp)
+
+**Given** the dashboard displays recent customers
+**When** rendering customer details (name, account count, balance)
+**Then** fetch fresh data from the server using stored IDs (do NOT cache PII in localStorage)
+
+**Given** an XSS attack compromises localStorage
+**When** the attacker reads `recent-customers` key
+**Then** they can only see customer IDs and timestamps (no names, emails, or financial data)
+
+**Technical Notes:**
+- Use Zustand persist middleware with localStorage backend
+- Store minimal schema: `{ customers: Array<{ customerId: string, viewedAt: number }> }`
+- Dashboard component fetches customer summary data via authenticated API using stored IDs
+- No customer names, emails, phone numbers, or financial data stored client-side
+
+---
+
+### Story 6.5: Mobile Responsive Navigation
+
+**STATUS: CANCELLED** ❌
+
+*This story has been cancelled as part of the sidebar-first architectural decision.*
+
+**Reason:** Payload CMS v3 includes built-in mobile-responsive sidebar navigation. Our enhanced sidebar (Story 6.1) automatically inherits this responsive behavior without any custom implementation.
+
+**What Payload provides natively:**
+- ✅ Hamburger menu trigger on mobile
+- ✅ Slide-in sidebar panel
+- ✅ Touch-friendly navigation
+- ✅ Automatic breakpoint handling
+
+**Remaining mobile considerations (handled in other stories):**
+- Dashboard cards stack vertically (CSS in Story 6.2)
+- Recent customers use card layout on mobile (CSS in Story 6.2)
+
+---
+
+### Story 6.6: User Menu Enhancements
+
+**SCOPE REDUCED** - Payload provides most user menu functionality natively.
+
+As a **support staff member**,
+I want to view my recent activity from the user menu,
+So that I can review actions I've taken.
+
+**Acceptance Criteria:**
+
+**Given** I click on my avatar/name in Payload's header
+**When** the dropdown opens
+**Then** I see Payload's default items PLUS a new "My Activity" link
+
+**Given** I click "My Activity"
+**When** the link navigates
+**Then** I see a filtered view of the audit log showing only my actions
+
+**What Payload provides natively (no implementation needed):**
+- ✅ User name and email display
+- ✅ Sign Out functionality
+- ✅ Account settings link
+
+**What we add:**
+- 🆕 "My Activity" link to filtered audit log
+
+**Technical Notes:**
+- Use Payload's `admin.components.logout` or `afterNavLinks` to inject our link
+- My Activity view can reuse the existing audit log component with a user filter
+
+---
+
 ## Summary
 
 ### Epic Overview
@@ -862,8 +1136,11 @@ So that I understand what went wrong and what to do next.
 | Epic 3: Financial Actions | 4 | FR8-FR12 | 2 sprints |
 | Epic 4: Write-Off & Approval | 5 | FR10, FR13-FR19 | 2-3 sprints |
 | Epic 5: System Health | 5 | FR20-FR24 | 1-2 sprints |
+| Epic 6: Navigation UX | 5 (1 cancelled) | UX Enhancement | 0.5-1 sprint |
 
-**Total: 22 stories across 5 epics (~9-11 sprints)**
+**Total: 27 active stories across 6 epics (~9-12 sprints)**
+
+*Note: Epic 6 reduced from 6 to 5 stories after adopting sidebar-first architecture.*
 
 ### Implementation Order
 
@@ -872,6 +1149,7 @@ So that I understand what went wrong and what to do next.
 3. **Epic 3** adds core financial actions using the foundation
 4. **Epic 4** adds governance layer (can partially parallel with Epic 3)
 5. **Epic 5** adds resilience (can be threaded throughout or at end)
+6. **Epic 6** adds navigation UX polish (can parallel with Epic 5)
 
 ### Dependencies
 
@@ -882,6 +1160,9 @@ Epic 1 (Foundation) ──► Epic 2 (Customer View) ──► Epic 3 (Actions)
                                                Epic 4 (Approvals)
                                                         │
 Epic 5 (Resilience) ◄──────────────────────────────────┘
+        │
+        ▼
+Epic 6 (Navigation UX)
 ```
 
 ### Definition of Done (All Stories)

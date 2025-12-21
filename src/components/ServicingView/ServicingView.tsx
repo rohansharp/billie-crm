@@ -19,6 +19,7 @@ import { WriteOffRequestDrawer } from './WriteOffRequestDrawer'
 import { AccountPanel, type TabId } from './AccountPanel'
 import type { SelectedFee } from './FeeList'
 import { usePendingWriteOff } from '@/hooks/queries/usePendingWriteOff'
+import { useTrackCustomerView } from '@/hooks/useTrackCustomerView'
 import styles from './styles.module.css'
 
 export interface ServicingViewProps {
@@ -144,6 +145,10 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   const queryClient = useQueryClient()
   const { data: customer, isLoading, isError, isFetching: isCustomerFetching, refetch: refetchCustomer } = useCustomer(customerId)
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Track this customer view for "Recent Customers" feature
+  // Only track after successful customer data load (Task 3.2 requirement)
+  useTrackCustomerView(!isLoading && !isError && customer ? customerId : undefined)
 
   // Account selection and tab state
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null)

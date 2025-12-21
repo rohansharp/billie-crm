@@ -73,10 +73,20 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: System Health & Resilience
-  epic-5: in-progress
+  epic-5: done
   5-1-ledger-health-check-status-indicator: done (reviewed)
   5-2-read-only-mode-activation: done (reviewed)
   5-3-failed-action-notification-center: done (reviewed)
   5-4-version-conflict-detection: done (reviewed)
   5-5-graceful-error-handling: done (reviewed)
   epic-5-retrospective: optional
+
+  # Epic 6: Navigation UX (Sidebar-First Approach)
+  epic-6: in-progress
+  6-1-enhanced-sidebar-navigation: backlog
+  6-2-dashboard-home-page: backlog
+  6-3-breadcrumb-navigation: backlog
+  6-4-recent-customers-store: done
+  6-5-mobile-responsive-navigation: cancelled  # Payload handles natively
+  6-6-user-menu-enhancements: backlog  # Reduced scope
+  epic-6-retrospective: optional

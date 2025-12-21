@@ -97,7 +97,8 @@ describe('AppError', () => {
 describe('generateErrorId', () => {
   it('should generate ID with ERR prefix', () => {
     const id = generateErrorId()
-    expect(id).toMatch(/^ERR-[a-zA-Z0-9]{8}$/)
+    // nanoid uses URL-safe characters: a-zA-Z0-9 plus _ and -
+    expect(id).toMatch(/^ERR-[a-zA-Z0-9_-]{8}$/)
   })
 
   it('should generate unique IDs', () => {
