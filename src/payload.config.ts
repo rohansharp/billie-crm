@@ -26,6 +26,13 @@ export default buildConfig({
     },
     components: {
       providers: ['@/providers'],
+      // Custom navigation items (Story 6.1)
+      beforeNavLinks: [
+        '@/components/navigation/NavSearchTrigger#NavSearchTrigger',
+        '@/components/navigation/NavDashboardLink#NavDashboardLink',
+        '@/components/navigation/NavApprovalsLink#NavApprovalsLink',
+      ],
+      afterNavLinks: ['@/components/navigation/NavSystemStatus#NavSystemStatus'],
     },
   },
   collections: [Users, Media, Customers, Conversations, Applications, LoanAccounts, WriteOffRequests],

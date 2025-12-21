@@ -36,6 +36,8 @@ export interface PendingApprovalsOptions {
   page?: number
   limit?: number
   sort?: 'oldest' | 'newest' | 'amount-high' | 'amount-low'
+  /** Enable/disable the query (default: true) */
+  enabled?: boolean
 }
 
 async function fetchPendingApprovals(
@@ -83,10 +85,13 @@ export const pendingApprovalsQueryKey = (options: PendingApprovalsOptions = {}) 
  * Returns paginated results sorted by creation date (oldest first by default).
  */
 export function usePendingApprovals(options: PendingApprovalsOptions = {}) {
+  const { enabled = true, ...queryOptions } = options
+
   return useQuery({
-    queryKey: pendingApprovalsQueryKey(options),
-    queryFn: () => fetchPendingApprovals(options),
+    queryKey: pendingApprovalsQueryKey(queryOptions),
+    queryFn: () => fetchPendingApprovals(queryOptions),
     staleTime: 30_000, // 30 seconds - approvals queue can be slightly stale
-    refetchInterval: 60_000, // Poll every 60 seconds for new requests
+    refetchInterval: enabled ? 60_000 : false, // Poll every 60 seconds for new requests
+    enabled,
   })
 }
