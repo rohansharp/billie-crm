@@ -1,5 +1,6 @@
 """Configuration settings for the event processor."""
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -13,7 +14,10 @@ class Settings(BaseSettings):
     dlq_stream: str = "dlq:billie-servicing"
 
     # MongoDB configuration
-    mongodb_url: str = "mongodb://localhost:27017"
+    database_uri: str = Field(
+        default="mongodb://localhost:27017/billie-servicing",
+        validation_alias="DATABASE_URI",
+    )
     db_name: str = "billie-servicing"
 
     # Processing configuration

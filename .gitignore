@@ -51,3 +51,5 @@ node_modules/
 venv/*
 .bmad/*
 .cursor/*
+.pnpm-store/*
+event-processor/src/billie_servicing/__pycache__/*

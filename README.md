@@ -49,23 +49,73 @@ Internal staff application for managing customer loan accounts at Billie, a smal
 
 ### Option 1: Docker Compose (Recommended)
 
+Single-container setup running both the Next.js frontend (HTTPS) and Python event processor.
+
+**Prerequisites:**
+- Docker and Docker Compose installed
+- MongoDB running on your host machine (port 27017)
+- Redis running on your host machine (port 6379)
+- SSL certificates in `certs/` directory
+
+**1. Generate SSL Certificates:**
+
 ```bash
-# 1. Create .env file
+brew install mkcert
+mkcert -install
+mkdir -p certs && cd certs
+mkcert localhost 127.0.0.1 ::1
+mv localhost+2.pem localhost.pem
+mv localhost+2-key.pem localhost-key.pem
+cd ..
+```
+
+**2. Create .env file:**
+
+```bash
 cat > .env << 'EOF'
+# Use host.docker.internal to connect to services on your Mac
+DATABASE_URI=mongodb://host.docker.internal:27017/billie-servicing
+REDIS_URL=redis://host.docker.internal:6379
+LEDGER_SERVICE_URL=host.docker.internal:50051
+
+# Payload CMS
 PAYLOAD_SECRET=your-secret-key-change-in-production
-DATABASE_URI=mongodb://mongo:27017/billie-servicing
-REDIS_URL=redis://redis:6383
-LEDGER_SERVICE_URL=localhost:50051
+
+# Required for building with Billie SDKs
 GITHUB_TOKEN=your_github_token_here
 EOF
-
-# 2. Start all services
-docker-compose up --build
-
-# 3. Access the app
-# Admin Panel: http://localhost:3000/admin
-# Frontend: http://localhost:3000
 ```
+
+**3. Build and start:**
+
+```bash
+docker compose up --build -d
+```
+
+**4. View logs:**
+
+```bash
+docker compose logs -f
+```
+
+**5. Access the app:**
+- Admin Panel: https://localhost:3000/admin
+- Frontend: https://localhost:3000
+
+**Other Docker commands:**
+
+```bash
+# Rebuild after code changes
+docker compose up --build -d
+
+# Stop all services
+docker compose down
+
+# Shell into the container
+docker compose exec billie-crm bash
+```
+
+See [DOCKER.md](DOCKER.md) for more details on the container architecture.
 
 ### Option 2: Local Development
 
@@ -258,8 +308,11 @@ pnpm test:e2e
 | `LEDGER_SERVICE_URL` | gRPC ledger service URL | `localhost:50051` |
 | `GITHUB_TOKEN` | GitHub token for SDK installation | (required for event-processor) |
 
+> **Note:** When running in Docker, use `host.docker.internal` instead of `localhost` to connect to services running on your host machine (e.g., `mongodb://host.docker.internal:27017/billie-servicing`).
+
 ## Documentation
 
+- [Docker Setup](DOCKER.md)
 - [Features Specification](Requirements/v2-servicing-app/FEATURES.md)
 - [Architecture](Requirements/v2-servicing-app/ARCHITECTURE.md)
 - [Data Model](Requirements/v2-servicing-app/DATA_MODEL.md)

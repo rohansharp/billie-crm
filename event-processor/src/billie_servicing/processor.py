@@ -82,11 +82,11 @@ class EventProcessor:
     def __init__(
         self,
         redis_url: str | None = None,
-        mongodb_url: str | None = None,
+        database_uri: str | None = None,
         db_name: str | None = None,
     ) -> None:
         self.redis_url = redis_url or settings.redis_url
-        self.mongodb_url = mongodb_url or settings.mongodb_url
+        self.database_uri = database_uri or settings.database_uri
         self.db_name = db_name or settings.db_name
 
         self.redis: redis.Redis | None = None
@@ -110,7 +110,7 @@ class EventProcessor:
         self.redis = redis.from_url(self.redis_url, decode_responses=False)
 
         print("Connecting to MongoDB...")
-        self.mongo = AsyncIOMotorClient(self.mongodb_url)
+        self.mongo = AsyncIOMotorClient(self.database_uri)
         self.db = self.mongo[self.db_name]
 
         print("Setting up consumer group...")

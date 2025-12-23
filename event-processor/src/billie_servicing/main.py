@@ -145,7 +145,7 @@ def main() -> None:
     print("BILLIE SERVICING EVENT PROCESSOR")
     print("=" * 60)
     print(f"Redis URL:      {settings.redis_url}")
-    print(f"MongoDB URL:    {settings.mongodb_url}")
+    print(f"Database URI:   {settings.database_uri}")
     print(f"Database:       {settings.db_name}")
     print(f"Inbox Stream:   {settings.inbox_stream}")
     print(f"Consumer Group: {settings.consumer_group}")
@@ -156,7 +156,7 @@ def main() -> None:
     logger.info(
         "Starting Billie Servicing Event Processor",
         redis_url=settings.redis_url,
-        mongodb_url=settings.mongodb_url,
+        database_uri=settings.database_uri,
         db_name=settings.db_name,
         inbox_stream=settings.inbox_stream,
         consumer_group=settings.consumer_group,

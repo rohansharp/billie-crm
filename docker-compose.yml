@@ -1,63 +1,25 @@
-version: '3'
+version: '3.8'
+
+name: billie-platform
 
 services:
-  payload:
-    image: node:18-alpine
+  billie-crm:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
     ports:
       - '3000:3000'
     volumes:
-      - .:/home/node/app
-      - node_modules:/home/node/app/node_modules
-    working_dir: /home/node/app/
-    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm dev"
-    depends_on:
-      - mongo
-      - redis
+      - .:/app
+      - node_modules:/app/node_modules
     env_file:
       - .env
     environment:
-      - DATABASE_URI=mongodb://mongo:27017/billie-servicing
-      - REDIS_URL=redis://redis:6383
-      - LEDGER_SERVICE_URL=${LEDGER_SERVICE_URL:-ledger-service:50051}
-
-  # MongoDB for Payload CMS collections
-  mongo:
-    image: mongo:latest
-    ports:
-      - '27017:27017'
-    command:
-      - --storageEngine=wiredTiger
-    volumes:
-      - data:/data/db
-    logging:
-      driver: none
-
-  # Redis for event inbox stream
-  redis:
-    image: redis:7-alpine
-    ports:
-      - '6383:6383'
-    volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
-
-  # Python Event Processor - consumes events from Redis inbox
-  event-processor:
-    build:
-      context: ./event-processor
-      args:
-        - GITHUB_TOKEN=${GITHUB_TOKEN}
-    environment:
-      - REDIS_URL=redis://redis:6383
-      - MONGODB_URL=mongodb://mongo:27017
-      - DB_NAME=billie-servicing
-      - LOG_LEVEL=INFO
-    depends_on:
-      - redis
-      - mongo
-    restart: unless-stopped
+      - PYTHONPATH=/app/event-processor/src
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
-  data:
-  redis-data:
   node_modules:

@@ -1,0 +1,49 @@
+# Development Dockerfile - runs both Next.js frontend and Python event processor
+FROM node:22-alpine
+
+# Install Python and dependencies
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    git \
+    bash
+
+# Create app directory
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files for Node.js
+COPY package.json pnpm-lock.yaml ./
+
+# Install Node.js dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy Python requirements and install base dependencies (without SDK lines)
+COPY event-processor/requirements.txt ./event-processor/
+RUN grep -v "git+https" event-processor/requirements.txt > /tmp/base-requirements.txt && \
+    pip3 install --no-cache-dir --break-system-packages -r /tmp/base-requirements.txt
+
+# Install Billie SDKs (requires GITHUB_TOKEN at build time)
+ARG GITHUB_TOKEN
+RUN if [ -n "$GITHUB_TOKEN" ]; then \
+    git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/" && \
+    pip3 install --no-cache-dir --break-system-packages \
+      "git+https://github.com/BillieLoans/billie-event-sdks.git@accounts-v2.2.0#subdirectory=packages/accounts" \
+      "git+https://github.com/BillieLoans/billie-event-sdks.git@customers-v2.0.0#subdirectory=packages/customers"; \
+    else echo "GITHUB_TOKEN not set, skipping SDK install"; fi
+
+# Copy the rest of the application
+COPY . .
+
+# Set Python path for event processor
+ENV PYTHONPATH=/app/event-processor/src
+
+EXPOSE 3000
+
+# Start script runs both services
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]

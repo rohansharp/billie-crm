@@ -1,0 +1,59 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+out
+dist
+
+# Development
+.git
+.gitignore
+.cursor
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Testing
+tests
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Docker files (not needed in build context for app)
+docker-compose*.yml
+
+# Python virtual environment
+venv
+__pycache__
+*.py[cod]
+*.pyo
+*.pyd
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# BMAD
+bmad-custom-modules-src
+bmad-custom-src
+

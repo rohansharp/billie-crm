@@ -10,6 +10,7 @@ This file tracks items identified during code reviews that were deferred for fut
 | ID | Item | Priority | Notes |
 |----|------|----------|-------|
 | 1.4-D1 | Improve `useLoanAccountSearch.test.ts` behavior tests | Low | Tests verify types compile, not actual hook behavior |
+| 1.4-D2 | Ability to sort all tables by clicking on column headings | Medium | Includes indicator of which column is curently sorting |
 
 ---
 
