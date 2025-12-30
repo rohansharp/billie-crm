@@ -1,14 +1,13 @@
-version: '3.8'
-
-name: billie-platform
+name: billie-platform-crm
 
 services:
-  billie-crm:
+  app:
     build:
       context: .
       dockerfile: Dockerfile.dev
       args:
         - GITHUB_TOKEN=${GITHUB_TOKEN}
+    container_name: billie-platform-crm
     ports:
       - '3000:3000'
     volumes:
@@ -19,7 +18,15 @@ services:
     environment:
       - PYTHONPATH=/app/event-processor/src
     extra_hosts:
+      # Allows container to reach host machine's localhost services
       - "host.docker.internal:host-gateway"
+    networks:
+      - billie-platform-network
 
 volumes:
   node_modules:
+
+networks:
+  billie-platform-network:
+    name: billie-platform-network
+    driver: bridge
