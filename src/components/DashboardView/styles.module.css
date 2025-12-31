@@ -364,15 +364,19 @@
 /* Due Date & Payment Status */
 .dueDate {
   font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .statusOverdue {
-  color: #ef4444;
+  color: #fff;
+  background-color: #dc2626;
   font-weight: 600;
 }
 
 .statusDueToday {
-  color: #f59e0b;
+  color: #000;
+  background-color: #fbbf24;
   font-weight: 600;
 }
 

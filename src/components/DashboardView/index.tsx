@@ -69,16 +69,16 @@ function formatDate(dateString: string): string {
 }
 
 /**
- * Get status badge styles for payment status.
+ * Get CSS class for payment status styling.
  */
-function getPaymentStatusBadge(status: UpcomingPayment['status']): { text: string; className: string } {
+function getPaymentStatusClass(status: UpcomingPayment['status']): string {
   switch (status) {
     case 'overdue':
-      return { text: '🔴 Overdue', className: styles.statusOverdue }
+      return styles.statusOverdue
     case 'due_today':
-      return { text: '🟡 Due Today', className: styles.statusDueToday }
+      return styles.statusDueToday
     default:
-      return { text: '', className: '' }
+      return ''
   }
 }
 
@@ -183,13 +183,13 @@ export function DashboardView() {
       },
       {
         key: 'dueDate',
-        label: 'Due',
+        label: 'Payment Date',
         accessor: (row) => new Date(row.dueDate),
         render: (row) => {
-          const badge = getPaymentStatusBadge(row.status)
+          const statusClass = getPaymentStatusClass(row.status)
           return (
-            <span className={`${styles.dueDate} ${badge.className}`}>
-              {badge.text || formatDate(row.dueDate)}
+            <span className={`${styles.dueDate} ${statusClass}`}>
+              {formatDate(row.dueDate)}
             </span>
           )
         },
