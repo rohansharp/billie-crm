@@ -15,6 +15,7 @@ import { NotificationIndicatorWrapper } from '@/components/Notifications'
 import { LedgerStatusIndicator } from '@/components/LedgerStatus'
 import { ReadOnlyBanner } from '@/components/ReadOnlyBanner'
 import { FailedActionsBadge } from '@/components/FailedActions'
+import { UserSessionGuard } from '@/components/UserSessionGuard'
 import { useUIStore } from '@/stores/ui'
 import { useCommandPaletteHotkeys } from '@/hooks/useGlobalHotkeys'
 import { useReadOnlyMode } from '@/hooks/useReadOnlyMode'
@@ -127,6 +128,8 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   return (
     <QueryClientProvider>
+      {/* SECURITY: Detect user changes and clear session data to prevent cross-user data leakage */}
+      <UserSessionGuard />
       {/* Read-only mode sync - must be first to set state before render */}
       <ReadOnlyModeSync />
       <ReadOnlyBanner />

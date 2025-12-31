@@ -118,6 +118,12 @@ function saveToLocalStorage(actions: FailedAction[]): void {
  * - Filters expired actions on load
  * - Supports retry count tracking
  * 
+ * SECURITY:
+ * - Data is CLEARED when a different user logs in (see UserSessionGuard)
+ * - This prevents User B from seeing User A's failed action queue
+ * 
+ * @see src/components/UserSessionGuard - clears this store on user change
+ * 
  * @example
  * ```tsx
  * const { actions, addFailedAction, removeAction } = useFailedActionsStore()

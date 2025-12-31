@@ -65,13 +65,31 @@ export const LATENCY_DISPLAY_THRESHOLD_MS = 500
 export const TOAST_ID_SYSTEM_RESTORED = 'system-restored'
 
 // =============================================================================
+// User Session Security Constants
+// =============================================================================
+
+/**
+ * localStorage key for tracking the authenticated user.
+ * Used by UserSessionGuard to detect user changes and clear session data.
+ * @see src/components/UserSessionGuard
+ */
+export const SESSION_USER_STORAGE_KEY = 'billie-session-user'
+
+/**
+ * localStorage key for recently viewed customers.
+ * SECURITY: Cleared on user change by UserSessionGuard.
+ */
+export const RECENT_CUSTOMERS_STORAGE_KEY = 'billie-recent-customers'
+
+// =============================================================================
 // Failed Actions Constants
 // =============================================================================
 
 /**
  * localStorage key for persisting failed actions.
+ * SECURITY: Cleared on user change by UserSessionGuard.
  */
-export const FAILED_ACTIONS_STORAGE_KEY = 'billie-crm-failed-actions'
+export const FAILED_ACTIONS_STORAGE_KEY = 'billie-failed-actions'
 
 /**
  * Time-to-live for failed actions in localStorage (in milliseconds).

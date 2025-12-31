@@ -2,6 +2,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { RECENT_CUSTOMERS_STORAGE_KEY } from '@/lib/constants'
 
 /**
  * Represents a recently viewed customer.
@@ -29,6 +30,9 @@ const MAX_RECENT_CUSTOMERS = 10
  * - NO PII (names, emails, phone numbers) is stored client-side
  * - Display data is fetched fresh from the API using stored IDs
  * - If XSS attack compromises localStorage, only IDs are exposed
+ * - Data is CLEARED when a different user logs in (see UserSessionGuard)
+ *
+ * @see src/components/UserSessionGuard - clears this store on user change
  */
 export const useRecentCustomersStore = create<RecentCustomersState>()(
   persist(
@@ -58,13 +62,14 @@ export const useRecentCustomersStore = create<RecentCustomersState>()(
 
       /**
        * Clear all recently viewed customers from history.
+       * Called by UserSessionGuard when user changes.
        */
       clearHistory: () => {
         set({ customers: [] })
       },
     }),
     {
-      name: 'billie-recent-customers', // localStorage key
+      name: RECENT_CUSTOMERS_STORAGE_KEY,
       version: 1, // For future migrations
     },
   ),
