@@ -21,11 +21,17 @@
   color: var(--theme-text, #fff);
 }
 
-/* Grid Layout */
+/* Grid Layout - 2x2 on larger screens */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Cards */
@@ -335,6 +341,39 @@
   100% {
     background-position: 200% 0;
   }
+}
+
+/* Account Link Styles */
+.accountLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.accountNumber {
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--theme-text, #fff);
+}
+
+/* Monospace for currency */
+.monospace {
+  font-family: monospace;
+}
+
+/* Due Date & Payment Status */
+.dueDate {
+  font-size: 13px;
+}
+
+.statusOverdue {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.statusDueToday {
+  color: #f59e0b;
+  font-weight: 600;
 }
 
 /* Responsive */

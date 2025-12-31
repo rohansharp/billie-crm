@@ -43,6 +43,30 @@ const mockDashboardResponse: DashboardResponse = {
       totalOutstanding: '$1,500.00',
     },
   ],
+  recentAccounts: [
+    {
+      loanAccountId: 'LA-001',
+      accountNumber: 'ACC-001',
+      customerName: 'John Smith',
+      customerId: 'CUST-001',
+      loanAmount: 5000,
+      loanAmountFormatted: '$5,000.00',
+      createdAt: new Date().toISOString(),
+    },
+  ],
+  upcomingPayments: [
+    {
+      loanAccountId: 'LA-001',
+      accountNumber: 'ACC-001',
+      customerName: 'John Smith',
+      customerId: 'CUST-001',
+      dueDate: '2025-12-15',
+      amount: 250,
+      amountFormatted: '$250.00',
+      daysUntilDue: 4,
+      status: 'upcoming',
+    },
+  ],
   systemStatus: {
     ledger: 'online',
     latencyMs: 42,

@@ -24,6 +24,30 @@ describe('Dashboard Schema', () => {
           totalOutstanding: '$1,250.00',
         },
       ],
+      recentAccounts: [
+        {
+          loanAccountId: 'LA-001',
+          accountNumber: 'ACC-001',
+          customerName: 'Jane Doe',
+          customerId: 'CUST-001',
+          loanAmount: 5000,
+          loanAmountFormatted: '$5,000.00',
+          createdAt: '2025-12-11T09:00:00.000Z',
+        },
+      ],
+      upcomingPayments: [
+        {
+          loanAccountId: 'LA-001',
+          accountNumber: 'ACC-001',
+          customerName: 'Jane Doe',
+          customerId: 'CUST-001',
+          dueDate: '2025-12-12',
+          amount: 250,
+          amountFormatted: '$250.00',
+          daysUntilDue: 1,
+          status: 'upcoming',
+        },
+      ],
       systemStatus: {
         ledger: 'online',
         latencyMs: 45,

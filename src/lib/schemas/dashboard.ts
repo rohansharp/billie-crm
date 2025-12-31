@@ -1,6 +1,38 @@
 import { z } from 'zod'
 
 /**
+ * Schema for a recently created account.
+ */
+export const RecentAccountSchema = z.object({
+  loanAccountId: z.string(),
+  accountNumber: z.string(),
+  customerName: z.string(),
+  customerId: z.string(),
+  loanAmount: z.number(),
+  loanAmountFormatted: z.string(),
+  createdAt: z.string().datetime(),
+})
+
+export type RecentAccount = z.infer<typeof RecentAccountSchema>
+
+/**
+ * Schema for an upcoming payment.
+ */
+export const UpcomingPaymentSchema = z.object({
+  loanAccountId: z.string(),
+  accountNumber: z.string(),
+  customerName: z.string(),
+  customerId: z.string(),
+  dueDate: z.string(), // ISO date string
+  amount: z.number(),
+  amountFormatted: z.string(),
+  daysUntilDue: z.number().int(), // negative = overdue
+  status: z.enum(['overdue', 'due_today', 'upcoming']),
+})
+
+export type UpcomingPayment = z.infer<typeof UpcomingPaymentSchema>
+
+/**
  * Dashboard API response schema.
  *
  * Used by:
@@ -26,6 +58,10 @@ export const DashboardResponseSchema = z.object({
       totalOutstanding: z.string(),
     }),
   ),
+  // New: Recently created accounts for onboarding visibility
+  recentAccounts: z.array(RecentAccountSchema),
+  // New: Upcoming payments for manual payment processing
+  upcomingPayments: z.array(UpcomingPaymentSchema),
   systemStatus: z.object({
     ledger: z.enum(['online', 'degraded', 'offline']),
     latencyMs: z.number().int().min(0),

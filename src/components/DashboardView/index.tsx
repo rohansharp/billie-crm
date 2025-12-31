@@ -1,10 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useDashboard } from '@/hooks/queries/useDashboard'
 import { useRecentCustomersStore } from '@/stores/recentCustomers'
 import { useFailedActionsStore } from '@/stores/failed-actions'
+import { SortableTable, type ColumnDef } from '@/components/SortableTable'
+import type { RecentAccount, UpcomingPayment } from '@/lib/schemas/dashboard'
 import styles from './styles.module.css'
 
 /**
@@ -45,6 +48,41 @@ function getShortcutLabel(): string {
 }
 
 /**
+ * Format date for display.
+ */
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const dateOnly = new Date(date)
+  dateOnly.setHours(0, 0, 0, 0)
+
+  const diffDays = Math.floor((today.getTime() - dateOnly.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays === -1) return 'Tomorrow'
+  if (diffDays < 0 && diffDays > -7) return `In ${-diffDays} days`
+  if (diffDays > 0 && diffDays < 7) return `${diffDays}d ago`
+
+  return date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+}
+
+/**
+ * Get status badge styles for payment status.
+ */
+function getPaymentStatusBadge(status: UpcomingPayment['status']): { text: string; className: string } {
+  switch (status) {
+    case 'overdue':
+      return { text: '🔴 Overdue', className: styles.statusOverdue }
+    case 'due_today':
+      return { text: '🟡 Due Today', className: styles.statusDueToday }
+    default:
+      return { text: '', className: '' }
+  }
+}
+
+/**
  * Dashboard home page view.
  *
  * Displays:
@@ -57,6 +95,7 @@ function getShortcutLabel(): string {
  * Story 6.2: Dashboard Home Page
  */
 export function DashboardView() {
+  const router = useRouter()
   const { data, isLoading, error } = useDashboard()
   const recentCustomers = useRecentCustomersStore((s) => s.customers)
   const failedActionsCount = useFailedActionsStore((s) => s.getActiveCount())
@@ -81,6 +120,98 @@ export function DashboardView() {
   const customerSummaryMap = new Map(
     data?.recentCustomersSummary?.map((c) => [c.customerId, c]) ?? [],
   )
+
+  // Column definitions for Recently Created Accounts
+  const recentAccountColumns: ColumnDef<RecentAccount>[] = useMemo(
+    () => [
+      {
+        key: 'accountNumber',
+        label: 'Account',
+        accessor: (row) => row.accountNumber,
+        render: (row) => (
+          <span className={styles.accountLink}>
+            <span className={styles.accountNumber}>{row.accountNumber}</span>
+          </span>
+        ),
+        width: '1.5fr',
+      },
+      {
+        key: 'customerName',
+        label: 'Customer',
+        accessor: (row) => row.customerName,
+        width: '2fr',
+      },
+      {
+        key: 'loanAmount',
+        label: 'Amount',
+        accessor: (row) => row.loanAmount,
+        render: (row) => (
+          <span className={styles.monospace}>{row.loanAmountFormatted}</span>
+        ),
+        width: '1fr',
+      },
+      {
+        key: 'createdAt',
+        label: 'Created',
+        accessor: (row) => new Date(row.createdAt),
+        render: (row) => formatDate(row.createdAt),
+        width: '1fr',
+      },
+    ],
+    [],
+  )
+
+  // Column definitions for Upcoming Payments
+  const upcomingPaymentColumns: ColumnDef<UpcomingPayment>[] = useMemo(
+    () => [
+      {
+        key: 'accountNumber',
+        label: 'Account',
+        accessor: (row) => row.accountNumber,
+        render: (row) => (
+          <span className={styles.accountLink}>
+            <span className={styles.accountNumber}>{row.accountNumber}</span>
+          </span>
+        ),
+        width: '1.5fr',
+      },
+      {
+        key: 'customerName',
+        label: 'Customer',
+        accessor: (row) => row.customerName,
+        width: '2fr',
+      },
+      {
+        key: 'dueDate',
+        label: 'Due',
+        accessor: (row) => new Date(row.dueDate),
+        render: (row) => {
+          const badge = getPaymentStatusBadge(row.status)
+          return (
+            <span className={`${styles.dueDate} ${badge.className}`}>
+              {badge.text || formatDate(row.dueDate)}
+            </span>
+          )
+        },
+        width: '1.2fr',
+      },
+      {
+        key: 'amount',
+        label: 'Amount',
+        accessor: (row) => row.amount,
+        render: (row) => (
+          <span className={styles.monospace}>{row.amountFormatted}</span>
+        ),
+        width: '1fr',
+      },
+    ],
+    [],
+  )
+
+  // Handle row clicks to navigate to customer servicing
+  const handleAccountRowClick = (row: RecentAccount | UpcomingPayment) => {
+    router.push(`/admin/servicing/${row.customerId}`)
+  }
 
   // Show loading skeleton
   if (isLoading) {
@@ -175,7 +306,7 @@ export function DashboardView() {
         </div>
 
         {/* Recent Customers Card */}
-        <div className={`${styles.card} ${styles.cardWide}`} data-testid="recent-customers-card">
+        <div className={styles.card} data-testid="recent-customers-card">
           <h2 className={styles.cardTitle}>Recent Customers</h2>
           {recentCustomers.length === 0 ? (
             <div className={styles.emptyState}>
@@ -221,6 +352,36 @@ export function DashboardView() {
               })}
             </div>
           )}
+        </div>
+
+        {/* Recently Created Accounts Card */}
+        <div className={styles.card} data-testid="recent-accounts-card">
+          <h2 className={styles.cardTitle}>📊 Recently Created Accounts</h2>
+          <SortableTable<RecentAccount>
+            data={data?.recentAccounts ?? []}
+            columns={recentAccountColumns}
+            defaultSortKey="createdAt"
+            defaultSortDirection="desc"
+            getRowKey={(row) => row.loanAccountId}
+            onRowClick={handleAccountRowClick}
+            emptyMessage="No recent accounts"
+            testId="recent-accounts-table"
+          />
+        </div>
+
+        {/* Upcoming Payments Card */}
+        <div className={styles.card} data-testid="upcoming-payments-card">
+          <h2 className={styles.cardTitle}>💳 Upcoming Payments</h2>
+          <SortableTable<UpcomingPayment>
+            data={data?.upcomingPayments ?? []}
+            columns={upcomingPaymentColumns}
+            defaultSortKey="dueDate"
+            defaultSortDirection="asc"
+            getRowKey={(row) => `${row.loanAccountId}-${row.dueDate}`}
+            onRowClick={handleAccountRowClick}
+            emptyMessage="No upcoming payments"
+            testId="upcoming-payments-table"
+          />
         </div>
       </div>
 
