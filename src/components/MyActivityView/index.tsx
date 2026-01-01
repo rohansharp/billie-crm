@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { stringify } from 'qs-esm'
 import Link from 'next/link'
 import { Breadcrumb } from '@/components/Breadcrumb'
 import { formatCurrency, formatDateShort } from '@/lib/formatters'
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants'
+import { useCancelWriteOff } from '@/hooks/mutations/useCancelWriteOff'
 import styles from './styles.module.css'
 
 export interface MyActivityViewProps {
@@ -17,12 +18,13 @@ export interface MyActivityViewProps {
 /** Activity item representing a write-off request action */
 interface ActivityItem {
   id: string
+  requestId: string // For cancel action
   requestNumber: string
   customerId: string
   customerName?: string
   amount: number
   reason: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled'
   actionType: 'submitted' | 'approved' | 'rejected'
   actionDate: string
   createdAt: string
@@ -40,48 +42,90 @@ export const MyActivityView: React.FC<MyActivityViewProps> = ({
   const [page, setPage] = useState(1)
   const [filter, setFilter] = useState<'all' | 'submitted' | 'decided'>('all')
 
-  // Fetch requests submitted by me
+  // Fetch ALL requests first, then filter client-side by requestedBy
+  // This works around the event processor storing requestedBy as string
+  // while Payload expects a relationship reference
   const submittedQuery = useQuery({
     queryKey: ['my-activity', 'submitted', userId, page, filter],
     queryFn: async () => {
       if (!userId) return { docs: [], totalDocs: 0 }
+      // Fetch all, we'll filter client-side since requestedBy is stored as string
       const queryString = stringify(
         {
-          where: { 'requestedBy.id': { equals: userId } },
-          limit: filter === 'submitted' ? DEFAULT_PAGE_SIZE : 50,
-          page: filter === 'submitted' ? page : 1,
+          limit: 100,
           sort: '-createdAt',
         },
         { addQueryPrefix: true }
       )
       const res = await fetch(`/api/write-off-requests${queryString}`)
       if (!res.ok) throw new Error('Failed to fetch submitted requests')
-      return res.json()
+      const data = await res.json()
+      
+      // Filter client-side to match userId
+      // requestedBy could be string ID, number, or object with id
+      const filteredDocs = (data.docs || []).filter((doc: Record<string, unknown>) => {
+        const reqBy = doc.requestedBy
+        if (!reqBy) return false
+        if (typeof reqBy === 'string') return reqBy === userId
+        if (typeof reqBy === 'number') return String(reqBy) === userId
+        if (typeof reqBy === 'object' && reqBy !== null && 'id' in reqBy) {
+          return String((reqBy as { id: unknown }).id) === userId
+        }
+        return false
+      })
+      
+      return { docs: filteredDocs, totalDocs: filteredDocs.length }
     },
     enabled: !!userId && (filter === 'all' || filter === 'submitted'),
     staleTime: 30_000,
   })
 
   // Fetch requests decided by me
+  // Fetches approved/rejected requests and filters client-side by approver/rejecter
   const decidedQuery = useQuery({
     queryKey: ['my-activity', 'decided', userId, page, filter],
     queryFn: async () => {
       if (!userId) return { docs: [], totalDocs: 0 }
+      // Fetch approved/rejected requests, filter client-side
       const queryString = stringify(
         {
-          where: {
-            'approvalDetails.decidedBy': { equals: userId },
-            status: { in: ['approved', 'rejected'] },
-          },
-          limit: filter === 'decided' ? DEFAULT_PAGE_SIZE : 50,
-          page: filter === 'decided' ? page : 1,
+          where: { status: { in: ['approved', 'rejected'] } },
+          limit: 100,
           sort: '-updatedAt',
         },
         { addQueryPrefix: true }
       )
       const res = await fetch(`/api/write-off-requests${queryString}`)
       if (!res.ok) throw new Error('Failed to fetch decided requests')
-      return res.json()
+      const data = await res.json()
+      
+      // Filter to requests decided by this user
+      const filteredDocs = (data.docs || []).filter((doc: Record<string, unknown>) => {
+        const details = doc.approvalDetails as Record<string, unknown> | undefined
+        if (!details) return false
+        
+        // Check approvedBy (text field from event processor)
+        const approvedBy = details.approvedBy
+        if (approvedBy && String(approvedBy) === userId) return true
+        
+        // Check rejectedBy (text field from event processor)  
+        const rejectedBy = details.rejectedBy
+        if (rejectedBy && String(rejectedBy) === userId) return true
+        
+        // Check decidedBy (relationship field, legacy)
+        const decidedBy = details.decidedBy
+        if (decidedBy) {
+          if (typeof decidedBy === 'string' && decidedBy === userId) return true
+          if (typeof decidedBy === 'number' && String(decidedBy) === userId) return true
+          if (typeof decidedBy === 'object' && decidedBy !== null && 'id' in decidedBy) {
+            return String((decidedBy as { id: unknown }).id) === userId
+          }
+        }
+        
+        return false
+      })
+      
+      return { docs: filteredDocs, totalDocs: filteredDocs.length }
     },
     enabled: !!userId && (filter === 'all' || filter === 'decided'),
     staleTime: 30_000,
@@ -96,6 +140,7 @@ export const MyActivityView: React.FC<MyActivityViewProps> = ({
       for (const doc of submittedQuery.data?.docs ?? []) {
         items.push({
           id: `submitted-${doc.id}`,
+          requestId: doc.requestId,
           requestNumber: doc.requestNumber,
           customerId: doc.customerId,
           customerName: doc.customerName,
@@ -115,6 +160,7 @@ export const MyActivityView: React.FC<MyActivityViewProps> = ({
       for (const doc of decidedQuery.data?.docs ?? []) {
         items.push({
           id: `decided-${doc.id}`,
+          requestId: doc.requestId,
           requestNumber: doc.requestNumber,
           customerId: doc.customerId,
           customerName: doc.customerName,
@@ -139,6 +185,28 @@ export const MyActivityView: React.FC<MyActivityViewProps> = ({
     setFilter(e.target.value as 'all' | 'submitted' | 'decided')
     setPage(1)
   }, [])
+
+  // Cancel mutation
+  const queryClient = useQueryClient()
+  const { cancelRequest, isPending: isCancelling } = useCancelWriteOff()
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+
+  const handleCancel = useCallback((item: ActivityItem) => {
+    if (!item.requestId || !item.requestNumber) return
+    
+    setCancellingId(item.id)
+    cancelRequest(
+      { requestId: item.requestId, requestNumber: item.requestNumber },
+      {
+        onSettled: () => {
+          setCancellingId(null)
+          // Refetch the activity list
+          submittedQuery.refetch()
+          queryClient.invalidateQueries({ queryKey: ['my-activity'] })
+        },
+      }
+    )
+  }, [cancelRequest, submittedQuery, queryClient])
 
   const isLoading = submittedQuery.isLoading || decidedQuery.isLoading
   const isError = submittedQuery.isError || decidedQuery.isError
@@ -281,9 +349,23 @@ export const MyActivityView: React.FC<MyActivityViewProps> = ({
                 <span className={styles.actionDate}>
                   {formatDateShort(item.actionDate)}
                 </span>
-                {item.status === 'pending' && (
-                  <span className={styles.pendingBadge}>⏳ Pending</span>
-                )}
+                <div className={styles.footerActions}>
+                  {item.status === 'pending' && (
+                    <span className={styles.pendingBadge}>⏳ Pending</span>
+                  )}
+                  {/* Cancel button for pending requests I submitted */}
+                  {item.status === 'pending' && item.actionType === 'submitted' && (
+                    <button
+                      type="button"
+                      className={styles.cancelBtn}
+                      onClick={() => handleCancel(item)}
+                      disabled={isCancelling && cancellingId === item.id}
+                      data-testid={`cancel-${item.id}`}
+                    >
+                      {isCancelling && cancellingId === item.id ? 'Cancelling...' : 'Cancel'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}

@@ -258,6 +258,34 @@
   color: #fbbf24;
 }
 
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cancelBtn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--theme-error-400, #f87171);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--theme-error-400, #f87171);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: var(--theme-error-400, #f87171);
+  color: #fff;
+}
+
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .container {
