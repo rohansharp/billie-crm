@@ -209,8 +209,9 @@ export function DashboardView() {
   )
 
   // Handle row clicks to navigate to customer servicing
+  // Uses window.location for full page load to ensure Payload admin template renders
   const handleAccountRowClick = (row: RecentAccount | UpcomingPayment) => {
-    router.push(`/admin/servicing/${row.customerId}`)
+    window.location.href = `/admin/servicing/${row.customerId}`
   }
 
   // Show loading skeleton

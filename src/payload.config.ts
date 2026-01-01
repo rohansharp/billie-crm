@@ -32,9 +32,31 @@ export default buildConfig({
         '@/components/navigation/NavDashboardLink#NavDashboardLink',
         '@/components/navigation/NavApprovalsLink#NavApprovalsLink',
       ],
-      afterNavLinks: ['@/components/navigation/NavSystemStatus#NavSystemStatus'],
-      // Settings menu additions (Story 6.6)
-      settingsMenu: ['@/components/navigation/NavSettingsMenu#NavSettingsMenu'],
+      // Notification bell in header actions (next to user profile button)
+      actions: ['@/components/Notifications/NotificationAction#NotificationAction'],
+      // Custom views with Payload admin template (includes sidebar)
+      views: {
+        // Dashboard view (Story 6.2)
+        dashboard: {
+          Component: '@/components/DashboardView/DashboardViewWithTemplate#DashboardViewWithTemplate',
+          path: '/dashboard',
+        },
+        // Servicing view (Story 2.1) - uses catch-all for customerId
+        servicing: {
+          Component: '@/components/ServicingView/ServicingViewWithTemplate#ServicingViewWithTemplate',
+          path: '/servicing/:segments*',
+        },
+        // Approvals view (Story 4.1)
+        approvals: {
+          Component: '@/components/ApprovalsView/ApprovalsViewWithTemplate#ApprovalsViewWithTemplate',
+          path: '/approvals',
+        },
+        // My Activity view (Story 6.6)
+        myActivity: {
+          Component: '@/components/MyActivityView/MyActivityViewWithTemplate#MyActivityViewWithTemplate',
+          path: '/my-activity',
+        },
+      },
     },
   },
   collections: [Users, Media, Customers, Conversations, Applications, LoanAccounts, WriteOffRequests],

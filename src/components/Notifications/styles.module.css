@@ -1,15 +1,8 @@
-/* Fixed Position Indicator (for Payload admin) */
-.indicatorContainer {
-  position: fixed;
-  top: 16px;
-  right: 80px;
-  z-index: 100;
-}
-
-/* Notification Badge */
+/* Notification Badge - rendered in Payload's header actions slot */
 .badgeContainer {
   position: relative;
   display: inline-flex;
+  align-items: center;
 }
 
 .badgeButton {
@@ -19,22 +12,20 @@
   width: 40px;
   height: 40px;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
-  color: var(--theme-elevation-500, #888);
+  color: var(--theme-elevation-800, #333);
   font-size: 20px;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .badgeButton:hover {
-  background: var(--theme-elevation-100, #2a2a2a);
-  color: var(--theme-text, #fff);
+  background: var(--theme-elevation-100, #f0f0f0);
 }
 
 .badgeButton[data-active="true"] {
-  background: var(--theme-elevation-150, #333);
-  color: var(--theme-text, #fff);
+  background: var(--theme-elevation-150, #e5e5e5);
 }
 
 .badgeCount {

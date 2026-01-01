@@ -8,3 +8,5 @@ export { NotificationIndicator } from './NotificationIndicator'
 export type { NotificationIndicatorProps } from './NotificationIndicator'
 
 export { NotificationIndicatorWrapper } from './NotificationIndicatorWrapper'
+
+export { NotificationAction } from './NotificationAction'

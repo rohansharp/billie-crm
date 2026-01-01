@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { QueryClientProvider } from './query-client'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster, toast } from 'sonner'
@@ -11,11 +10,11 @@ import {
   CustomerSearchResult,
   LoanAccountSearchResult,
 } from '@/components/ui/CommandPalette'
-import { NotificationIndicatorWrapper } from '@/components/Notifications'
 import { LedgerStatusIndicator } from '@/components/LedgerStatus'
 import { ReadOnlyBanner } from '@/components/ReadOnlyBanner'
 import { FailedActionsBadge } from '@/components/FailedActions'
 import { UserSessionGuard } from '@/components/UserSessionGuard'
+// Note: NotificationIndicator is now rendered through Payload's actions slot
 import { useUIStore } from '@/stores/ui'
 import { useCommandPaletteHotkeys } from '@/hooks/useGlobalHotkeys'
 import { useReadOnlyMode } from '@/hooks/useReadOnlyMode'
@@ -36,7 +35,6 @@ const ReadOnlyModeSync: React.FC = () => {
  * Registered inside Providers to appear on all Payload admin pages.
  */
 const GlobalCommandPalette: React.FC = () => {
-  const router = useRouter()
   const {
     commandPaletteOpen,
     setCommandPaletteOpen,
@@ -61,18 +59,20 @@ const GlobalCommandPalette: React.FC = () => {
     accountSearch.isFetching
 
   // Navigate to ServicingView when customer is selected (Story 2.1)
+  // Uses window.location for full page load to ensure Payload admin template renders
   const handleSelectCustomer = useCallback((customerId: string) => {
     setCommandPaletteOpen(false)
-    router.push(`/admin/servicing/${customerId}`)
-  }, [setCommandPaletteOpen, router])
+    window.location.href = `/admin/servicing/${customerId}`
+  }, [setCommandPaletteOpen])
 
   // Navigate to customer's ServicingView when account is selected
+  // Uses window.location for full page load to ensure Payload admin template renders
   const handleSelectAccount = useCallback((customerIdString: string | null) => {
     setCommandPaletteOpen(false)
     if (customerIdString) {
-      router.push(`/admin/servicing/${customerIdString}`)
+      window.location.href = `/admin/servicing/${customerIdString}`
     }
-  }, [setCommandPaletteOpen, router])
+  }, [setCommandPaletteOpen])
 
   // Show error toast if search fails (in useEffect to avoid render-time side effects)
   const hasError = customerSearch.isError || accountSearch.isError
@@ -136,7 +136,6 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({
       {children}
       <Toaster position="top-right" richColors />
       <GlobalCommandPalette />
-      <NotificationIndicatorWrapper />
       <LedgerStatusIndicator />
       <FailedActionsBadge />
       {process.env.NODE_ENV === 'development' && (

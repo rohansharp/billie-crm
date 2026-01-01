@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { PopupList } from '@payloadcms/ui'
-import { useRouter } from 'next/navigation'
 
 /**
  * Custom settings menu component that adds "My Activity" link.
@@ -13,10 +12,9 @@ import { useRouter } from 'next/navigation'
  * Story 6.6: User Menu Enhancements
  */
 export function NavSettingsMenu() {
-  const router = useRouter()
-
   const handleMyActivityClick = () => {
-    router.push('/admin/my-activity')
+    // Use window.location for full page load to ensure Payload admin template renders
+    window.location.href = '/admin/my-activity'
   }
 
   return (

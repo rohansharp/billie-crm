@@ -62,6 +62,13 @@
   gap: 24px;
 }
 
+/* Full-width content container (new layout without sidebar) */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 /* Profile Card */
 .profileCard {
   background: var(--theme-elevation-0, #fff);

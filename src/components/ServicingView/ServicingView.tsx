@@ -1,13 +1,12 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import Link from 'next/link'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCustomer, type LoanAccountData } from '@/hooks/queries/useCustomer'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
 import { useFeesCount } from '@/hooks/queries/useFeesCount'
-import { CustomerProfile } from './CustomerProfile'
-import { CustomerProfileSkeleton } from './CustomerProfileSkeleton'
+import { CustomerHeader } from './CustomerHeader'
+import { CustomerHeaderSkeleton } from './CustomerHeaderSkeleton'
 import { LoanAccountsSkeleton } from './LoanAccountsSkeleton'
 import { TransactionsSkeleton } from './TransactionsSkeleton'
 import { VulnerableCustomerBanner } from './VulnerableCustomerBanner'
@@ -47,9 +46,9 @@ const CustomerNotFound: React.FC = () => {
       <p className={styles.errorMessage}>
         The customer you&apos;re looking for doesn&apos;t exist or may have been removed.
       </p>
-      <Link href="/admin" className={styles.errorLink}>
+      <a href="/admin/dashboard" className={styles.errorLink}>
         ← Back to Dashboard
-      </Link>
+      </a>
       <p className={styles.errorHint}>Press ⌘K to search for another customer</p>
     </div>
   )
@@ -291,14 +290,13 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
           <h1 className={styles.headerTitle}>Customer Servicing</h1>
         </div>
 
-        <div className={styles.grid}>
-          <div className={styles.sidebar}>
-            <CustomerProfileSkeleton />
-          </div>
-          <div className={styles.main}>
-            <LoanAccountsSkeleton />
-            <TransactionsSkeleton />
-          </div>
+        {/* Compact customer header skeleton */}
+        <CustomerHeaderSkeleton />
+
+        {/* Full-width content */}
+        <div className={styles.content}>
+          <LoanAccountsSkeleton />
+          <TransactionsSkeleton />
         </div>
       </div>
     )
@@ -320,43 +318,42 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
         <h1 className={styles.headerTitle}>Customer Servicing</h1>
       </div>
 
+      {/* Compact horizontal customer header */}
+      {customer && <CustomerHeader customer={customer} />}
+
       {/* Vulnerable customer warning banner */}
       {isVulnerable && <VulnerableCustomerBanner />}
 
-      <div className={styles.grid}>
-        <div className={styles.sidebar}>
-          {customer && <CustomerProfile customer={customer} />}
-        </div>
-        <div className={styles.main}>
-          {/* Account cards - always visible */}
-          <LoanAccountsList
-            accounts={accounts}
-            selectedAccountId={selectedAccountId}
-            onSelectAccount={handleSelectAccount}
-          />
+      {/* Full-width content - no sidebar */}
+      <div className={styles.content}>
+        {/* Account cards - always visible */}
+        <LoanAccountsList
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelectAccount={handleSelectAccount}
+        />
 
-          {/* Account panel - shown when account selected */}
-          {selectedAccount ? (
-            <AccountPanel
-              account={selectedAccount}
-              allAccounts={accounts}
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-              onClose={handleClosePanel}
-              onSwitchAccount={handleSwitchAccount}
-              onWaiveFee={handleOpenWaiveFee}
-              onRecordRepayment={handleOpenRecordRepayment}
-              onBulkWaive={handleBulkWaive}
-              feesCount={feesCount}
-              onRefresh={handleRefresh}
-              isRefreshing={isFetchingData}
-              onRequestWriteOff={handleOpenWriteOff}
-              hasPendingWriteOff={hasPendingWriteOff}
-            />
-          ) : (
-            <AccountSelectionPrompt />
-          )}
-        </div>
+        {/* Account panel - shown when account selected */}
+        {selectedAccount ? (
+          <AccountPanel
+            account={selectedAccount}
+            allAccounts={accounts}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onClose={handleClosePanel}
+            onSwitchAccount={handleSwitchAccount}
+            onWaiveFee={handleOpenWaiveFee}
+            onRecordRepayment={handleOpenRecordRepayment}
+            onBulkWaive={handleBulkWaive}
+            feesCount={feesCount}
+            onRefresh={handleRefresh}
+            isRefreshing={isFetchingData}
+            onRequestWriteOff={handleOpenWriteOff}
+            hasPendingWriteOff={hasPendingWriteOff}
+          />
+        ) : (
+          <AccountSelectionPrompt />
+        )}
       </div>
 
       {/* Waive Fee Drawer - overlay */}

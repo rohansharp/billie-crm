@@ -1,5 +1,8 @@
 export { ServicingView, default } from './ServicingView'
 export type { ServicingViewProps } from './ServicingView'
+export { CustomerHeader } from './CustomerHeader'
+export type { CustomerHeaderProps } from './CustomerHeader'
+export { CustomerHeaderSkeleton } from './CustomerHeaderSkeleton'
 export { CustomerProfile } from './CustomerProfile'
 export type { CustomerProfileProps } from './CustomerProfile'
 export { CustomerProfileSkeleton } from './CustomerProfileSkeleton'

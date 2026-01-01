@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@payloadcms/ui'
 import { usePendingApprovals } from '@/hooks/queries/usePendingApprovals'
@@ -11,6 +10,9 @@ import styles from './styles.module.css'
  * Navigation link to the Approvals queue with pending count badge.
  * Only visible to users with 'approver' or 'admin' roles.
  * Registered in Payload's beforeNavLinks to appear at the top of the sidebar.
+ * 
+ * Uses <a> tag instead of Next.js Link to force full page load,
+ * ensuring Payload's admin template renders correctly with sidebar.
  */
 export function NavApprovalsLink() {
   const { user } = useAuth()
@@ -36,7 +38,7 @@ export function NavApprovalsLink() {
   const pendingCount = data?.totalDocs ?? 0
 
   return (
-    <Link
+    <a
       href="/admin/approvals"
       className={`${styles.navLink} ${isActive ? styles.active : ''}`}
       aria-current={isActive ? 'page' : undefined}
@@ -50,7 +52,7 @@ export function NavApprovalsLink() {
           {pendingCount > 99 ? '99+' : pendingCount}
         </span>
       )}
-    </Link>
+    </a>
   )
 }
 
