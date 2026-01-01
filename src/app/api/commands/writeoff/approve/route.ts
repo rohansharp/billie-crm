@@ -18,7 +18,7 @@ import { EVENT_TYPE_WRITEOFF_APPROVED } from '@/lib/events/config'
 import type { WriteOffApprovedPayload } from '@/lib/events/types'
 import { createAndPublishEvent, EventPublishError } from '@/server/event-publisher'
 import { hasApprovalAuthority } from '@/lib/access'
-import { getLedgerClient } from '@/server/grpc-client'
+import { getLedgerClient, generateIdempotencyKey } from '@/server/grpc-client'
 
 export async function POST(request: NextRequest) {
   try {
@@ -100,12 +100,15 @@ export async function POST(request: NextRequest) {
 
     // 5. Call the gRPC ledger service to post the write-off
     const ledgerClient = getLedgerClient()
+    // Use requestId as part of idempotency key for correlation with the approval workflow
+    const idempotencyKey = `writeoff-approve-${command.requestId}-${Date.now().toString(36)}`
     let ledgerResponse
     try {
       ledgerResponse = await ledgerClient.writeOff({
         loanAccountId: writeOffDoc.loanAccountId,
         reason: `Write-off approved: ${writeOffDoc.reason}. ${command.comment}`,
         approvedBy: String(user.id),
+        idempotencyKey,
       })
       console.log('[WriteOff Approve] Ledger write-off posted:', ledgerResponse.eventId)
     } catch (ledgerError) {

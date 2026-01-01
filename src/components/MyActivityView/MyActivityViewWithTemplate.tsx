@@ -1,6 +1,7 @@
 import type { AdminViewServerProps } from 'payload'
 
 import { DefaultTemplate } from '@payloadcms/next/templates'
+import { redirect } from 'next/navigation'
 import React from 'react'
 import { MyActivityView } from './index'
 
@@ -17,6 +18,11 @@ export async function MyActivityViewWithTemplate({
   params,
   searchParams,
 }: AdminViewServerProps) {
+  // Guard: redirect to login if not authenticated
+  if (!initPageResult?.req?.user) {
+    redirect('/admin/login')
+  }
+
   const user = initPageResult.req.user
   const userId = user?.id ? String(user.id) : undefined
 
@@ -28,7 +34,7 @@ export async function MyActivityViewWithTemplate({
       payload={initPageResult.req.payload}
       permissions={initPageResult.permissions}
       searchParams={searchParams}
-      user={user || undefined}
+      user={user}
       visibleEntities={initPageResult.visibleEntities}
     >
       <MyActivityView userId={userId} />

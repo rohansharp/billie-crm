@@ -1,6 +1,7 @@
 import type { AdminViewServerProps } from 'payload'
 
 import { DefaultTemplate } from '@payloadcms/next/templates'
+import { redirect } from 'next/navigation'
 import React from 'react'
 import { ServicingView } from './ServicingView'
 
@@ -17,6 +18,11 @@ export async function ServicingViewWithTemplate({
   params,
   searchParams,
 }: AdminViewServerProps) {
+  // Guard: redirect to login if not authenticated
+  if (!initPageResult?.req?.user) {
+    redirect('/admin/login')
+  }
+
   // Extract customerId from route params
   // Payload passes segments as an array: ['servicing', 'ABC123']
   // So customerId is at index 1
@@ -32,7 +38,7 @@ export async function ServicingViewWithTemplate({
       payload={initPageResult.req.payload}
       permissions={initPageResult.permissions}
       searchParams={searchParams}
-      user={initPageResult.req.user || undefined}
+      user={initPageResult.req.user}
       visibleEntities={initPageResult.visibleEntities}
     >
       <ServicingView customerId={customerId} />

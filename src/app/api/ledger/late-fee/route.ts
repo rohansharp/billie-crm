@@ -15,6 +15,7 @@ import {
   getLedgerClient,
   timestampToDate,
   getTransactionTypeLabel,
+  generateIdempotencyKey,
 } from '@/server/grpc-client'
 
 interface ApplyLateFeeBody {
@@ -40,11 +41,13 @@ export async function POST(request: NextRequest) {
     }
 
     const client = getLedgerClient()
+    const idempotencyKey = generateIdempotencyKey('latefee')
     const response = await client.applyLateFee({
       loanAccountId: body.loanAccountId,
       feeAmount: body.feeAmount,
       daysPastDue: body.daysPastDue,
       reason: body.reason,
+      idempotencyKey,
     })
 
     const tx = response.transaction

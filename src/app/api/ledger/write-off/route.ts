@@ -14,6 +14,7 @@ import {
   getLedgerClient,
   timestampToDate,
   getTransactionTypeLabel,
+  generateIdempotencyKey,
 } from '@/server/grpc-client'
 
 interface WriteOffBody {
@@ -38,10 +39,12 @@ export async function POST(request: NextRequest) {
     }
 
     const client = getLedgerClient()
+    const idempotencyKey = generateIdempotencyKey('writeoff')
     const response = await client.writeOff({
       loanAccountId: body.loanAccountId,
       reason: body.reason,
       approvedBy: body.approvedBy,
+      idempotencyKey,
     })
 
     const tx = response.transaction

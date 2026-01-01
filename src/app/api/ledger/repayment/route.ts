@@ -17,6 +17,7 @@ import {
   getLedgerClient,
   timestampToDate,
   getTransactionTypeLabel,
+  generateIdempotencyKey,
 } from '@/server/grpc-client'
 import { checkVersion, createVersionConflictResponse } from '@/lib/utils/version-check'
 import { createValidationError, handleApiError } from '@/lib/utils/api-error'
@@ -53,12 +54,14 @@ export async function POST(request: NextRequest) {
     }
 
     const client = getLedgerClient()
+    const idempotencyKey = generateIdempotencyKey('repay')
     const response = await client.recordRepayment({
       loanAccountId: body.loanAccountId,
       amount: body.amount,
       paymentId: body.paymentId,
       paymentMethod: body.paymentMethod,
       paymentReference: body.paymentReference,
+      idempotencyKey,
     })
 
     const tx = response.transaction

@@ -1,6 +1,7 @@
 import type { AdminViewServerProps } from 'payload'
 
 import { DefaultTemplate } from '@payloadcms/next/templates'
+import { redirect } from 'next/navigation'
 import React from 'react'
 import { DashboardView } from './index'
 
@@ -17,6 +18,11 @@ export async function DashboardViewWithTemplate({
   params,
   searchParams,
 }: AdminViewServerProps) {
+  // Guard: redirect to login if not authenticated
+  if (!initPageResult?.req?.user) {
+    redirect('/admin/login')
+  }
+
   return (
     <DefaultTemplate
       i18n={initPageResult.req.i18n}
@@ -25,7 +31,7 @@ export async function DashboardViewWithTemplate({
       payload={initPageResult.req.payload}
       permissions={initPageResult.permissions}
       searchParams={searchParams}
-      user={initPageResult.req.user || undefined}
+      user={initPageResult.req.user}
       visibleEntities={initPageResult.visibleEntities}
     >
       <DashboardView />

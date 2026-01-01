@@ -147,9 +147,11 @@ export interface StatementResponse {
 export interface RecordRepaymentRequest {
   loanAccountId: string
   amount: string
-  paymentId: string
+  paymentId?: string
   paymentMethod?: string
   paymentReference?: string
+  notes?: string
+  idempotencyKey?: string
 }
 
 export interface ApplyLateFeeRequest {
@@ -157,6 +159,7 @@ export interface ApplyLateFeeRequest {
   feeAmount: string
   daysPastDue: number
   reason?: string
+  idempotencyKey?: string
 }
 
 export interface WaiveFeeRequest {
@@ -164,12 +167,15 @@ export interface WaiveFeeRequest {
   waiverAmount: string
   reason: string
   approvedBy: string
+  notes?: string
+  idempotencyKey?: string
 }
 
 export interface WriteOffRequest {
   loanAccountId: string
   reason: string
   approvedBy: string
+  idempotencyKey?: string
 }
 
 export interface MakeAdjustmentRequest {
@@ -178,6 +184,7 @@ export interface MakeAdjustmentRequest {
   feeDelta: string
   reason: string
   approvedBy: string
+  idempotencyKey?: string
 }
 
 export interface TransactionResponse {
@@ -186,6 +193,7 @@ export interface TransactionResponse {
   allocatedToFees?: string
   allocatedToPrincipal?: string
   overpayment?: string
+  idempotentReplay?: boolean // True if this is a cached response from a previous request
 }
 
 // =============================================================================
@@ -319,6 +327,22 @@ export function getLedgerClient(): LedgerClient {
 // =============================================================================
 // Helper Functions
 // =============================================================================
+
+/**
+ * Generate a unique idempotency key for gRPC requests.
+ * 
+ * Format: {prefix}-{timestamp}-{random}
+ * - prefix: Operation type (e.g., "repay", "waive", "writeoff")
+ * - timestamp: Current timestamp in base36
+ * - random: Random alphanumeric suffix
+ * 
+ * These keys have a 24-hour TTL on the server side.
+ */
+export function generateIdempotencyKey(prefix: string): string {
+  const timestamp = Date.now().toString(36)
+  const random = Math.random().toString(36).substring(2, 10)
+  return `${prefix}-${timestamp}-${random}`
+}
 
 /**
  * Convert protobuf timestamp to JavaScript Date

@@ -1,6 +1,7 @@
 import type { AdminViewServerProps } from 'payload'
 
 import { DefaultTemplate } from '@payloadcms/next/templates'
+import { redirect } from 'next/navigation'
 import React from 'react'
 import { ApprovalsView } from './ApprovalsView'
 
@@ -17,6 +18,11 @@ export async function ApprovalsViewWithTemplate({
   params,
   searchParams,
 }: AdminViewServerProps) {
+  // Guard: redirect to login if not authenticated
+  if (!initPageResult?.req?.user) {
+    redirect('/admin/login')
+  }
+
   const user = initPageResult.req.user
   
   const userRole = (user?.role as 'admin' | 'supervisor' | 'operations' | 'readonly') ?? 'readonly'
@@ -33,7 +39,7 @@ export async function ApprovalsViewWithTemplate({
       payload={initPageResult.req.payload}
       permissions={initPageResult.permissions}
       searchParams={searchParams}
-      user={user || undefined}
+      user={user}
       visibleEntities={initPageResult.visibleEntities}
     >
       <ApprovalsView 

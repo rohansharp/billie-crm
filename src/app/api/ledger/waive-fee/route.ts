@@ -16,6 +16,7 @@ import {
   getLedgerClient,
   timestampToDate,
   getTransactionTypeLabel,
+  generateIdempotencyKey,
 } from '@/server/grpc-client'
 import { checkVersion, createVersionConflictResponse } from '@/lib/utils/version-check'
 import { createValidationError, handleApiError } from '@/lib/utils/api-error'
@@ -54,11 +55,13 @@ export async function POST(request: NextRequest) {
     }
 
     const client = getLedgerClient()
+    const idempotencyKey = generateIdempotencyKey('waive')
     const response = await client.waiveFee({
       loanAccountId: body.loanAccountId,
       waiverAmount: body.waiverAmount,
       reason: body.reason,
       approvedBy: body.approvedBy,
+      idempotencyKey,
     })
 
     const tx = response.transaction

@@ -16,6 +16,7 @@ import {
   getLedgerClient,
   timestampToDate,
   getTransactionTypeLabel,
+  generateIdempotencyKey,
 } from '@/server/grpc-client'
 
 interface MakeAdjustmentBody {
@@ -48,12 +49,14 @@ export async function POST(request: NextRequest) {
     }
 
     const client = getLedgerClient()
+    const idempotencyKey = generateIdempotencyKey('adjust')
     const response = await client.makeAdjustment({
       loanAccountId: body.loanAccountId,
       principalDelta: body.principalDelta,
       feeDelta: body.feeDelta,
       reason: body.reason,
       approvedBy: body.approvedBy,
+      idempotencyKey,
     })
 
     const tx = response.transaction
