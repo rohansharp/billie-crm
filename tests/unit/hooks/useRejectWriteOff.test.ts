@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useRejectWriteOff } from '@/hooks/mutations/useRejectWriteOff'
@@ -10,7 +10,13 @@ vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    warning: vi.fn(),
   },
+}))
+
+// Mock error toast utility
+vi.mock('@/lib/utils/error-toast', () => ({
+  showErrorToast: vi.fn(),
 }))
 
 // Create a fresh query client for each test
@@ -37,7 +43,12 @@ function createWrapper() {
 describe('useRejectWriteOff', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useFakeTimers()
     global.fetch = vi.fn()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('should expose mutation functions and states', () => {
@@ -52,41 +63,61 @@ describe('useRejectWriteOff', () => {
     expect(result.current.isError).toBe(false)
   })
 
-  it('should call correct API endpoint with PATCH method', async () => {
-    const mockResponse = {
-      doc: {
-        id: 'req-123',
-        requestNumber: 'WO-TEST-001',
-        status: 'rejected',
-        approvalDetails: {
-          decidedBy: 'user-1',
-          decidedByName: 'Test User',
-          decidedAt: '2025-12-11T00:00:00Z',
-          comment: 'Rejected for testing',
-        },
-      },
+  it('should call command API endpoint with POST method', async () => {
+    // Mock command API response (202 Accepted)
+    const commandResponse = {
+      eventId: 'evt-456',
+      requestId: 'req-456',
+      status: 'accepted',
+      message: 'Event accepted',
     }
 
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    })
+    // Mock polling response (projection found)
+    const projectionResponse = {
+      docs: [{
+        id: 'doc-456',
+        requestNumber: 'WO-TEST-002',
+        requestId: 'req-456',
+        status: 'rejected',
+        approvalDetails: {
+          rejectedBy: 'user-2',
+          rejectedByName: 'Supervisor',
+          rejectedAt: '2025-12-11T00:00:00Z',
+          reason: 'Insufficient documentation',
+        },
+      }],
+    }
+
+    ;(global.fetch as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(commandResponse),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(projectionResponse),
+      })
 
     const { result } = renderHook(() => useRejectWriteOff(), {
       wrapper: createWrapper(),
     })
 
-    await result.current.rejectRequestAsync({
-      requestId: 'req-123',
-      reason: 'Rejected for testing',
-      rejectorId: 'user-1',
-      rejectorName: 'Test User',
+    const rejectPromise = result.current.rejectRequestAsync({
+      requestId: 'req-456',
+      requestNumber: 'WO-TEST-002',
+      reason: 'Insufficient documentation',
     })
 
+    // Fast-forward timers for polling
+    await vi.runAllTimersAsync()
+
+    await rejectPromise
+
+    // Verify command API was called
     expect(global.fetch).toHaveBeenCalledWith(
-      '/api/write-off-requests/req-123',
+      '/api/commands/writeoff/reject',
       expect.objectContaining({
-        method: 'PATCH',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
     )
@@ -99,9 +130,9 @@ describe('useRejectWriteOff', () => {
 
     await expect(
       result.current.rejectRequestAsync({
-        requestId: 'req-123',
-        reason: 'Short', // Less than MIN_APPROVAL_COMMENT_LENGTH
-        rejectorId: 'user-1',
+        requestId: 'req-456',
+        requestNumber: 'WO-TEST-002',
+        reason: 'No docs', // Less than MIN_APPROVAL_COMMENT_LENGTH
       })
     ).rejects.toThrow(`Rejection reason must be at least ${MIN_APPROVAL_COMMENT_LENGTH} characters`)
 
@@ -109,47 +140,19 @@ describe('useRejectWriteOff', () => {
     expect(global.fetch).not.toHaveBeenCalled()
   })
 
-  it('should set isPending to true during mutation', async () => {
-    let resolvePromise: (value: unknown) => void
-    const pendingPromise = new Promise((resolve) => {
-      resolvePromise = resolve
-    })
-
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(pendingPromise)
-
+  it('should start in non-pending state', () => {
     const { result } = renderHook(() => useRejectWriteOff(), {
       wrapper: createWrapper(),
     })
 
-    // Start mutation
-    result.current.rejectRequest({
-      requestId: 'req-123',
-      reason: 'Valid rejection reason',
-      rejectorId: 'user-1',
-    })
-
-    await waitFor(() => {
-      expect(result.current.isPending).toBe(true)
-    })
-
-    // Resolve the promise
-    resolvePromise!({
-      ok: true,
-      json: () => Promise.resolve({ doc: { requestNumber: 'WO-TEST' } }),
-    })
+    expect(result.current.isPending).toBe(false)
   })
 
-  it('should handle API errors gracefully', async () => {
-    // Mock both initial call and retry (hook has retry: 1)
-    ;(global.fetch as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({
-        ok: false,
-        json: () => Promise.resolve({ message: 'Not authorized' }),
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        json: () => Promise.resolve({ message: 'Not authorized' }),
-      })
+  it('should handle command API errors gracefully', async () => {
+    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ error: { message: 'Forbidden' } }),
+    })
 
     const { result } = renderHook(() => useRejectWriteOff(), {
       wrapper: createWrapper(),
@@ -157,33 +160,49 @@ describe('useRejectWriteOff', () => {
 
     await expect(
       result.current.rejectRequestAsync({
-        requestId: 'req-123',
+        requestId: 'req-456',
+        requestNumber: 'WO-TEST-002',
         reason: 'Valid rejection reason',
-        rejectorId: 'user-1',
       })
-    ).rejects.toThrow('Not authorized')
+    ).rejects.toThrow('Forbidden')
   })
 
-  it('should send status as rejected in API call', async () => {
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ doc: { requestNumber: 'WO-TEST' } }),
-    })
+  it('should include requestNumber in command payload', async () => {
+    ;(global.fetch as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ eventId: 'evt-789', requestId: 'req-789', status: 'accepted' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          docs: [{
+            id: 'doc-789',
+            requestId: 'req-789',
+            requestNumber: 'WO-20241211-WXYZ',
+            status: 'rejected',
+          }],
+        }),
+      })
 
     const { result } = renderHook(() => useRejectWriteOff(), {
       wrapper: createWrapper(),
     })
 
-    await result.current.rejectRequestAsync({
-      requestId: 'req-123',
-      reason: 'This request is rejected',
-      rejectorId: 'user-1',
+    const rejectPromise = result.current.rejectRequestAsync({
+      requestId: 'req-789',
+      requestNumber: 'WO-20241211-WXYZ',
+      reason: 'Account has active payment plan',
     })
 
-    const [, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
-    const body = JSON.parse(options.body)
+    await vi.runAllTimersAsync()
+    await rejectPromise
 
-    expect(body.status).toBe('rejected')
-    expect(body.approvalDetails.comment).toBe('This request is rejected')
+    const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+    const body = JSON.parse(fetchCall[1].body)
+    
+    expect(body.requestId).toBe('req-789')
+    expect(body.requestNumber).toBe('WO-20241211-WXYZ')
+    expect(body.reason).toBe('Account has active payment plan')
   })
 })

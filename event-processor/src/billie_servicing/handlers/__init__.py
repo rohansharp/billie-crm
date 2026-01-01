@@ -19,6 +19,12 @@ from .conversation import (
     handle_assessment,
     handle_noticeboard_updated,
 )
+from .writeoff import (
+    handle_writeoff_requested,
+    handle_writeoff_approved,
+    handle_writeoff_rejected,
+    handle_writeoff_cancelled,
+)
 
 __all__ = [
     # Account handlers
@@ -37,4 +43,9 @@ __all__ = [
     "handle_application_detail_changed",
     "handle_assessment",
     "handle_noticeboard_updated",
+    # Write-off handlers (CRM-originated events)
+    "handle_writeoff_requested",
+    "handle_writeoff_approved",
+    "handle_writeoff_rejected",
+    "handle_writeoff_cancelled",
 ]

@@ -25,6 +25,11 @@ from .handlers import (
     handle_application_detail_changed,
     handle_assessment,
     handle_noticeboard_updated,
+    # Write-off handlers (CRM-originated events)
+    handle_writeoff_requested,
+    handle_writeoff_approved,
+    handle_writeoff_rejected,
+    handle_writeoff_cancelled,
 )
 from .processor import EventProcessor
 
@@ -102,6 +107,14 @@ def setup_handlers(processor: EventProcessor) -> None:
     # Summary
     processor.register_handler("conversation_summary", handle_conversation_summary)
 
+    # =========================================================================
+    # Write-off events (CRM-originated, manual parsing)
+    # =========================================================================
+    processor.register_handler("writeoff.requested.v1", handle_writeoff_requested)
+    processor.register_handler("writeoff.approved.v1", handle_writeoff_approved)
+    processor.register_handler("writeoff.rejected.v1", handle_writeoff_rejected)
+    processor.register_handler("writeoff.cancelled.v1", handle_writeoff_cancelled)
+
 
 async def run() -> None:
     """Run the event processor."""
@@ -144,11 +157,12 @@ def main() -> None:
     print("=" * 60)
     print("BILLIE SERVICING EVENT PROCESSOR")
     print("=" * 60)
-    print(f"Redis URL:      {settings.redis_url}")
-    print(f"Database URI:   {settings.database_uri}")
-    print(f"Database:       {settings.db_name}")
-    print(f"Inbox Stream:   {settings.inbox_stream}")
-    print(f"Consumer Group: {settings.consumer_group}")
+    print(f"Redis URL:       {settings.redis_url}")
+    print(f"Database URI:    {settings.database_uri}")
+    print(f"Database:        {settings.db_name}")
+    print(f"External Stream: {settings.inbox_stream}")
+    print(f"Internal Stream: {settings.internal_stream}")
+    print(f"Consumer Group:  {settings.consumer_group}")
     print("=" * 60)
     print("Starting processor... (Ctrl+C to stop)")
     print()
@@ -158,7 +172,8 @@ def main() -> None:
         redis_url=settings.redis_url,
         database_uri=settings.database_uri,
         db_name=settings.db_name,
-        inbox_stream=settings.inbox_stream,
+        external_stream=settings.inbox_stream,
+        internal_stream=settings.internal_stream,
         consumer_group=settings.consumer_group,
     )
 

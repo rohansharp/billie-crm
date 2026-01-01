@@ -113,17 +113,25 @@ class EventProcessor:
         self.mongo = AsyncIOMotorClient(self.database_uri)
         self.db = self.mongo[self.db_name]
 
-        print("Setting up consumer group...")
-        await self._ensure_consumer_group()
+        print("Setting up consumer groups...")
+        await self._ensure_consumer_group(settings.inbox_stream)
+        await self._ensure_consumer_group(settings.internal_stream)
 
         print("Processing any pending messages...")
-        await self._process_pending_messages()
+        await self._process_pending_messages(settings.inbox_stream)
+        await self._process_pending_messages(settings.internal_stream)
 
         self._running = True
         print(f"✅ Event processor started (consumer: {self.consumer_id})")
-        print(f"👂 Listening for events on: {settings.inbox_stream}")
+        print(f"👂 Listening for events on:")
+        print(f"   - {settings.inbox_stream} (external)")
+        print(f"   - {settings.internal_stream} (internal/CRM)")
         print()
-        logger.info("Event processor started", consumer_id=self.consumer_id)
+        logger.info(
+            "Event processor started",
+            consumer_id=self.consumer_id,
+            streams=[settings.inbox_stream, settings.internal_stream],
+        )
 
         while self._running:
             await self._process_new_messages()
@@ -137,11 +145,11 @@ class EventProcessor:
             self.mongo.close()
         logger.info("Event processor stopped")
 
-    async def _ensure_consumer_group(self) -> None:
-        """Create consumer group if it doesn't exist."""
+    async def _ensure_consumer_group(self, stream: str) -> None:
+        """Create consumer group if it doesn't exist for the given stream."""
         try:
             await self.redis.xgroup_create(
-                settings.inbox_stream,
+                stream,
                 settings.consumer_group,
                 id="0",
                 mkstream=True,
@@ -149,21 +157,21 @@ class EventProcessor:
             logger.info(
                 "Created consumer group",
                 group=settings.consumer_group,
-                stream=settings.inbox_stream,
+                stream=stream,
             )
         except redis.ResponseError as e:
             if "BUSYGROUP" not in str(e):
                 raise
-            logger.debug("Consumer group already exists", group=settings.consumer_group)
+            logger.debug("Consumer group already exists", group=settings.consumer_group, stream=stream)
 
-    async def _process_pending_messages(self) -> None:
-        """Process messages from previous runs that weren't ACKed."""
-        logger.info("Processing pending messages...")
+    async def _process_pending_messages(self, stream: str) -> None:
+        """Process messages from previous runs that weren't ACKed for the given stream."""
+        logger.info("Processing pending messages...", stream=stream)
         processed_count = 0
 
         while True:
             pending = await self.redis.xpending_range(
-                settings.inbox_stream,
+                stream,
                 settings.consumer_group,
                 min="-",
                 max="+",
@@ -178,7 +186,7 @@ class EventProcessor:
                 delivery_count = entry["times_delivered"]
 
                 messages = await self.redis.xclaim(
-                    settings.inbox_stream,
+                    stream,
                     settings.consumer_group,
                     self.consumer_id,
                     min_idle_time=0,
@@ -186,28 +194,32 @@ class EventProcessor:
                 )
 
                 if messages:
-                    await self._process_message(messages[0], delivery_count)
+                    await self._process_message(messages[0], stream, delivery_count)
                     processed_count += 1
 
-        logger.info("Pending messages processed", count=processed_count)
+        logger.info("Pending messages processed", stream=stream, count=processed_count)
 
     async def _process_new_messages(self) -> None:
-        """Process new messages from the stream."""
+        """Process new messages from both streams."""
         messages = await self.redis.xreadgroup(
             groupname=settings.consumer_group,
             consumername=self.consumer_id,
-            streams={settings.inbox_stream: ">"},
+            streams={
+                settings.inbox_stream: ">",
+                settings.internal_stream: ">",
+            },
             count=settings.batch_size,
             block=settings.block_timeout_ms,
         )
 
         if messages:
             for stream_name, stream_messages in messages:
+                stream_name_str = stream_name.decode() if isinstance(stream_name, bytes) else stream_name
                 for message in stream_messages:
-                    await self._process_message(message)
+                    await self._process_message(message, stream_name_str)
 
     async def _process_message(
-        self, message: tuple[bytes, dict[bytes, bytes]], delivery_count: int = 1
+        self, message: tuple[bytes, dict[bytes, bytes]], stream: str, delivery_count: int = 1
     ) -> None:
         """
         Process a single message with transactional guarantees.
@@ -231,26 +243,31 @@ class EventProcessor:
                 or sanitized.get("event_type", "")
             )
 
-            # Get event ID for deduplication
+            # Get event ID for deduplication (use 'cause' for CRM events)
             event_id = (
-                sanitized.get("id") or sanitized.get("event_id") or message_id_str
+                sanitized.get("cause")
+                or sanitized.get("id")
+                or sanitized.get("event_id")
+                or message_id_str
             )
 
             log = logger.bind(
                 message_id=message_id_str,
                 event_type=event_type,
                 event_id=event_id,
+                stream=stream,
                 delivery_count=delivery_count,
             )
 
-            print(f"📥 Received event: {event_type} (id: {event_id})")
+            stream_label = "internal" if stream == settings.internal_stream else "external"
+            print(f"📥 [{stream_label}] Received event: {event_type} (id: {event_id})")
 
             # Deduplication check
             dedup_key = f"dedup:{event_id}"
             if await self.redis.exists(dedup_key):
                 print(f"   ⏭️  Skipping duplicate event")
                 log.debug("Duplicate event, skipping")
-                await self.redis.xack(settings.inbox_stream, settings.consumer_group, message_id)
+                await self.redis.xack(stream, settings.consumer_group, message_id)
                 return
 
             # Parse with appropriate SDK
@@ -261,7 +278,7 @@ class EventProcessor:
             if not handler:
                 print(f"   ⚠️  No handler for event type: {event_type}")
                 log.warning("No handler registered for event type")
-                await self.redis.xack(settings.inbox_stream, settings.consumer_group, message_id)
+                await self.redis.xack(stream, settings.consumer_group, message_id)
                 return
 
             # Execute handler (writes to MongoDB)
@@ -271,7 +288,7 @@ class EventProcessor:
             await self.redis.setex(dedup_key, settings.dedup_ttl_seconds, "1")
 
             # ACK after successful write
-            await self.redis.xack(settings.inbox_stream, settings.consumer_group, message_id)
+            await self.redis.xack(stream, settings.consumer_group, message_id)
 
             print(f"   ✅ Processed successfully")
             log.info("Event processed successfully")
@@ -281,6 +298,7 @@ class EventProcessor:
             logger.error(
                 "Error processing message",
                 message_id=message_id_str,
+                stream=stream,
                 error=str(e),
                 delivery_count=delivery_count,
                 exc_info=True,
@@ -289,7 +307,7 @@ class EventProcessor:
             if delivery_count >= settings.max_retries:
                 print(f"   🗑️  Moving to DLQ after {delivery_count} attempts")
                 await self._move_to_dlq(message_id, fields, str(e))
-                await self.redis.xack(settings.inbox_stream, settings.consumer_group, message_id)
+                await self.redis.xack(stream, settings.consumer_group, message_id)
                 logger.error("Message moved to DLQ", message_id=message_id_str)
 
     def _parse_event(self, event_type: str, sanitized: dict[str, Any]) -> Any:

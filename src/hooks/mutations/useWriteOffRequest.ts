@@ -1,6 +1,20 @@
+/**
+ * Write-Off Request Mutation Hook (Event-Sourced)
+ *
+ * Submits a write-off request via the command API, which publishes
+ * an event to Redis. Then polls for the resulting projection.
+ */
+
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useUIStore } from '@/stores/ui'
+import { pollForWriteOffRequest, PollTimeoutError } from '@/lib/events/poll'
+import type { WriteOffRequestCommand } from '@/lib/events/schemas'
+import type { PublishEventResponse } from '@/lib/events/types'
+
+// =============================================================================
+// Types
+// =============================================================================
 
 export interface WriteOffRequestParams {
   loanAccountId: string
@@ -11,67 +25,31 @@ export interface WriteOffRequestParams {
   originalBalance: number
   reason: string
   notes?: string
-  /** User ID who is submitting the request (for audit/segregation of duties) */
-  requestedBy?: string
-  /** User name for display in audit trail */
-  requestedByName?: string
+  priority?: 'normal' | 'high' | 'urgent'
 }
 
-export interface WriteOffRequestResponse {
-  doc: {
-    id: string
-    requestNumber: string
-    loanAccountId: string
-    customerId: string
-    amount: number
-    reason: string
-    status: string
-    requiresSeniorApproval: boolean
-    createdAt: string
-  }
-  message: string
+export interface WriteOffRequestResult {
+  id: string
+  requestNumber: string
+  requestId: string
+  eventId: string
+  loanAccountId: string
+  customerId: string
+  amount: number
+  reason: string
+  status: string
+  priority: string
+  createdAt: string
 }
+
+// =============================================================================
+// Constants
+// =============================================================================
 
 /**
  * Senior approval threshold in AUD
  */
 export const SENIOR_APPROVAL_THRESHOLD = 10000
-
-async function submitWriteOffRequest(
-  params: WriteOffRequestParams
-): Promise<WriteOffRequestResponse> {
-  const requiresSeniorApproval = params.amount >= SENIOR_APPROVAL_THRESHOLD
-
-  const res = await fetch('/api/write-off-requests', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      loanAccountId: params.loanAccountId,
-      customerId: params.customerId,
-      customerName: params.customerName,
-      accountNumber: params.accountNumber,
-      amount: params.amount,
-      originalBalance: params.originalBalance,
-      reason: params.reason,
-      notes: params.notes || '',
-      status: 'pending',
-      priority: 'normal',
-      requiresSeniorApproval,
-      requestedAt: new Date().toISOString(),
-      // Audit: who submitted this request (for segregation of duties in approval)
-      requestedBy: params.requestedBy,
-      requestedByName: params.requestedByName || 'Unknown User', // TODO: Get from auth context
-    }),
-  })
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ errors: [{ message: 'Failed to submit request' }] }))
-    const message = error.errors?.[0]?.message || error.message || 'Failed to submit write-off request'
-    throw new Error(message)
-  }
-
-  return res.json()
-}
 
 /**
  * Query key for pending write-off requests
@@ -79,8 +57,70 @@ async function submitWriteOffRequest(
 export const writeOffRequestsQueryKey = (loanAccountId: string) =>
   ['write-off-requests', loanAccountId] as const
 
+// =============================================================================
+// API Functions
+// =============================================================================
+
+/**
+ * Submit a write-off request via the command API.
+ * Returns 202 Accepted with eventId for polling.
+ */
+async function publishWriteOffCommand(
+  params: WriteOffRequestParams
+): Promise<PublishEventResponse> {
+  const command: WriteOffRequestCommand = {
+    loanAccountId: params.loanAccountId,
+    customerId: params.customerId,
+    customerName: params.customerName ?? '',
+    accountNumber: params.accountNumber ?? '',
+    amount: params.amount,
+    originalBalance: params.originalBalance,
+    reason: params.reason as WriteOffRequestCommand['reason'],
+    notes: params.notes,
+    priority: params.priority ?? 'normal',
+  }
+
+  const res = await fetch('/api/commands/writeoff/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(command),
+  })
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: { message: 'Failed to submit request' } }))
+    throw new Error(error.error?.message || 'Failed to submit write-off request')
+  }
+
+  return res.json()
+}
+
+/**
+ * Submit write-off request and poll for the resulting projection.
+ */
+async function submitWriteOffRequest(
+  params: WriteOffRequestParams
+): Promise<WriteOffRequestResult> {
+  // 1. Publish the command event
+  const { eventId } = await publishWriteOffCommand(params)
+
+  // 2. Poll for the projection to appear
+  const projection = await pollForWriteOffRequest<WriteOffRequestResult>(eventId, {
+    maxAttempts: 10,
+    intervalMs: 500,
+    initialDelayMs: 100,
+  })
+
+  return projection
+}
+
+// =============================================================================
+// Hook
+// =============================================================================
+
 /**
  * Mutation hook for submitting write-off requests.
+ *
+ * Uses event sourcing: publishes command → polls for projection.
  */
 export function useWriteOffRequest() {
   const queryClient = useQueryClient()
@@ -90,12 +130,12 @@ export function useWriteOffRequest() {
     mutationFn: submitWriteOffRequest,
 
     onSuccess: (data) => {
-      const requiresSenior = data.doc.requiresSeniorApproval
+      const requiresSenior = data.amount >= SENIOR_APPROVAL_THRESHOLD
 
       toast.success('Write-off request submitted', {
         description: requiresSenior
-          ? `Request ${data.doc.requestNumber} requires senior approval`
-          : `Request ${data.doc.requestNumber} is pending approval`,
+          ? `Request ${data.requestNumber} requires senior approval`
+          : `Request ${data.requestNumber} is pending approval`,
       })
 
       // Invalidate pending write-off queries
@@ -105,6 +145,16 @@ export function useWriteOffRequest() {
     },
 
     onError: (error) => {
+      // Handle polling timeout specifically
+      if (error instanceof PollTimeoutError) {
+        toast.error('Request submitted but confirmation delayed', {
+          description: 'Your request was accepted but is taking longer than expected to process. Please refresh to see the status.',
+        })
+        // Still invalidate queries so a manual refresh shows the request
+        queryClient.invalidateQueries({ queryKey: ['write-off-requests'] })
+        return
+      }
+
       const errorMessage =
         error instanceof Error ? error.message : 'Failed to submit write-off request'
 

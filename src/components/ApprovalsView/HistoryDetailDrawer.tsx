@@ -24,11 +24,20 @@ export const HistoryDetailDrawer: React.FC<HistoryDetailDrawerProps> = ({
   if (!item) return null
 
   const requestDate = new Date(item.requestedAt || item.createdAt)
-  const decisionDate = item.approvalDetails?.decidedAt
-    ? new Date(item.approvalDetails.decidedAt)
-    : null
-
   const isApproved = item.status === 'approved'
+
+  // Get decision details - handle both legacy and event-sourced field names
+  const details = item.approvalDetails
+  const decidedByName = isApproved
+    ? (details?.approvedByName || details?.decidedByName)
+    : (details?.rejectedByName || details?.decidedByName)
+  const decidedAtRaw = isApproved
+    ? (details?.approvedAt || details?.decidedAt)
+    : (details?.rejectedAt || details?.decidedAt)
+  const decisionDate = decidedAtRaw ? new Date(decidedAtRaw) : null
+  const decisionComment = isApproved
+    ? details?.comment
+    : (details?.reason || details?.comment)
 
   return (
     <ContextDrawer
@@ -70,7 +79,7 @@ export const HistoryDetailDrawer: React.FC<HistoryDetailDrawerProps> = ({
           <div className={styles.detailItem}>
             <span className={styles.detailLabel}>Decided By</span>
             <span className={styles.detailValue}>
-              {item.approvalDetails?.decidedByName || 'Unknown'}
+              {decidedByName || 'Unknown'}
             </span>
           </div>
           <div className={styles.detailItem}>
@@ -87,14 +96,14 @@ export const HistoryDetailDrawer: React.FC<HistoryDetailDrawerProps> = ({
           </div>
         </div>
 
-        {/* Decision Comment */}
-        {item.approvalDetails?.comment && (
+        {/* Decision Comment / Rejection Reason */}
+        {decisionComment && (
           <div className={styles.historyComment}>
             <span className={styles.detailLabel}>
               {isApproved ? 'Approval Comment' : 'Rejection Reason'}
             </span>
             <div className={styles.detailNotes}>
-              {item.approvalDetails.comment}
+              {decisionComment}
             </div>
           </div>
         )}

@@ -54,8 +54,8 @@ export const WriteOffRequests: CollectionConfig = {
   hooks: {
     beforeChange: [
       async ({ data, operation }) => {
-        // Generate request number on create
-        if (operation === 'create') {
+        // Generate request number on create (only if not provided by event processor)
+        if (operation === 'create' && !data.requestNumber) {
           const timestamp = Date.now().toString(36).toUpperCase()
           const random = Math.random().toString(36).substring(2, 6).toUpperCase()
           data.requestNumber = `WO-${timestamp}-${random}`
@@ -65,12 +65,38 @@ export const WriteOffRequests: CollectionConfig = {
     ],
   },
   fields: [
+    // ==========================================================================
+    // Event Sourcing Fields
+    // These fields link the projection to the original events for correlation
+    // and polling. Populated by the Python event processor.
+    // ==========================================================================
+    {
+      name: 'requestId',
+      type: 'text',
+      index: true,
+      admin: {
+        description: 'Event correlation ID (conv field). Groups related events in a workflow.',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'eventId',
+      type: 'text',
+      index: true,
+      admin: {
+        description: 'Event ID for polling lookup (cause field). Used by client to find projection after command.',
+        position: 'sidebar',
+      },
+    },
+    // ==========================================================================
+    // Request Identification
+    // ==========================================================================
     {
       name: 'requestNumber',
       type: 'text',
       admin: {
         readOnly: true,
-        description: 'Auto-generated request reference number',
+        description: 'Human-readable request reference number (e.g., WO-20241211...). Auto-generated if not provided.',
       },
       index: true,
     },
@@ -218,7 +244,7 @@ export const WriteOffRequests: CollectionConfig = {
         description: 'Requestor name for audit purposes',
       },
     },
-    // Approval information
+    // Approval information (for approved/rejected status)
     {
       name: 'approvalDetails',
       type: 'group',
@@ -226,6 +252,7 @@ export const WriteOffRequests: CollectionConfig = {
         condition: (data) => data?.status === 'approved' || data?.status === 'rejected',
       },
       fields: [
+        // Legacy fields (for backward compatibility with direct writes)
         {
           name: 'decidedBy',
           type: 'relationship',
@@ -245,6 +272,70 @@ export const WriteOffRequests: CollectionConfig = {
           admin: {
             description: 'Approval or rejection comment',
           },
+        },
+        // Event-sourced approval fields
+        {
+          name: 'approvedBy',
+          type: 'text',
+          admin: {
+            description: 'User ID who approved (from event)',
+          },
+        },
+        {
+          name: 'approvedByName',
+          type: 'text',
+        },
+        {
+          name: 'approvedAt',
+          type: 'date',
+        },
+        // Event-sourced rejection fields
+        {
+          name: 'rejectedBy',
+          type: 'text',
+          admin: {
+            description: 'User ID who rejected (from event)',
+          },
+        },
+        {
+          name: 'rejectedByName',
+          type: 'text',
+        },
+        {
+          name: 'rejectedAt',
+          type: 'date',
+        },
+        {
+          name: 'reason',
+          type: 'textarea',
+          admin: {
+            description: 'Rejection reason (from event)',
+          },
+        },
+      ],
+    },
+    // Cancellation information (for cancelled status)
+    {
+      name: 'cancellationDetails',
+      type: 'group',
+      admin: {
+        condition: (data) => data?.status === 'cancelled',
+      },
+      fields: [
+        {
+          name: 'cancelledBy',
+          type: 'text',
+          admin: {
+            description: 'User ID who cancelled (from event)',
+          },
+        },
+        {
+          name: 'cancelledByName',
+          type: 'text',
+        },
+        {
+          name: 'cancelledAt',
+          type: 'date',
         },
       ],
     },

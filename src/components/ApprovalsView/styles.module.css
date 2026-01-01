@@ -526,6 +526,15 @@
   background: #dc2626;
 }
 
+.actionBtnCancel {
+  background: #6b7280;
+  color: #fff;
+}
+
+.actionBtnCancel:hover:not(:disabled) {
+  background: #4b5563;
+}
+
 .actionBtnDisabledReason {
   display: block;
   font-size: 11px;

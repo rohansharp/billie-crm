@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     # Redis configuration
     redis_url: str = "redis://localhost:6383"
     inbox_stream: str = "inbox:billie-servicing"
+    internal_stream: str = "inbox:billie-servicing:internal"
     consumer_group: str = "billie-servicing-processor"
     dlq_stream: str = "dlq:billie-servicing"
 

@@ -48,7 +48,8 @@ export default async function ApprovalsPage() {
   const userRole = isValidRole(user?.role) ? user.role : undefined
 
   // Extract user ID and name for segregation of duties and audit trail
-  const userId = user?.id
+  // Convert to string for consistent comparison with stored requestedBy
+  const userId = user?.id ? String(user.id) : undefined
   const userName = user?.firstName && user?.lastName
     ? `${user.firstName} ${user.lastName}`
     : user?.email || undefined

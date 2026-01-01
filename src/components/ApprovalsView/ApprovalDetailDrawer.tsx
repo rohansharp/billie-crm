@@ -5,6 +5,7 @@ import { ContextDrawer, CopyButton } from '@/components/ui'
 import type { WriteOffApproval } from '@/hooks/queries/usePendingApprovals'
 import { useApproveWriteOff } from '@/hooks/mutations/useApproveWriteOff'
 import { useRejectWriteOff } from '@/hooks/mutations/useRejectWriteOff'
+import { useCancelWriteOff } from '@/hooks/mutations/useCancelWriteOff'
 import { SENIOR_APPROVAL_THRESHOLD } from '@/hooks/mutations/useWriteOffRequest'
 import { formatCurrency, formatDateMedium } from '@/lib/formatters'
 import { ApprovalActionModal, type ActionType } from './ApprovalActionModal'
@@ -36,11 +37,38 @@ export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
 
   const { approveRequestAsync, isPending: isApproving } = useApproveWriteOff()
   const { rejectRequestAsync, isPending: isRejecting } = useRejectWriteOff()
+  const { cancelRequestAsync, isPending: isCancelling } = useCancelWriteOff()
 
-  const isPending = isApproving || isRejecting
+  const isPending = isApproving || isRejecting || isCancelling
 
-  // Segregation of duties: cannot approve own request
-  const isOwnRequest = Boolean(currentUserId && approval?.requestedBy === currentUserId)
+  // Segregation of duties: cannot approve own request, but CAN cancel own request
+  // Handle requestedBy being either a string ID or a populated user object
+  const getRequestedById = (): string | undefined => {
+    if (!approval?.requestedBy) return undefined
+    // If it's a populated user object, get the id
+    if (typeof approval.requestedBy === 'object' && approval.requestedBy !== null) {
+      return String((approval.requestedBy as { id?: string | number }).id)
+    }
+    // Otherwise it's a string ID
+    return String(approval.requestedBy)
+  }
+  
+  const requestedById = getRequestedById()
+  const isOwnRequest = Boolean(
+    currentUserId && 
+    requestedById && 
+    String(currentUserId) === requestedById
+  )
+  
+  // Debug log to help troubleshoot
+  if (approval && process.env.NODE_ENV === 'development') {
+    console.log('[ApprovalDetailDrawer] isOwnRequest check:', {
+      currentUserId,
+      requestedBy: approval.requestedBy,
+      requestedById,
+      isOwnRequest,
+    })
+  }
 
   const handleApproveClick = useCallback(() => {
     setModalAction('approve')
@@ -52,6 +80,23 @@ export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
     setModalOpen(true)
   }, [])
 
+  const handleCancelClick = useCallback(async () => {
+    if (!approval) return
+
+    // Confirm before cancelling
+    const confirmed = window.confirm(
+      `Are you sure you want to cancel write-off request ${approval.requestNumber}?\n\nThis action cannot be undone.`
+    )
+    if (!confirmed) return
+
+    const requestId = approval.requestId || approval.id
+    await cancelRequestAsync({
+      requestId,
+      requestNumber: approval.requestNumber,
+    })
+    onClose()
+  }, [approval, cancelRequestAsync, onClose])
+
   const handleModalClose = useCallback(() => {
     setModalOpen(false)
   }, [])
@@ -60,19 +105,20 @@ export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
     async (comment: string) => {
       if (!approval) return
 
+      // Use requestId for event correlation, fallback to id for older records
+      const requestId = approval.requestId || approval.id
+
       if (modalAction === 'approve') {
         await approveRequestAsync({
-          requestId: approval.id,
+          requestId,
+          requestNumber: approval.requestNumber,
           comment,
-          approverId: currentUserId,
-          approverName: currentUserName,
         })
       } else {
         await rejectRequestAsync({
-          requestId: approval.id,
+          requestId,
+          requestNumber: approval.requestNumber,
           reason: comment,
-          rejectorId: currentUserId,
-          rejectorName: currentUserName,
         })
       }
 
@@ -80,7 +126,7 @@ export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
       setModalOpen(false)
       onClose()
     },
-    [approval, modalAction, approveRequestAsync, rejectRequestAsync, currentUserId, currentUserName, onClose]
+    [approval, modalAction, approveRequestAsync, rejectRequestAsync, onClose]
   )
 
   if (!approval) return null
@@ -224,6 +270,19 @@ export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
           >
             ✕ Reject
           </button>
+          {/* Cancel button - only shown to original requester */}
+          {isOwnRequest && (
+            <button
+              type="button"
+              className={`${styles.actionBtn} ${styles.actionBtnCancel}`}
+              onClick={handleCancelClick}
+              disabled={isPending}
+              title="Cancel your own request"
+              data-testid="cancel-button"
+            >
+              Cancel Request
+            </button>
+          )}
         </div>
       )}
 

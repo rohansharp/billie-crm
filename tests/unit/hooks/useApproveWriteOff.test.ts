@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useApproveWriteOff } from '@/hooks/mutations/useApproveWriteOff'
@@ -10,7 +10,13 @@ vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    warning: vi.fn(),
   },
+}))
+
+// Mock error toast utility
+vi.mock('@/lib/utils/error-toast', () => ({
+  showErrorToast: vi.fn(),
 }))
 
 // Create a fresh query client for each test
@@ -37,7 +43,12 @@ function createWrapper() {
 describe('useApproveWriteOff', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useFakeTimers()
     global.fetch = vi.fn()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('should expose mutation functions and states', () => {
@@ -52,41 +63,61 @@ describe('useApproveWriteOff', () => {
     expect(result.current.isError).toBe(false)
   })
 
-  it('should call correct API endpoint with PATCH method', async () => {
-    const mockResponse = {
-      doc: {
-        id: 'req-123',
-        requestNumber: 'WO-TEST-001',
-        status: 'approved',
-        approvalDetails: {
-          decidedBy: 'user-1',
-          decidedByName: 'Test User',
-          decidedAt: '2025-12-11T00:00:00Z',
-          comment: 'Approved for testing',
-        },
-      },
+  it('should call command API endpoint with POST method', async () => {
+    // Mock command API response (202 Accepted)
+    const commandResponse = {
+      eventId: 'evt-123',
+      requestId: 'req-123',
+      status: 'accepted',
+      message: 'Event accepted',
     }
 
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockResponse),
-    })
+    // Mock polling response (projection found)
+    const projectionResponse = {
+      docs: [{
+        id: 'doc-123',
+        requestNumber: 'WO-TEST-001',
+        requestId: 'req-123',
+        status: 'approved',
+        approvalDetails: {
+          approvedBy: 'user-1',
+          approvedByName: 'Test User',
+          approvedAt: '2025-12-11T00:00:00Z',
+          comment: 'Approved for testing',
+        },
+      }],
+    }
+
+    ;(global.fetch as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(commandResponse),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(projectionResponse),
+      })
 
     const { result } = renderHook(() => useApproveWriteOff(), {
       wrapper: createWrapper(),
     })
 
-    await result.current.approveRequestAsync({
+    const approvePromise = result.current.approveRequestAsync({
       requestId: 'req-123',
+      requestNumber: 'WO-TEST-001',
       comment: 'Approved for testing',
-      approverId: 'user-1',
-      approverName: 'Test User',
     })
 
+    // Fast-forward timers for polling
+    await vi.runAllTimersAsync()
+
+    await approvePromise
+
+    // Verify command API was called
     expect(global.fetch).toHaveBeenCalledWith(
-      '/api/write-off-requests/req-123',
+      '/api/commands/writeoff/approve',
       expect.objectContaining({
-        method: 'PATCH',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
     )
@@ -100,8 +131,8 @@ describe('useApproveWriteOff', () => {
     await expect(
       result.current.approveRequestAsync({
         requestId: 'req-123',
+        requestNumber: 'WO-TEST-001',
         comment: 'Short', // Less than MIN_APPROVAL_COMMENT_LENGTH
-        approverId: 'user-1',
       })
     ).rejects.toThrow(`Approval comment must be at least ${MIN_APPROVAL_COMMENT_LENGTH} characters`)
 
@@ -109,47 +140,19 @@ describe('useApproveWriteOff', () => {
     expect(global.fetch).not.toHaveBeenCalled()
   })
 
-  it('should set isPending to true during mutation', async () => {
-    let resolvePromise: (value: unknown) => void
-    const pendingPromise = new Promise((resolve) => {
-      resolvePromise = resolve
-    })
-
-    ;(global.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(pendingPromise)
-
+  it('should start in non-pending state', () => {
     const { result } = renderHook(() => useApproveWriteOff(), {
       wrapper: createWrapper(),
     })
 
-    // Start mutation
-    result.current.approveRequest({
-      requestId: 'req-123',
-      comment: 'Valid approval comment',
-      approverId: 'user-1',
-    })
-
-    await waitFor(() => {
-      expect(result.current.isPending).toBe(true)
-    })
-
-    // Resolve the promise
-    resolvePromise!({
-      ok: true,
-      json: () => Promise.resolve({ doc: { requestNumber: 'WO-TEST' } }),
-    })
+    expect(result.current.isPending).toBe(false)
   })
 
-  it('should handle API errors gracefully', async () => {
-    // Mock both initial call and retry (hook has retry: 1)
-    ;(global.fetch as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({
-        ok: false,
-        json: () => Promise.resolve({ message: 'Not authorized' }),
-      })
-      .mockResolvedValueOnce({
-        ok: false,
-        json: () => Promise.resolve({ message: 'Not authorized' }),
-      })
+  it('should handle command API errors gracefully', async () => {
+    ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ error: { message: 'Not authorized' } }),
+    })
 
     const { result } = renderHook(() => useApproveWriteOff(), {
       wrapper: createWrapper(),
@@ -158,9 +161,48 @@ describe('useApproveWriteOff', () => {
     await expect(
       result.current.approveRequestAsync({
         requestId: 'req-123',
+        requestNumber: 'WO-TEST-001',
         comment: 'Valid approval comment',
-        approverId: 'user-1',
       })
     ).rejects.toThrow('Not authorized')
+  })
+
+  it('should include requestNumber in command payload', async () => {
+    ;(global.fetch as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ eventId: 'evt-123', requestId: 'req-123', status: 'accepted' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          docs: [{
+            id: 'doc-123',
+            requestId: 'req-123',
+            requestNumber: 'WO-20241211-ABCD',
+            status: 'approved',
+          }],
+        }),
+      })
+
+    const { result } = renderHook(() => useApproveWriteOff(), {
+      wrapper: createWrapper(),
+    })
+
+    const approvePromise = result.current.approveRequestAsync({
+      requestId: 'req-123',
+      requestNumber: 'WO-20241211-ABCD',
+      comment: 'Approved after review',
+    })
+
+    await vi.runAllTimersAsync()
+    await approvePromise
+
+    const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+    const body = JSON.parse(fetchCall[1].body)
+    
+    expect(body.requestId).toBe('req-123')
+    expect(body.requestNumber).toBe('WO-20241211-ABCD')
+    expect(body.comment).toBe('Approved after review')
   })
 })

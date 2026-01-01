@@ -763,7 +763,15 @@ export interface LoanAccount {
 export interface WriteOffRequest {
   id: string;
   /**
-   * Auto-generated request reference number
+   * Event correlation ID (conv field). Groups related events in a workflow.
+   */
+  requestId?: string | null;
+  /**
+   * Event ID for polling lookup (cause field). Used by client to find projection after command.
+   */
+  eventId?: string | null;
+  /**
+   * Human-readable request reference number (e.g., WO-20241211...). Auto-generated if not provided.
    */
   requestNumber?: string | null;
   /**
@@ -844,6 +852,30 @@ export interface WriteOffRequest {
      * Approval or rejection comment
      */
     comment?: string | null;
+    /**
+     * User ID who approved (from event)
+     */
+    approvedBy?: string | null;
+    approvedByName?: string | null;
+    approvedAt?: string | null;
+    /**
+     * User ID who rejected (from event)
+     */
+    rejectedBy?: string | null;
+    rejectedByName?: string | null;
+    rejectedAt?: string | null;
+    /**
+     * Rejection reason (from event)
+     */
+    reason?: string | null;
+  };
+  cancellationDetails?: {
+    /**
+     * User ID who cancelled (from event)
+     */
+    cancelledBy?: string | null;
+    cancelledByName?: string | null;
+    cancelledAt?: string | null;
   };
   /**
    * Timestamp when request was submitted
@@ -1248,6 +1280,8 @@ export interface LoanAccountsSelect<T extends boolean = true> {
  * via the `definition` "write-off-requests_select".
  */
 export interface WriteOffRequestsSelect<T extends boolean = true> {
+  requestId?: T;
+  eventId?: T;
   requestNumber?: T;
   loanAccountId?: T;
   customerId?: T;
@@ -1276,6 +1310,20 @@ export interface WriteOffRequestsSelect<T extends boolean = true> {
         decidedByName?: T;
         decidedAt?: T;
         comment?: T;
+        approvedBy?: T;
+        approvedByName?: T;
+        approvedAt?: T;
+        rejectedBy?: T;
+        rejectedByName?: T;
+        rejectedAt?: T;
+        reason?: T;
+      };
+  cancellationDetails?:
+    | T
+    | {
+        cancelledBy?: T;
+        cancelledByName?: T;
+        cancelledAt?: T;
       };
   requestedAt?: T;
   updatedAt?: T;

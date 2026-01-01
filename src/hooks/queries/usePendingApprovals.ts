@@ -3,6 +3,10 @@ import { stringify } from 'qs-esm'
 
 export interface WriteOffApproval {
   id: string
+  /** Event correlation ID for the write-off request workflow */
+  requestId?: string
+  /** Unique event ID for polling (from cause field) */
+  eventId?: string
   requestNumber: string
   loanAccountId: string
   customerId: string
@@ -16,7 +20,8 @@ export interface WriteOffApproval {
   priority: 'normal' | 'urgent' | 'low'
   requiresSeniorApproval: boolean
   requestedAt: string
-  requestedBy?: string
+  /** User who requested - can be a string ID or populated user object */
+  requestedBy?: string | { id: string | number; email?: string; firstName?: string; lastName?: string }
   requestedByName?: string
   createdAt: string
   updatedAt: string

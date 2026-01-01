@@ -21,10 +21,20 @@ export interface ApprovalHistoryItem {
   requestedBy?: string
   requestedByName?: string
   approvalDetails?: {
+    // Legacy fields (for backwards compatibility)
     decidedBy?: string
     decidedByName?: string
     decidedAt?: string
     comment?: string
+    // Approval-specific fields (from event sourcing)
+    approvedBy?: string
+    approvedByName?: string
+    approvedAt?: string
+    // Rejection-specific fields (from event sourcing)
+    rejectedBy?: string
+    rejectedByName?: string
+    rejectedAt?: string
+    reason?: string
   }
   createdAt: string
   updatedAt: string
