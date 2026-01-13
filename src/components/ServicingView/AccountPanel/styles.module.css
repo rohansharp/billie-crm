@@ -575,6 +575,158 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Repayment Schedule List */
+.scheduleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scheduleToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.scheduleToggle:hover {
+  color: #1d4ed8;
+}
+
+.scheduleToggleIcon {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.scheduleToggleIconExpanded {
+  transform: rotate(90deg);
+}
+
+.paymentList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.paymentRow {
+  display: grid;
+  grid-template-columns: 20px 40px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.paymentIcon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+}
+
+.paymentNumber {
+  color: var(--theme-elevation-500, #888);
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.paymentDate {
+  color: var(--theme-text, #1a1a1a);
+}
+
+.paymentAmount {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.paymentStatus {
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 70px;
+  text-align: right;
+}
+
+/* Payment status styles */
+.paymentStatusPaid {
+  background: #dcfce7;
+}
+
+.paymentStatusPaid .paymentIcon {
+  color: #166534;
+}
+
+.paymentStatusPaid .paymentStatus {
+  color: #166534;
+}
+
+.paymentStatusMissed {
+  background: #fee2e2;
+}
+
+.paymentStatusMissed .paymentIcon {
+  color: #b91c1c;
+}
+
+.paymentStatusMissed .paymentStatus {
+  color: #b91c1c;
+}
+
+.paymentStatusPartial {
+  background: #fef3c7;
+}
+
+.paymentStatusPartial .paymentIcon {
+  color: #b45309;
+}
+
+.paymentStatusPartial .paymentStatus {
+  color: #b45309;
+}
+
+.paymentStatusNext {
+  background: #dbeafe;
+}
+
+.paymentStatusNext .paymentIcon {
+  color: #1d4ed8;
+}
+
+.paymentStatusNext .paymentStatus {
+  color: #1d4ed8;
+}
+
+.paymentStatusScheduled {
+  background: var(--theme-elevation-50, #fafafa);
+}
+
+.paymentStatusScheduled .paymentStatus {
+  color: var(--theme-elevation-500, #888);
+}
+
+/* Mobile responsive */
+@media (max-width: 767px) {
+  .paymentRow {
+    grid-template-columns: 20px 36px 1fr auto;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .paymentStatus {
+    display: none;
+  }
+}
+
 /* Overview Empty State */
 .overviewPlaceholder {
   padding: 40px 20px;

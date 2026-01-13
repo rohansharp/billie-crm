@@ -5,6 +5,17 @@ import { useQuery } from '@tanstack/react-query'
 import { useVersionStore } from '@/stores/version'
 
 /**
+ * Individual scheduled payment in the repayment schedule.
+ */
+export interface ScheduledPayment {
+  paymentNumber: number
+  dueDate: string
+  amount: number
+  status: 'scheduled' | 'paid' | 'missed' | 'partial' | null
+  id?: string | null
+}
+
+/**
  * Live balance data from gRPC ledger service.
  */
 export interface LiveBalanceData {
@@ -42,6 +53,8 @@ export interface LoanAccountData {
     scheduleId: string | null
     numberOfPayments: number | null
     paymentFrequency: 'weekly' | 'fortnightly' | 'monthly' | null
+    payments: ScheduledPayment[] | null
+    createdDate: string | null
   } | null
   createdAt: string
   /** Last update timestamp for version conflict detection */

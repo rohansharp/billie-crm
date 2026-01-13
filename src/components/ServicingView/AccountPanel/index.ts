@@ -22,4 +22,7 @@ export type { FeesTabProps } from './FeesTab'
 export { ActionsTab } from './ActionsTab'
 export type { ActionsTabProps } from './ActionsTab'
 
+export { RepaymentScheduleList } from './RepaymentScheduleList'
+export type { RepaymentScheduleListProps } from './RepaymentScheduleList'
+
 export { useAccountPanelHotkeys } from './useAccountPanelHotkeys'

@@ -2,6 +2,7 @@
 
 import type { LoanAccountData } from '@/hooks/queries/useCustomer'
 import { CopyButton } from '@/components/ui'
+import { RepaymentScheduleList } from './RepaymentScheduleList'
 import styles from './styles.module.css'
 
 export interface OverviewTabProps {
@@ -27,16 +28,6 @@ function formatDate(dateString: string | null): string {
   } catch {
     return '—'
   }
-}
-
-function formatFrequency(freq: string | null): string {
-  if (!freq) return '—'
-  const map: Record<string, string> = {
-    weekly: 'Weekly',
-    fortnightly: 'Fortnightly',
-    monthly: 'Monthly',
-  }
-  return map[freq] || freq
 }
 
 /**
@@ -146,20 +137,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ account }) => {
       {account.repaymentSchedule && (
         <div className={styles.overviewSection}>
           <h4 className={styles.overviewSectionTitle}>Repayment Schedule</h4>
-          <div className={styles.overviewGrid}>
-            <div className={styles.overviewItem}>
-              <span className={styles.overviewLabel}>Frequency</span>
-              <span className={styles.overviewValue}>
-                {formatFrequency(account.repaymentSchedule.paymentFrequency)}
-              </span>
-            </div>
-            <div className={styles.overviewItem}>
-              <span className={styles.overviewLabel}>Payments</span>
-              <span className={styles.overviewValue}>
-                {account.repaymentSchedule.numberOfPayments ?? '—'}
-              </span>
-            </div>
-          </div>
+          <RepaymentScheduleList
+            payments={account.repaymentSchedule.payments}
+            numberOfPayments={account.repaymentSchedule.numberOfPayments}
+            paymentFrequency={account.repaymentSchedule.paymentFrequency}
+          />
         </div>
       )}
 
