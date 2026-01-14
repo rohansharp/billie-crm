@@ -25,13 +25,13 @@ COPY event-processor/requirements.txt ./event-processor/
 RUN grep -v "git+https" event-processor/requirements.txt > /tmp/base-requirements.txt && \
     pip3 install --no-cache-dir --break-system-packages -r /tmp/base-requirements.txt
 
-# Install Billie SDKs (requires GITHUB_TOKEN at build time)
+# Install Billie SDKs from requirements.txt (requires GITHUB_TOKEN at build time)
 ARG GITHUB_TOKEN
 RUN if [ -n "$GITHUB_TOKEN" ]; then \
     git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/" && \
-    pip3 install --no-cache-dir --break-system-packages \
-      "git+https://github.com/BillieLoans/billie-event-sdks.git@accounts-v2.2.0#subdirectory=packages/accounts" \
-      "git+https://github.com/BillieLoans/billie-event-sdks.git@customers-v2.0.0#subdirectory=packages/customers"; \
+    grep "git+https.*billie-event-sdks" event-processor/requirements.txt | \
+    sed "s/\${GITHUB_TOKEN}/${GITHUB_TOKEN}/g" | \
+    xargs -I {} pip3 install --no-cache-dir --break-system-packages "{}"; \
     else echo "GITHUB_TOKEN not set, skipping SDK install"; fi
 
 # Copy the rest of the application

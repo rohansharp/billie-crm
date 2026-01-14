@@ -14,6 +14,7 @@ from .handlers import (
     handle_account_status_changed,
     handle_account_updated,
     handle_schedule_created,
+    handle_schedule_updated,
     # Customer handlers
     handle_customer_changed,
     handle_customer_verified,
@@ -72,6 +73,7 @@ def setup_handlers(processor: EventProcessor) -> None:
     processor.register_handler("account.updated.v1", handle_account_updated)
     processor.register_handler("account.status_changed.v1", handle_account_status_changed)
     processor.register_handler("account.schedule.created.v1", handle_schedule_created)
+    processor.register_handler("account.schedule.updated.v1", handle_schedule_updated)
 
     # =========================================================================
     # Customer events (using billie_customers_events SDK)

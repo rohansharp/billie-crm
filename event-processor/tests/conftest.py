@@ -181,3 +181,26 @@ def sample_final_decision_event():
         "outcome": "APPROVED",
     }
 
+
+@pytest.fixture
+def sample_schedule_updated_event():
+    """Sample account.schedule.updated.v1 event from SDK."""
+    return {
+        "typ": "account.schedule.updated.v1",
+        "cid": "conv-123",
+        "usr": "CUS-TEST-001",
+        "seq": 1,
+        "dat": {
+            "account_id": "ACC-TEST-001",
+            "schedule_id": "SCHED-001",
+            "payments": [
+                {
+                    "payment_number": 1,
+                    "status": "paid",
+                    "paid_date": "2024-01-22",
+                    "paid_amount": "145.00",
+                },
+            ],
+        },
+    }
+

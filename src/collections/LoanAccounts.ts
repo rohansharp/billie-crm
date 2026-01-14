@@ -299,6 +299,7 @@ export const LoanAccounts: CollectionConfig = {
               required: true,
               admin: {
                 step: 0.01,
+                description: 'Scheduled payment amount',
               },
             },
             {
@@ -311,6 +312,48 @@ export const LoanAccounts: CollectionConfig = {
                 { label: 'Partial', value: 'partial' },
               ],
               defaultValue: 'scheduled',
+            },
+            {
+              name: 'amountPaid',
+              type: 'number',
+              admin: {
+                readOnly: true,
+                step: 0.01,
+                description: 'Amount actually paid (from schedule.updated)',
+              },
+            },
+            {
+              name: 'amountRemaining',
+              type: 'number',
+              admin: {
+                readOnly: true,
+                step: 0.01,
+                description: 'Amount still owed on this payment',
+              },
+            },
+            {
+              name: 'paidDate',
+              type: 'date',
+              admin: {
+                readOnly: true,
+                description: 'Date payment was completed',
+              },
+            },
+            {
+              name: 'linkedTransactionIds',
+              type: 'json',
+              admin: {
+                readOnly: true,
+                description: 'Transaction IDs linked to this payment',
+              },
+            },
+            {
+              name: 'lastUpdated',
+              type: 'date',
+              admin: {
+                readOnly: true,
+                description: 'Last time this payment was updated',
+              },
             },
           ],
         },

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useCallback, useEffect } from 'react'
 import type { LoanAccountData } from '@/hooks/queries/useCustomer'
 import type { SelectedFee } from '../FeeList'
 import { AccountHeader } from './AccountHeader'
@@ -11,6 +11,7 @@ import { TransactionsTab } from './TransactionsTab'
 import { FeesTab } from './FeesTab'
 import { ActionsTab } from './ActionsTab'
 import { useAccountPanelHotkeys } from './useAccountPanelHotkeys'
+import { useUIStore } from '@/stores/ui'
 import styles from './styles.module.css'
 
 export interface AccountPanelProps {
@@ -75,6 +76,22 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
   // Show close button only if there are multiple accounts
   const showClose = allAccounts.length > 1
 
+  // UI store for navigation context
+  const setTransactionNavigationSource = useUIStore((s) => s.setTransactionNavigationSource)
+
+  // Clear navigation source when leaving transactions tab (unless going back to overview)
+  useEffect(() => {
+    // When tab changes away from transactions, clear the navigation source
+    // (The back button handler sets expandedPaymentNumber before clearing)
+    if (activeTab !== 'transactions') {
+      // Small delay to allow back navigation to complete first
+      const timer = setTimeout(() => {
+        setTransactionNavigationSource(null)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [activeTab, setTransactionNavigationSource])
+
   // Keyboard shortcuts
   useAccountPanelHotkeys({
     activeTab,
@@ -86,13 +103,33 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
     isActive: true,
   })
 
+  // Handler for navigating from payment details to a transaction
+  const handleNavigateToTransaction = useCallback(
+    (_transactionId: string) => {
+      // Switch to transactions tab - the TransactionsTab will read
+      // the highlighted transaction ID from the UI store
+      onTabChange('transactions')
+    },
+    [onTabChange]
+  )
+
   // Render active tab content
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewTab account={account} />
+        return (
+          <OverviewTab 
+            account={account} 
+            onNavigateToTransaction={handleNavigateToTransaction}
+          />
+        )
       case 'transactions':
-        return <TransactionsTab loanAccountId={account.loanAccountId} />
+        return (
+          <TransactionsTab 
+            loanAccountId={account.loanAccountId}
+            onNavigateBack={() => onTabChange('overview')}
+          />
+        )
       case 'fees':
         return <FeesTab loanAccountId={account.loanAccountId} onBulkWaive={onBulkWaive} />
       case 'actions':

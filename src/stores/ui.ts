@@ -12,6 +12,19 @@ interface UIState {
   setCommandPaletteOpen: (value: boolean) => void
   commandPaletteQuery: string
   setCommandPaletteQuery: (value: string) => void
+
+  // Transaction highlight state (for linking payments → transactions)
+  highlightedTransactionId: string | null
+  setHighlightedTransactionId: (value: string | null) => void
+  clearHighlightedTransaction: () => void
+
+  // Navigation context for back navigation
+  transactionNavigationSource: { paymentNumber: number } | null
+  setTransactionNavigationSource: (source: { paymentNumber: number } | null) => void
+  
+  // Payment to auto-expand when returning to Overview
+  expandedPaymentNumber: number | null
+  setExpandedPaymentNumber: (paymentNumber: number | null) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -28,4 +41,17 @@ export const useUIStore = create<UIState>((set) => ({
   })),
   commandPaletteQuery: '',
   setCommandPaletteQuery: (value) => set({ commandPaletteQuery: value }),
+
+  // Transaction highlight
+  highlightedTransactionId: null,
+  setHighlightedTransactionId: (value) => set({ highlightedTransactionId: value }),
+  clearHighlightedTransaction: () => set({ highlightedTransactionId: null }),
+
+  // Navigation context
+  transactionNavigationSource: null,
+  setTransactionNavigationSource: (source) => set({ transactionNavigationSource: source }),
+
+  // Auto-expand payment
+  expandedPaymentNumber: null,
+  setExpandedPaymentNumber: (paymentNumber) => set({ expandedPaymentNumber: paymentNumber }),
 }))

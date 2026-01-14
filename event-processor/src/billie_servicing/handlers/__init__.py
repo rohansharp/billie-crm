@@ -5,6 +5,7 @@ from .account import (
     handle_account_status_changed,
     handle_account_updated,
     handle_schedule_created,
+    handle_schedule_updated,
 )
 from .customer import (
     handle_customer_changed,
@@ -32,6 +33,7 @@ __all__ = [
     "handle_account_updated",
     "handle_account_status_changed",
     "handle_schedule_created",
+    "handle_schedule_updated",
     # Customer handlers
     "handle_customer_changed",
     "handle_customer_verified",

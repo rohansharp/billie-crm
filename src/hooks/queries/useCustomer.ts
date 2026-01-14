@@ -13,6 +13,16 @@ export interface ScheduledPayment {
   amount: number
   status: 'scheduled' | 'paid' | 'missed' | 'partial' | null
   id?: string | null
+  /** Amount actually paid (for paid/partial payments) */
+  amountPaid?: number | null
+  /** Amount remaining to be paid */
+  amountRemaining?: number | null
+  /** Date when payment was made */
+  paidDate?: string | null
+  /** IDs of transactions linked to this payment */
+  linkedTransactionIds?: string[] | null
+  /** Last time this payment was updated */
+  lastUpdated?: string | null
 }
 
 /**

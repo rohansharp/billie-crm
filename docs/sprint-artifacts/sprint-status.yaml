@@ -91,3 +91,8 @@ development_status:
   6-6-user-menu-enhancements: done  # Reduced scope
   6-7-role-based-collection-visibility: done  # New story from party mode
   epic-6-retrospective: optional
+
+  # Epic 7: Event-Driven Data Sync (SDK Integration)
+  epic-7: in-progress
+  7-1-event-sdk-schedule-sync: review
+  epic-7-retrospective: optional

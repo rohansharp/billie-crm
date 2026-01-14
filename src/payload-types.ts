@@ -741,8 +741,39 @@ export interface LoanAccount {
            */
           paymentNumber: number;
           dueDate: string;
+          /**
+           * Scheduled payment amount
+           */
           amount: number;
           status?: ('scheduled' | 'paid' | 'missed' | 'partial') | null;
+          /**
+           * Amount actually paid (from schedule.updated)
+           */
+          amountPaid?: number | null;
+          /**
+           * Amount still owed on this payment
+           */
+          amountRemaining?: number | null;
+          /**
+           * Date payment was completed
+           */
+          paidDate?: string | null;
+          /**
+           * Transaction IDs linked to this payment
+           */
+          linkedTransactionIds?:
+            | {
+                [k: string]: unknown;
+              }
+            | unknown[]
+            | string
+            | number
+            | boolean
+            | null;
+          /**
+           * Last time this payment was updated
+           */
+          lastUpdated?: string | null;
           id?: string | null;
         }[]
       | null;
@@ -1268,6 +1299,11 @@ export interface LoanAccountsSelect<T extends boolean = true> {
               dueDate?: T;
               amount?: T;
               status?: T;
+              amountPaid?: T;
+              amountRemaining?: T;
+              paidDate?: T;
+              linkedTransactionIds?: T;
+              lastUpdated?: T;
               id?: T;
             };
         createdDate?: T;

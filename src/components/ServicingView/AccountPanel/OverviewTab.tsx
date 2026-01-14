@@ -7,6 +7,8 @@ import styles from './styles.module.css'
 
 export interface OverviewTabProps {
   account: LoanAccountData
+  /** Callback to navigate to a transaction in the Transactions tab */
+  onNavigateToTransaction?: (transactionId: string) => void
 }
 
 // Hoisted for performance
@@ -34,7 +36,7 @@ function formatDate(dateString: string | null): string {
  * OverviewTab - Displays account balance details, loan terms, and payment info.
  * Refactored from LoanAccountDetails (minus action buttons).
  */
-export const OverviewTab: React.FC<OverviewTabProps> = ({ account }) => {
+export const OverviewTab: React.FC<OverviewTabProps> = ({ account, onNavigateToTransaction }) => {
   const hasLiveBalance = account.liveBalance !== null
 
   const principal = hasLiveBalance
@@ -141,6 +143,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ account }) => {
             payments={account.repaymentSchedule.payments}
             numberOfPayments={account.repaymentSchedule.numberOfPayments}
             paymentFrequency={account.repaymentSchedule.paymentFrequency}
+            onNavigateToTransaction={onNavigateToTransaction}
           />
         </div>
       )}

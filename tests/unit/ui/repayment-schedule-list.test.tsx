@@ -1,4 +1,4 @@
-import { describe, test, expect, afterEach } from 'vitest'
+import { describe, test, expect, afterEach, beforeEach, vi } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { RepaymentScheduleList } from '@/components/ServicingView/AccountPanel/RepaymentScheduleList'
 import type { ScheduledPayment } from '@/hooks/queries/useCustomer'
@@ -8,14 +8,24 @@ describe('RepaymentScheduleList', () => {
     cleanup()
   })
 
-  // Sample payment data for tests
+  // Mock current date for consistent overdue testing
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-14'))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  // Sample payment data for tests - mix of past and future dates
   const samplePayments: ScheduledPayment[] = [
-    { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: 'paid', id: 'p1' },
-    { paymentNumber: 2, dueDate: '2025-11-29', amount: 125.0, status: 'paid', id: 'p2' },
-    { paymentNumber: 3, dueDate: '2025-12-13', amount: 125.0, status: 'paid', id: 'p3' },
-    { paymentNumber: 4, dueDate: '2025-12-27', amount: 125.0, status: 'scheduled', id: 'p4' },
-    { paymentNumber: 5, dueDate: '2026-01-10', amount: 125.0, status: 'scheduled', id: 'p5' },
-    { paymentNumber: 6, dueDate: '2026-01-24', amount: 125.0, status: 'scheduled', id: 'p6' },
+    { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: 'paid', id: 'p1', amountPaid: 125.0, amountRemaining: 0, paidDate: '2025-11-15' },
+    { paymentNumber: 2, dueDate: '2025-11-29', amount: 125.0, status: 'paid', id: 'p2', amountPaid: 125.0, amountRemaining: 0, paidDate: '2025-11-29' },
+    { paymentNumber: 3, dueDate: '2025-12-13', amount: 125.0, status: 'paid', id: 'p3', amountPaid: 125.0, amountRemaining: 0, paidDate: '2025-12-13' },
+    { paymentNumber: 4, dueDate: '2026-01-20', amount: 125.0, status: 'scheduled', id: 'p4' },
+    { paymentNumber: 5, dueDate: '2026-02-03', amount: 125.0, status: 'scheduled', id: 'p5' },
+    { paymentNumber: 6, dueDate: '2026-02-17', amount: 125.0, status: 'scheduled', id: 'p6' },
   ]
 
   const defaultProps = {
@@ -43,15 +53,8 @@ describe('RepaymentScheduleList', () => {
       expect(screen.getByText('Monthly')).toBeInTheDocument()
     })
 
-    test('shows paid count out of total', () => {
+    test('shows total payment count', () => {
       render(<RepaymentScheduleList {...defaultProps} />)
-
-      expect(screen.getByText('3 of 6 paid')).toBeInTheDocument()
-    })
-
-    test('shows total payments when none are paid', () => {
-      const unpaidPayments = samplePayments.map((p) => ({ ...p, status: 'scheduled' as const }))
-      render(<RepaymentScheduleList {...defaultProps} payments={unpaidPayments} />)
 
       expect(screen.getByText('6')).toBeInTheDocument()
     })
@@ -75,6 +78,54 @@ describe('RepaymentScheduleList', () => {
 
       expect(screen.getByTestId('repayment-schedule-list')).toBeInTheDocument()
       expect(screen.queryByTestId('schedule-toggle')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Summary badges', () => {
+    test('shows complete badge when payments are paid', () => {
+      render(<RepaymentScheduleList {...defaultProps} />)
+
+      expect(screen.getByText(/3 Complete/)).toBeInTheDocument()
+    })
+
+    test('shows outstanding badge for future scheduled payments', () => {
+      render(<RepaymentScheduleList {...defaultProps} />)
+
+      expect(screen.getByText(/3 Outstanding/)).toBeInTheDocument()
+    })
+
+    test('shows overdue badge for past due payments', () => {
+      const paymentsWithOverdue: ScheduledPayment[] = [
+        { paymentNumber: 1, dueDate: '2025-12-01', amount: 125.0, status: 'scheduled', id: 'p1' }, // Past due
+        { paymentNumber: 2, dueDate: '2026-02-01', amount: 125.0, status: 'scheduled', id: 'p2' },
+      ]
+
+      render(
+        <RepaymentScheduleList
+          payments={paymentsWithOverdue}
+          numberOfPayments={2}
+          paymentFrequency="fortnightly"
+        />
+      )
+
+      expect(screen.getByText(/1 Overdue/)).toBeInTheDocument()
+    })
+
+    test('shows partial badge for partial payments', () => {
+      const paymentsWithPartial: ScheduledPayment[] = [
+        { paymentNumber: 1, dueDate: '2025-12-01', amount: 125.0, status: 'partial', id: 'p1', amountPaid: 75.0, amountRemaining: 50.0 },
+        { paymentNumber: 2, dueDate: '2026-02-01', amount: 125.0, status: 'scheduled', id: 'p2' },
+      ]
+
+      render(
+        <RepaymentScheduleList
+          payments={paymentsWithPartial}
+          numberOfPayments={2}
+          paymentFrequency="fortnightly"
+        />
+      )
+
+      expect(screen.getByText(/1 Partial/)).toBeInTheDocument()
     })
   })
 
@@ -210,23 +261,23 @@ describe('RepaymentScheduleList', () => {
   })
 
   describe('Payment status display', () => {
-    test('displays Paid status for paid payments', () => {
+    test('displays Complete status for paid payments', () => {
       render(<RepaymentScheduleList {...defaultProps} />)
 
       fireEvent.click(screen.getByTestId('schedule-toggle'))
 
-      const paidLabels = screen.getAllByText('Paid')
-      expect(paidLabels).toHaveLength(3) // 3 paid payments
+      const completeLabels = screen.getAllByText('Complete')
+      expect(completeLabels).toHaveLength(3) // 3 paid payments
     })
 
-    test('displays Scheduled status for future payments', () => {
+    test('displays Outstanding status for future scheduled payments', () => {
       render(<RepaymentScheduleList {...defaultProps} />)
 
       fireEvent.click(screen.getByTestId('schedule-toggle'))
 
-      // Payment 5 and 6 are scheduled (payment 4 is "Due (next)")
-      const scheduledLabels = screen.getAllByText('Scheduled')
-      expect(scheduledLabels.length).toBeGreaterThanOrEqual(2)
+      // Payment 5 and 6 are outstanding (payment 4 is "Due (next)")
+      const outstandingLabels = screen.getAllByText('Outstanding')
+      expect(outstandingLabels.length).toBeGreaterThanOrEqual(2)
     })
 
     test('highlights next due payment', () => {
@@ -238,11 +289,11 @@ describe('RepaymentScheduleList', () => {
       expect(screen.getByText('Due (next)')).toBeInTheDocument()
     })
 
-    test('displays Missed status for missed payments', () => {
+    test('displays Overdue status for missed payments', () => {
       const paymentsWithMissed: ScheduledPayment[] = [
         { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: 'paid', id: 'p1' },
         { paymentNumber: 2, dueDate: '2025-11-29', amount: 125.0, status: 'missed', id: 'p2' },
-        { paymentNumber: 3, dueDate: '2025-12-13', amount: 125.0, status: 'scheduled', id: 'p3' },
+        { paymentNumber: 3, dueDate: '2026-02-13', amount: 125.0, status: 'scheduled', id: 'p3' },
       ]
 
       render(
@@ -255,14 +306,33 @@ describe('RepaymentScheduleList', () => {
 
       fireEvent.click(screen.getByTestId('schedule-toggle'))
 
-      expect(screen.getByText('Missed')).toBeInTheDocument()
+      expect(screen.getByText('Overdue')).toBeInTheDocument()
+    })
+
+    test('displays Overdue status for past due scheduled payments', () => {
+      const paymentsWithPastDue: ScheduledPayment[] = [
+        { paymentNumber: 1, dueDate: '2025-12-01', amount: 125.0, status: 'scheduled', id: 'p1' }, // Past due
+        { paymentNumber: 2, dueDate: '2026-02-01', amount: 125.0, status: 'scheduled', id: 'p2' },
+      ]
+
+      render(
+        <RepaymentScheduleList
+          payments={paymentsWithPastDue}
+          numberOfPayments={2}
+          paymentFrequency="fortnightly"
+        />
+      )
+
+      fireEvent.click(screen.getByTestId('schedule-toggle'))
+
+      expect(screen.getByText('Overdue')).toBeInTheDocument()
     })
 
     test('displays Partial status for partial payments', () => {
       const paymentsWithPartial: ScheduledPayment[] = [
         { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: 'paid', id: 'p1' },
-        { paymentNumber: 2, dueDate: '2025-11-29', amount: 125.0, status: 'partial', id: 'p2' },
-        { paymentNumber: 3, dueDate: '2025-12-13', amount: 125.0, status: 'scheduled', id: 'p3' },
+        { paymentNumber: 2, dueDate: '2025-11-29', amount: 125.0, status: 'partial', id: 'p2', amountPaid: 75.0, amountRemaining: 50.0 },
+        { paymentNumber: 3, dueDate: '2026-02-13', amount: 125.0, status: 'scheduled', id: 'p3' },
       ]
 
       render(
@@ -278,12 +348,51 @@ describe('RepaymentScheduleList', () => {
       expect(screen.getByText('Partial')).toBeInTheDocument()
     })
 
+    test('displays paid amount for partial payments', () => {
+      const paymentsWithPartial: ScheduledPayment[] = [
+        { paymentNumber: 1, dueDate: '2025-11-29', amount: 125.0, status: 'partial', id: 'p1', amountPaid: 75.0, amountRemaining: 50.0 },
+      ]
+
+      render(
+        <RepaymentScheduleList
+          payments={paymentsWithPartial}
+          numberOfPayments={1}
+          paymentFrequency="fortnightly"
+        />
+      )
+
+      fireEvent.click(screen.getByTestId('schedule-toggle'))
+
+      // Should show paid amount and remaining
+      expect(screen.getByText('$75.00 paid')).toBeInTheDocument()
+      expect(screen.getByText('$50.00 remaining')).toBeInTheDocument()
+    })
+
+    test('displays paid date for complete payments', () => {
+      const paymentsWithPaidDate: ScheduledPayment[] = [
+        { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: 'paid', id: 'p1', amountPaid: 125.0, amountRemaining: 0, paidDate: '2025-11-15' },
+      ]
+
+      render(
+        <RepaymentScheduleList
+          payments={paymentsWithPaidDate}
+          numberOfPayments={1}
+          paymentFrequency="fortnightly"
+        />
+      )
+
+      fireEvent.click(screen.getByTestId('schedule-toggle'))
+
+      // Should show paid date
+      expect(screen.getByText('Paid 15 Nov 2025')).toBeInTheDocument()
+    })
+
     test('displays correct status icons', () => {
       const paymentsWithAllStatuses: ScheduledPayment[] = [
-        { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: 'paid', id: 'p1' },
+        { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: 'paid', id: 'p1', amountPaid: 125.0 },
         { paymentNumber: 2, dueDate: '2025-11-29', amount: 125.0, status: 'missed', id: 'p2' },
-        { paymentNumber: 3, dueDate: '2025-12-13', amount: 125.0, status: 'partial', id: 'p3' },
-        { paymentNumber: 4, dueDate: '2025-12-27', amount: 125.0, status: 'scheduled', id: 'p4' },
+        { paymentNumber: 3, dueDate: '2025-12-13', amount: 125.0, status: 'partial', id: 'p3', amountPaid: 50.0, amountRemaining: 75.0 },
+        { paymentNumber: 4, dueDate: '2026-02-27', amount: 125.0, status: 'scheduled', id: 'p4' },
       ]
 
       render(
@@ -297,8 +406,8 @@ describe('RepaymentScheduleList', () => {
       fireEvent.click(screen.getByTestId('schedule-toggle'))
 
       // Check for status icons
-      expect(screen.getByText('✓')).toBeInTheDocument() // Paid
-      expect(screen.getByText('✗')).toBeInTheDocument() // Missed
+      expect(screen.getByText('✓')).toBeInTheDocument() // Complete
+      expect(screen.getByText('!')).toBeInTheDocument() // Overdue (missed)
       expect(screen.getByText('◐')).toBeInTheDocument() // Partial
       expect(screen.getByText('●')).toBeInTheDocument() // Next due
     })
@@ -316,7 +425,7 @@ describe('RepaymentScheduleList', () => {
         />
       )
 
-      expect(screen.getByText('6 of 6 paid')).toBeInTheDocument()
+      expect(screen.getByText(/6 Complete/)).toBeInTheDocument()
 
       fireEvent.click(screen.getByTestId('schedule-toggle'))
 
@@ -326,7 +435,7 @@ describe('RepaymentScheduleList', () => {
 
     test('handles single payment', () => {
       const singlePayment: ScheduledPayment[] = [
-        { paymentNumber: 1, dueDate: '2025-11-15', amount: 500.0, status: 'scheduled', id: 'p1' },
+        { paymentNumber: 1, dueDate: '2026-02-15', amount: 500.0, status: 'scheduled', id: 'p1' },
       ]
 
       render(
@@ -342,8 +451,8 @@ describe('RepaymentScheduleList', () => {
 
     test('handles payment without id', () => {
       const paymentsNoId: ScheduledPayment[] = [
-        { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: 'scheduled' },
-        { paymentNumber: 2, dueDate: '2025-11-29', amount: 125.0, status: 'scheduled' },
+        { paymentNumber: 1, dueDate: '2026-02-15', amount: 125.0, status: 'scheduled' },
+        { paymentNumber: 2, dueDate: '2026-02-29', amount: 125.0, status: 'scheduled' },
       ]
 
       render(
@@ -362,7 +471,7 @@ describe('RepaymentScheduleList', () => {
 
     test('handles null status', () => {
       const paymentsNullStatus: ScheduledPayment[] = [
-        { paymentNumber: 1, dueDate: '2025-11-15', amount: 125.0, status: null, id: 'p1' },
+        { paymentNumber: 1, dueDate: '2026-02-15', amount: 125.0, status: null, id: 'p1' },
       ]
 
       render(
@@ -375,8 +484,27 @@ describe('RepaymentScheduleList', () => {
 
       fireEvent.click(screen.getByTestId('schedule-toggle'))
 
-      // Should default to scheduled appearance
-      expect(screen.getByText('Scheduled')).toBeInTheDocument()
+      // When single payment with null status in future, it's the next due
+      expect(screen.getByText('Due (next)')).toBeInTheDocument()
+    })
+
+    test('handles partial payment without amountPaid', () => {
+      const paymentsPartialNoAmount: ScheduledPayment[] = [
+        { paymentNumber: 1, dueDate: '2025-12-15', amount: 125.0, status: 'partial', id: 'p1' },
+      ]
+
+      render(
+        <RepaymentScheduleList
+          payments={paymentsPartialNoAmount}
+          numberOfPayments={1}
+          paymentFrequency="fortnightly"
+        />
+      )
+
+      fireEvent.click(screen.getByTestId('schedule-toggle'))
+
+      // When amountPaid is null, fallback to showing scheduled amount
+      expect(screen.getByText('$125.00')).toBeInTheDocument()
     })
   })
 })

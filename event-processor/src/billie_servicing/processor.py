@@ -243,8 +243,8 @@ class EventProcessor:
                 or sanitized.get("event_type", "")
             )
 
-            # Get event ID for deduplication (use 'cause' for CRM events)
-            event_id = (
+            # Get logical event ID for logging (cause/id for tracing)
+            logical_event_id = (
                 sanitized.get("cause")
                 or sanitized.get("id")
                 or sanitized.get("event_id")
@@ -254,16 +254,17 @@ class EventProcessor:
             log = logger.bind(
                 message_id=message_id_str,
                 event_type=event_type,
-                event_id=event_id,
+                event_id=logical_event_id,
                 stream=stream,
                 delivery_count=delivery_count,
             )
 
             stream_label = "internal" if stream == settings.internal_stream else "external"
-            print(f"📥 [{stream_label}] Received event: {event_type} (id: {event_id})")
+            print(f"📥 [{stream_label}] Received event: {event_type} (id: {logical_event_id})")
 
-            # Deduplication check
-            dedup_key = f"dedup:{event_id}"
+            # Deduplication check - use Redis entry ID (message_id) as primary key
+            # Redis entry ID is guaranteed unique within a stream
+            dedup_key = f"dedup:{stream}:{message_id_str}"
             if await self.redis.exists(dedup_key):
                 print(f"   ⏭️  Skipping duplicate event")
                 log.debug("Duplicate event, skipping")

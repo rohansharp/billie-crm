@@ -54,3 +54,27 @@ venv/*
 .pnpm-store/*
 event-processor/src/billie_servicing/__pycache__/*
 
+.claude/audio/*
+.claude/commands/*
+.claude/hooks/*
+.claude/personalities/*
+.claude/config/*
+.cursor/audio/*
+.cursor/commands/*
+.cursor/hooks/*
+.cursor/personalities/*
+.cursor/config/*
+_bmad/_config/agents/*
+_bmad/bmb/*
+_bmad/bmm/*
+_bmad/cis/*
+_bmad/bmgd/*
+_bmad/bmad/*
+_bmad/bmad/*
+_bmad/core/workflows/*
+.mcp.json
+.claude/settings.json
+_bmad/_config/ides/*
+_bmad/core/resources/*
+_bmad/core/*
+_bmad/_config/*

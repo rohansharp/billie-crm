@@ -7,6 +7,8 @@ import styles from './styles.module.css'
 
 export interface TransactionHistoryProps {
   loanAccountId: string | null
+  /** Transaction ID to highlight (e.g., when linked from payment details) */
+  highlightedTransactionId?: string | null
 }
 
 // Hoisted for performance
@@ -51,16 +53,28 @@ const TYPE_COLORS: Record<string, string> = {
   WRITE_OFF: 'txTypeWriteOff',
 }
 
+export interface TransactionRowProps {
+  transaction: Transaction
+  /** Whether this transaction is highlighted (e.g., from payment link) */
+  isHighlighted?: boolean
+}
+
 /**
  * Single transaction row for desktop table
  */
-const TransactionRow: React.FC<{ transaction: Transaction }> = ({ transaction }) => {
+const TransactionRow: React.FC<TransactionRowProps> = ({ transaction, isHighlighted }) => {
   const totalDelta = parseFloat(transaction.principalDelta || '0') + parseFloat(transaction.feeDelta || '0')
   const isCredit = totalDelta < 0
   const typeColor = TYPE_COLORS[transaction.type] || 'txTypeAdjustment'
 
   return (
-    <tr className={styles.txRow}>
+    <tr 
+      className={`${styles.txRow} ${isHighlighted ? styles.txRowHighlighted : ''}`}
+      data-transaction-id={transaction.transactionId}
+    >
+      <td className={styles.txCell}>
+        <span className={styles.txIdMono}>{transaction.transactionId}</span>
+      </td>
       <td className={styles.txCell}>{formatDate(transaction.transactionDate)}</td>
       <td className={styles.txCell}>
         <span className={`${styles.txTypeBadge} ${styles[typeColor]}`}>
@@ -89,16 +103,26 @@ const TransactionRow: React.FC<{ transaction: Transaction }> = ({ transaction })
   )
 }
 
+export interface TransactionCardProps {
+  transaction: Transaction
+  /** Whether this transaction is highlighted (e.g., from payment link) */
+  isHighlighted?: boolean
+}
+
 /**
  * Single transaction card for mobile
  */
-const TransactionCard: React.FC<{ transaction: Transaction }> = ({ transaction }) => {
+const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, isHighlighted }) => {
   const totalDelta = parseFloat(transaction.principalDelta || '0') + parseFloat(transaction.feeDelta || '0')
   const isCredit = totalDelta < 0
   const typeColor = TYPE_COLORS[transaction.type] || 'txTypeAdjustment'
 
   return (
-    <div className={styles.txCard} data-testid="transaction-card">
+    <div 
+      className={`${styles.txCard} ${isHighlighted ? styles.txCardHighlighted : ''}`} 
+      data-testid="transaction-card"
+      data-transaction-id={transaction.transactionId}
+    >
       <div className={styles.txCardHeader}>
         <span className={`${styles.txTypeBadge} ${styles[typeColor]}`}>
           {transaction.typeLabel || transaction.type}
@@ -106,6 +130,10 @@ const TransactionCard: React.FC<{ transaction: Transaction }> = ({ transaction }
         <span className={styles.txCardDate}>{formatDate(transaction.transactionDate)}</span>
       </div>
       <div className={styles.txCardBody}>
+        <div className={styles.txCardRow}>
+          <span className={styles.txCardLabel}>Transaction ID</span>
+          <span className={styles.txIdMono}>{transaction.transactionId}</span>
+        </div>
         <div className={styles.txCardRow}>
           <span className={styles.txCardLabel}>Amount</span>
           <span className={isCredit ? styles.txAmountNegative : styles.txAmountPositive}>
@@ -134,7 +162,10 @@ const TransactionCard: React.FC<{ transaction: Transaction }> = ({ transaction }
  * TransactionHistory - Displays transaction history with filters.
  * Responsive: table on desktop, cards on mobile.
  */
-export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ loanAccountId }) => {
+export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ 
+  loanAccountId,
+  highlightedTransactionId,
+}) => {
   const [typeFilter, setTypeFilter] = useState('')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -268,6 +299,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ loanAcco
             <table className={styles.txTable}>
               <thead>
                 <tr>
+                  <th className={styles.txHeaderCell}>Transaction ID</th>
                   <th className={styles.txHeaderCell}>Date</th>
                   <th className={styles.txHeaderCell}>Type</th>
                   <th className={styles.txHeaderCell}>Amount</th>
@@ -277,7 +309,11 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ loanAcco
               </thead>
               <tbody>
                 {transactions.map((tx) => (
-                  <TransactionRow key={tx.transactionId} transaction={tx} />
+                  <TransactionRow 
+                    key={tx.transactionId} 
+                    transaction={tx}
+                    isHighlighted={highlightedTransactionId === tx.transactionId}
+                  />
                 ))}
               </tbody>
             </table>
@@ -286,7 +322,11 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ loanAcco
           {/* Mobile cards */}
           <div className={styles.txCardList}>
             {transactions.map((tx) => (
-              <TransactionCard key={tx.transactionId} transaction={tx} />
+              <TransactionCard 
+                key={tx.transactionId} 
+                transaction={tx}
+                isHighlighted={highlightedTransactionId === tx.transactionId}
+              />
             ))}
           </div>
 

@@ -727,6 +727,26 @@
   background: var(--theme-elevation-50, #fafafa);
 }
 
+.txRowHighlighted {
+  background: #fef3c7;
+  animation: highlightFade 3s ease-out forwards;
+}
+
+@keyframes highlightFade {
+  0% {
+    background: #fef3c7;
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.txIdMono {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--theme-elevation-600, #666);
+}
+
 .txCell {
   padding: 12px 8px;
   color: var(--theme-text, #1a1a1a);
@@ -852,6 +872,12 @@
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
+}
+
+.txCardHighlighted {
+  background: #fef3c7;
+  border-color: #fbbf24;
+  animation: highlightFade 3s ease-out forwards;
 }
 
 .txCardHeader {
