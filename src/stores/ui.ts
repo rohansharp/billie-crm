@@ -19,8 +19,8 @@ interface UIState {
   clearHighlightedTransaction: () => void
 
   // Navigation context for back navigation
-  transactionNavigationSource: { paymentNumber: number } | null
-  setTransactionNavigationSource: (source: { paymentNumber: number } | null) => void
+  transactionNavigationSource: { paymentNumber: number; transactionId: string } | null
+  setTransactionNavigationSource: (source: { paymentNumber: number; transactionId: string } | null) => void
   
   // Payment to auto-expand when returning to Overview
   expandedPaymentNumber: number | null

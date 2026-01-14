@@ -9,6 +9,12 @@ export interface TransactionHistoryProps {
   loanAccountId: string | null
   /** Transaction ID to highlight (e.g., when linked from payment details) */
   highlightedTransactionId?: string | null
+  /** Transaction ID that was linked from payment (for showing back button) */
+  linkedTransactionId?: string | null
+  /** Callback to navigate back to payment (shown inline on linked row) */
+  onBackToPayment?: () => void
+  /** Payment number to show in back button tooltip */
+  backToPaymentNumber?: number
 }
 
 // Hoisted for performance
@@ -57,12 +63,21 @@ export interface TransactionRowProps {
   transaction: Transaction
   /** Whether this transaction is highlighted (e.g., from payment link) */
   isHighlighted?: boolean
+  /** Callback to navigate back to payment (shown on highlighted row) */
+  onBackToPayment?: () => void
+  /** Payment number for tooltip */
+  backToPaymentNumber?: number
 }
 
 /**
  * Single transaction row for desktop table
  */
-const TransactionRow: React.FC<TransactionRowProps> = ({ transaction, isHighlighted }) => {
+const TransactionRow: React.FC<TransactionRowProps> = ({ 
+  transaction, 
+  isHighlighted,
+  onBackToPayment,
+  backToPaymentNumber,
+}) => {
   const totalDelta = parseFloat(transaction.principalDelta || '0') + parseFloat(transaction.feeDelta || '0')
   const isCredit = totalDelta < 0
   const typeColor = TYPE_COLORS[transaction.type] || 'txTypeAdjustment'
@@ -72,6 +87,21 @@ const TransactionRow: React.FC<TransactionRowProps> = ({ transaction, isHighligh
       className={`${styles.txRow} ${isHighlighted ? styles.txRowHighlighted : ''}`}
       data-transaction-id={transaction.transactionId}
     >
+      <td className={`${styles.txCell} ${styles.txCellBack}`}>
+        {onBackToPayment && (
+          <button
+            type="button"
+            className={styles.txBackButton}
+            onClick={onBackToPayment}
+            data-tooltip={`Back to Payment #${backToPaymentNumber}`}
+            aria-label={`Back to Payment #${backToPaymentNumber}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+      </td>
       <td className={styles.txCell}>
         <span className={styles.txIdMono}>{transaction.transactionId}</span>
       </td>
@@ -107,12 +137,21 @@ export interface TransactionCardProps {
   transaction: Transaction
   /** Whether this transaction is highlighted (e.g., from payment link) */
   isHighlighted?: boolean
+  /** Callback to navigate back to payment (shown on highlighted card) */
+  onBackToPayment?: () => void
+  /** Payment number for tooltip */
+  backToPaymentNumber?: number
 }
 
 /**
  * Single transaction card for mobile
  */
-const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, isHighlighted }) => {
+const TransactionCard: React.FC<TransactionCardProps> = ({ 
+  transaction, 
+  isHighlighted,
+  onBackToPayment,
+  backToPaymentNumber,
+}) => {
   const totalDelta = parseFloat(transaction.principalDelta || '0') + parseFloat(transaction.feeDelta || '0')
   const isCredit = totalDelta < 0
   const typeColor = TYPE_COLORS[transaction.type] || 'txTypeAdjustment'
@@ -129,6 +168,21 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, isHighli
         </span>
         <span className={styles.txCardDate}>{formatDate(transaction.transactionDate)}</span>
       </div>
+      {onBackToPayment && (
+        <div className={styles.txCardBackRow}>
+          <button
+            type="button"
+            className={styles.txBackButtonCard}
+            onClick={onBackToPayment}
+            aria-label={`Back to Payment #${backToPaymentNumber}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Back to Payment #{backToPaymentNumber}
+          </button>
+        </div>
+      )}
       <div className={styles.txCardBody}>
         <div className={styles.txCardRow}>
           <span className={styles.txCardLabel}>Transaction ID</span>
@@ -165,6 +219,9 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, isHighli
 export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ 
   loanAccountId,
   highlightedTransactionId,
+  linkedTransactionId,
+  onBackToPayment,
+  backToPaymentNumber,
 }) => {
   const [typeFilter, setTypeFilter] = useState('')
   const [fromDate, setFromDate] = useState('')
@@ -299,6 +356,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
             <table className={styles.txTable}>
               <thead>
                 <tr>
+                  <th className={`${styles.txHeaderCell} ${styles.txCellBack}`}></th>
                   <th className={styles.txHeaderCell}>Transaction ID</th>
                   <th className={styles.txHeaderCell}>Date</th>
                   <th className={styles.txHeaderCell}>Type</th>
@@ -308,26 +366,38 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((tx) => (
-                  <TransactionRow 
-                    key={tx.transactionId} 
-                    transaction={tx}
-                    isHighlighted={highlightedTransactionId === tx.transactionId}
-                  />
-                ))}
+                {transactions.map((tx) => {
+                  const isHighlighted = highlightedTransactionId === tx.transactionId
+                  const isLinked = linkedTransactionId === tx.transactionId
+                  return (
+                    <TransactionRow 
+                      key={tx.transactionId} 
+                      transaction={tx}
+                      isHighlighted={isHighlighted}
+                      onBackToPayment={isLinked ? onBackToPayment : undefined}
+                      backToPaymentNumber={backToPaymentNumber}
+                    />
+                  )
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Mobile cards */}
           <div className={styles.txCardList}>
-            {transactions.map((tx) => (
-              <TransactionCard 
-                key={tx.transactionId} 
-                transaction={tx}
-                isHighlighted={highlightedTransactionId === tx.transactionId}
-              />
-            ))}
+            {transactions.map((tx) => {
+              const isHighlighted = highlightedTransactionId === tx.transactionId
+              const isLinked = linkedTransactionId === tx.transactionId
+              return (
+                <TransactionCard 
+                  key={tx.transactionId} 
+                  transaction={tx}
+                  isHighlighted={isHighlighted}
+                  onBackToPayment={isLinked ? onBackToPayment : undefined}
+                  backToPaymentNumber={backToPaymentNumber}
+                />
+              )
+            })}
           </div>
 
           {/* Load more */}

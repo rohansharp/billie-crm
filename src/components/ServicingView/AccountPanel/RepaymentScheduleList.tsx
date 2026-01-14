@@ -171,8 +171,8 @@ export const RepaymentScheduleList: React.FC<RepaymentScheduleListProps> = ({
   const handleTransactionClick = useCallback((transactionId: string, paymentNumber: number) => {
     // Set the highlighted transaction in the UI store
     setHighlightedTransactionId(transactionId)
-    // Store the source payment for back navigation
-    setTransactionNavigationSource({ paymentNumber })
+    // Store the source payment and transaction for back navigation
+    setTransactionNavigationSource({ paymentNumber, transactionId })
     // Navigate to the transactions tab
     onNavigateToTransaction?.(transactionId)
   }, [setHighlightedTransactionId, setTransactionNavigationSource, onNavigateToTransaction])
