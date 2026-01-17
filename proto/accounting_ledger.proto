@@ -49,6 +49,146 @@ service AccountingLedgerService {
   
   // Make a manual adjustment
   rpc MakeAdjustment(MakeAdjustmentRequest) returns (TransactionResponse);
+
+  // ==========================================================================
+  // Schedule Queries (with Instalment Status)
+  // ==========================================================================
+
+  // Get schedule with instalment payment statuses
+  rpc GetScheduleWithStatus(GetScheduleWithStatusRequest) returns (ScheduleWithStatusResponse);
+
+  // ==========================================================================
+  // Account Aging Queries
+  // ==========================================================================
+
+  // Get current aging state for an account (DPD, bucket, etc.)
+  rpc GetAccountAging(GetAccountAgingRequest) returns (AccountAgingResponse);
+
+  // Get list of overdue accounts with filtering and pagination
+  rpc GetOverdueAccounts(GetOverdueAccountsRequest) returns (OverdueAccountsResponse);
+
+  // ==========================================================================
+  // Revenue Recognition Queries
+  // ==========================================================================
+
+  // Get current accrued yield for an account
+  rpc GetAccruedYield(GetAccruedYieldRequest) returns (AccruedYieldResponse);
+
+  // Get accrual event history for an account
+  rpc GetAccrualEventHistory(GetAccrualEventHistoryRequest) returns (AccrualEventHistoryResponse);
+
+  // ==========================================================================
+  // Investigation & Traceability
+  // ==========================================================================
+
+  // Query full event history for an account (cursor-based pagination)
+  rpc GetEventHistory(GetEventHistoryRequest) returns (EventHistoryResponse);
+
+  // Trace ECL calculations back to source events (batch)
+  rpc TraceECLToSource(TraceECLToSourceRequest) returns (TraceECLToSourceResponse);
+
+  // Trace accrued yield calculations back to source events (batch)
+  rpc TraceAccruedYieldToSource(TraceAccruedYieldToSourceRequest) returns (TraceAccruedYieldToSourceResponse);
+
+  // Search for accounts by account ID, customer ID, or account number (FR32)
+  rpc SearchAccounts(SearchAccountsRequest) returns (SearchAccountsResponse);
+
+  // Batch query multiple accounts by account ID (Story 6.9)
+  rpc BatchAccountQuery(BatchAccountQueryRequest) returns (BatchAccountQueryResponse);
+
+  // Generate a random sample of accounts by criteria (Story 6.8)
+  rpc GenerateRandomSample(GenerateRandomSampleRequest) returns (GenerateRandomSampleResponse);
+
+  // Verify carrying amount breakdown for audit (FR33)
+  rpc GetCarryingAmountBreakdown(GetCarryingAmountBreakdownRequest) returns (CarryingAmountBreakdownResponse);
+
+  // ==========================================================================
+  // ECL (Expected Credit Loss) Queries
+  // ==========================================================================
+
+  // Get current ECL allowance for an account
+  rpc GetECLAllowance(GetECLAllowanceRequest) returns (ECLAllowanceResponse);
+
+  // Get portfolio-wide ECL aggregation by bucket
+  rpc GetPortfolioECL(GetPortfolioECLRequest) returns (PortfolioECLResponse);
+
+  // Trigger portfolio-wide ECL recalculation
+  rpc TriggerPortfolioECLRecalculation(TriggerPortfolioECLRecalculationRequest) 
+      returns (PortfolioECLRecalculationResponse);
+
+  // Trigger ECL recalculation for specific accounts (FR50)
+  rpc TriggerBulkECLRecalculation(TriggerBulkECLRecalculationRequest)
+      returns (BulkECLRecalculationResponse);
+
+  // Get event processing status for monitoring (FR62)
+  rpc GetEventProcessingStatus(GetEventProcessingStatusRequest)
+      returns (EventProcessingStatusResponse);
+
+  // ==========================================================================
+  // ECL Configuration Management
+  // ==========================================================================
+
+  // Get current ECL configuration (overlay multiplier, PD rates)
+  rpc GetECLConfig(GetECLConfigRequest) returns (ECLConfigResponse);
+
+  // Update the overlay multiplier
+  rpc UpdateOverlayMultiplier(UpdateOverlayMultiplierRequest) returns (ECLConfigResponse);
+
+  // Update PD rate for a specific bucket
+  rpc UpdatePDRate(UpdatePDRateRequest) returns (ECLConfigResponse);
+
+  // Get ECL configuration change history (audit trail)
+  rpc GetECLConfigHistory(GetECLConfigHistoryRequest) returns (ECLConfigHistoryResponse);
+
+  // Schedule a config change to take effect at a future date
+  rpc ScheduleECLConfigChange(ScheduleConfigChangeRequest) returns (ScheduleConfigChangeResponse);
+
+  // Get all pending (future-dated) config changes
+  rpc GetPendingConfigChanges(GetPendingConfigChangesRequest) returns (PendingConfigChangesResponse);
+
+  // Cancel a pending config change
+  rpc CancelPendingConfigChange(CancelPendingConfigChangeRequest) returns (CancelPendingConfigChangeResponse);
+
+  // Apply all pending changes that have reached their effective date
+  rpc ApplyPendingConfigChanges(ApplyPendingConfigChangesRequest) returns (ApplyPendingConfigChangesResponse);
+
+  // ==========================================================================
+  // Period-End Close Operations (Epic 4)
+  // ==========================================================================
+
+  // Generate a period-end close preview
+  rpc PreviewPeriodClose(PreviewPeriodCloseRequest) returns (PreviewPeriodCloseResponse);
+
+  // Finalize a period-end close
+  rpc FinalizePeriodClose(FinalizePeriodCloseRequest) returns (FinalizePeriodCloseResponse);
+
+  // Get a finalized period close by date
+  rpc GetPeriodClose(GetPeriodCloseRequest) returns (PeriodCloseResponse);
+
+  // Get list of closed periods
+  rpc GetClosedPeriods(GetClosedPeriodsRequest) returns (GetClosedPeriodsResponse);
+
+  // Acknowledge an anomaly in a preview
+  rpc AcknowledgeAnomaly(AcknowledgeAnomalyRequest) returns (AcknowledgeAnomalyResponse);
+
+  // ==========================================================================
+  // Export Operations (Epic 5)
+  // ==========================================================================
+
+  // Create an export job (journal entries, audit trail, or methodology)
+  rpc CreateExportJob(CreateExportJobRequest) returns (CreateExportJobResponse);
+
+  // Get status of an export job
+  rpc GetExportStatus(GetExportStatusRequest) returns (ExportJobResponse);
+
+  // Get export result (download data)
+  rpc GetExportResult(GetExportResultRequest) returns (GetExportResultResponse);
+
+  // Retry a failed export job
+  rpc RetryExport(RetryExportRequest) returns (ExportJobResponse);
+
+  // List export jobs for a user
+  rpc ListExportJobs(ListExportJobsRequest) returns (ListExportJobsResponse);
 }
 
 // =============================================================================
@@ -90,6 +230,7 @@ message Transaction {
   string created_by = 16;
   google.protobuf.Timestamp created_at = 17;
   string portfolio_entry_id = 18;
+  optional string notes = 19;  // Operator-provided notes (max 1000 chars)
 }
 
 message GetTransactionsRequest {
@@ -281,20 +422,43 @@ message GLReconciliationResponse {
 message TransactionResponse {
   Transaction transaction = 1;
   string event_id = 2;  // ID of the published event (for correlation)
-  
+
   // Payment allocation details (only for RepaymentResponse)
   optional string allocated_to_fees = 3;
   optional string allocated_to_principal = 4;
   optional string overpayment = 5;
+
+  // Idempotency indicator
+  bool idempotent_replay = 6;  // True if this is a cached response from a previous request
+
+  // Instalment allocation breakdown (only for RepaymentResponse with schedule)
+  repeated InstalmentAllocation applied_to_instalments = 10;
+  optional string allocation_warning = 11;  // e.g., "Skipped overdue instalment 2"
+}
+
+// Instalment allocation result
+message InstalmentAllocation {
+  int32 payment_number = 1;
+  string amount_applied = 2;      // Amount allocated to this instalment
+  string instalment_status = 3;   // Resulting status: PENDING, PARTIAL, PAID, OVERDUE
+  string amount_remaining = 4;    // Remaining balance after allocation
+  string due_date = 5;            // Due date (YYYY-MM-DD)
+  string scheduled_amount = 6;    // Original scheduled amount
 }
 
 // Record a repayment
 message RecordRepaymentRequest {
   string loan_account_id = 1;
   string amount = 2;  // Payment amount (decimal as string)
-  string payment_id = 3;  // External payment reference
+  optional string payment_id = 3;  // External payment reference (auto-generated if not provided)
   optional string payment_method = 4;  // e.g., "direct_debit", "card"
   optional string payment_reference = 5;  // Additional reference
+  optional string notes = 6;  // Operator notes (max 1000 chars)
+  optional string idempotency_key = 7;  // Client-provided key for idempotent requests (TTL: 24h)
+
+  // Instalment targeting (optional - defaults to FIFO allocation)
+  optional int32 target_payment_number = 8;  // Explicit instalment to target (overrides FIFO)
+  optional string schedule_id = 9;           // Schedule reference for validation
 }
 
 // Apply late fee
@@ -303,6 +467,7 @@ message ApplyLateFeeRequest {
   string fee_amount = 2;  // Fee amount (decimal as string)
   int32 days_past_due = 3;  // Number of days past due
   optional string reason = 4;  // Optional reason/notes
+  optional string idempotency_key = 5;  // Client-provided key for idempotent requests (TTL: 24h)
 }
 
 // Waive fees
@@ -311,6 +476,8 @@ message WaiveFeeRequest {
   string waiver_amount = 2;  // Amount to waive (decimal as string)
   string reason = 3;  // Required: reason for waiver
   string approved_by = 4;  // Required: approver ID
+  optional string notes = 5;  // Additional operator notes (max 1000 chars)
+  optional string idempotency_key = 6;  // Client-provided key for idempotent requests (TTL: 24h)
 }
 
 // Write off account
@@ -318,6 +485,7 @@ message WriteOffRequest {
   string loan_account_id = 1;
   string reason = 2;  // Required: reason for write-off
   string approved_by = 3;  // Required: approver ID
+  optional string idempotency_key = 4;  // Client-provided key for idempotent requests (TTL: 24h)
 }
 
 // Make adjustment
@@ -327,5 +495,908 @@ message MakeAdjustmentRequest {
   string fee_delta = 3;  // Change to fees (can be negative)
   string reason = 4;  // Required: reason for adjustment
   string approved_by = 5;  // Required: approver ID
+  optional string idempotency_key = 6;  // Client-provided key for idempotent requests (TTL: 24h)
 }
 
+// =============================================================================
+// Schedule with Status Messages
+// =============================================================================
+
+// Request to get schedule with instalment statuses
+message GetScheduleWithStatusRequest {
+  oneof identifier {
+    string loan_account_id = 1;
+    string schedule_id = 2;
+    string application_number = 3;
+  }
+}
+
+// Instalment with payment status
+message InstalmentWithStatus {
+  int32 payment_number = 1;
+  string due_date = 2;            // YYYY-MM-DD
+  string scheduled_amount = 3;
+  string status = 4;              // PENDING, PARTIAL, PAID, OVERDUE
+  string amount_paid = 5;
+  string amount_remaining = 6;
+  optional string paid_date = 7;  // When fully paid (ISO datetime)
+  repeated string linked_transaction_ids = 8;
+  optional string last_updated = 9;  // ISO datetime
+}
+
+// Schedule summary statistics
+message ScheduleSummary {
+  int32 total_instalments = 1;
+  int32 paid_count = 2;
+  int32 partial_count = 3;
+  int32 overdue_count = 4;
+  int32 pending_count = 5;
+  optional string next_due_date = 6;    // YYYY-MM-DD
+  optional string next_due_amount = 7;
+  string total_scheduled = 8;
+  string total_paid = 9;
+  string total_remaining = 10;
+}
+
+// Response with schedule and instalment statuses
+message ScheduleWithStatusResponse {
+  string schedule_id = 1;
+  string loan_account_id = 2;
+  string customer_id = 3;
+  string application_number = 4;
+
+  repeated InstalmentWithStatus instalments = 5;
+  ScheduleSummary summary = 6;
+}
+
+// =============================================================================
+// Account Aging Messages
+// =============================================================================
+
+// Request to get current aging state for an account
+message GetAccountAgingRequest {
+  string account_id = 1;
+}
+
+// Response with account aging state
+message AccountAgingResponse {
+  string account_id = 1;
+  int32 dpd = 2;                                    // Days Past Due
+  string bucket = 3;                                 // e.g., "current", "bucket_1", etc.
+  int32 days_until_overdue = 4;                      // 0 if already overdue
+  string last_updated = 5;                           // ISO 8601 UTC timestamp
+  optional string previous_bucket = 6;               // Previous bucket before transition
+  optional string transition_reason = 7;             // Reason for bucket transition
+  optional string oldest_overdue_instalment_id = 8;  // ID of oldest overdue instalment
+  string total_overdue_amount = 9;                   // Decimal as string for precision
+}
+
+// Request to get list of overdue accounts
+message GetOverdueAccountsRequest {
+  optional string bucket_filter = 1;     // Filter by specific bucket (e.g., "bucket_1")
+  optional int32 min_dpd = 2;            // Minimum DPD (default 1)
+  optional int32 max_dpd = 3;            // Maximum DPD (no default = unlimited)
+  int32 page_size = 4;                   // Max results per page (default 100, max 1000)
+  optional string page_token = 5;        // Opaque token for pagination (offset encoded)
+}
+
+// Single overdue account in list response
+message OverdueAccount {
+  string account_id = 1;
+  int32 dpd = 2;                         // Days Past Due
+  string bucket = 3;                      // Current aging bucket
+  int32 days_until_overdue = 4;           // Always 0 for overdue accounts
+  string total_overdue_amount = 5;        // Decimal as string for precision
+  string last_updated = 6;                // ISO 8601 UTC timestamp
+}
+
+// Response with list of overdue accounts
+message OverdueAccountsResponse {
+  repeated OverdueAccount accounts = 1;
+  int32 total_count = 2;                  // Total matching count (before pagination)
+  optional string next_page_token = 3;    // Token for next page (if more results)
+}
+
+// =============================================================================
+// Revenue Recognition Messages
+// =============================================================================
+
+// Request to get accrued yield for an account
+message GetAccruedYieldRequest {
+  string account_id = 1;
+}
+
+// Response with accrued yield details
+message AccruedYieldResponse {
+  string account_id = 1;
+  string cumulative_accrued = 2;    // Total accrued to date (Decimal as string, e.g., "2.33")
+  int32 days_accrued = 3;            // Number of days accrued (e.g., 14)
+  int32 term_days = 4;               // Total term in days (e.g., 30)
+  string fee_amount = 5;             // Original fee amount (Decimal as string, e.g., "5.00")
+  string daily_rate = 6;             // Daily accrual rate (Decimal as string, e.g., "0.166667")
+  string last_accrual_date = 7;     // Most recent accrual date (YYYY-MM-DD, empty if not yet accrued)
+  string last_updated = 8;           // ISO 8601 UTC timestamp
+  string disbursement_date = 9;     // Accrual start date (YYYY-MM-DD)
+  bool is_completed = 10;            // True if fully accrued (days_accrued >= term_days)
+}
+
+// Request to get accrual event history for an account
+message GetAccrualEventHistoryRequest {
+  string account_id = 1;
+  optional int32 limit = 2;  // Optional limit on number of events returned
+}
+
+// Single accrual event detail
+message AccrualEventDetail {
+  string account_id = 1;
+  string accrual_date = 2;          // YYYY-MM-DD
+  string daily_amount = 3;          // Decimal as string
+  string cumulative_amount = 4;     // Decimal as string
+  int32 days_accrued = 5;
+  int32 term_days = 6;
+  string fee_amount = 7;            // Decimal as string
+  string daily_rate = 8;            // Decimal as string (6 decimal places)
+  string timestamp = 9;             // ISO 8601 UTC
+  optional string correlation_id = 10;
+}
+
+// Response with accrual event history
+message AccrualEventHistoryResponse {
+  string account_id = 1;
+  repeated AccrualEventDetail events = 2;
+  int32 total_count = 3;  // Number of events returned
+}
+
+// Request to query full event history for an account
+message GetEventHistoryRequest {
+  string account_id = 1;
+  int32 limit = 2;         // Max events per page (default 100, max 1000)
+  string cursor = 3;       // Opaque cursor for pagination
+}
+
+// Generic event history entry (raw stream data)
+message EventHistoryEntry {
+  string event_id = 1;     // Redis stream entry ID
+  string stream = 2;       // Source stream name (transactions, accruals, ecl)
+  string event_type = 3;   // Event type (typ)
+  string account_id = 4;
+  string timestamp = 5;    // Event timestamp (best available)
+  string data_json = 6;    // Raw event data as JSON
+}
+
+// Response for event history query
+message EventHistoryResponse {
+  bool success = 1;
+  string error_message = 2;
+  repeated EventHistoryEntry events = 3;
+  string next_cursor = 4;  // Opaque cursor for next page (empty if no more)
+}
+
+// Request to trace ECL calculations back to source events
+message TraceECLToSourceRequest {
+  repeated string account_ids = 1;  // Up to 100 account IDs per request
+}
+
+// Per-account trace result for ECL calculations
+message TraceECLToSourceResult {
+  string account_id = 1;
+  bool success = 2;
+  string error_message = 3;
+
+  string ecl_event_id = 4;           // Last ECL event ID (if available)
+  string triggered_by = 5;           // Triggering event type (best available)
+  string triggered_by_event_id = 6;  // Triggering event ID
+  string timestamp = 7;              // ECL calculation timestamp (ISO 8601 UTC)
+
+  string aging_bucket = 8;
+  string ecl_amount = 9;
+  string carrying_amount = 10;
+  string pd_rate = 11;
+  string overlay_multiplier = 12;
+}
+
+// Response for ECL trace query
+message TraceECLToSourceResponse {
+  repeated TraceECLToSourceResult results = 1;
+}
+
+// Request to trace accrued yield calculations back to source events
+message TraceAccruedYieldToSourceRequest {
+  repeated string account_ids = 1;  // Up to 100 account IDs per request
+}
+
+// Per-account trace result for accrued yield calculations
+message TraceAccruedYieldToSourceResult {
+  string account_id = 1;
+  bool success = 2;
+  string error_message = 3;
+
+  string fee_amount = 4;             // Total fee being accrued
+  int32 term_days = 5;               // Loan term in days
+  string disbursement_date = 6;      // Loan disbursement date (ISO 8601)
+  string daily_accrual_rate = 7;     // Daily accrual amount
+  string cumulative_accrued = 8;     // Total accrued to date
+  int32 days_accrued = 9;            // Number of days accrued
+  string last_accrual_date = 10;     // Date of last accrual (ISO 8601)
+  string last_updated = 11;          // Last update timestamp (ISO 8601 UTC)
+  int32 accrual_event_count = 12;    // Number of accrual events
+}
+
+// Response for accrued yield trace query
+message TraceAccruedYieldToSourceResponse {
+  repeated TraceAccruedYieldToSourceResult results = 1;
+}
+
+// Request to search for accounts (FR32)
+message SearchAccountsRequest {
+  string query = 1;       // Search term (matches account_id, account_number, customer_id)
+  int32 limit = 2;        // Max results to return (default 20, max 100)
+}
+
+// Individual account search result
+message AccountSearchResult {
+  string loan_account_id = 1;
+  string account_number = 2;
+  string customer_id = 3;
+  string application_number = 4;
+  string principal_balance = 5;
+  string fee_balance = 6;
+  string total_outstanding = 7;
+  string created_at = 8;           // Account creation timestamp (ISO 8601 UTC)
+}
+
+// Response for account search query
+message SearchAccountsResponse {
+  repeated AccountSearchResult results = 1;
+  int32 total_count = 2;           // Number of results returned
+}
+
+// Request to batch query multiple accounts (Story 6.9)
+message BatchAccountQueryRequest {
+  repeated string account_ids = 1; // Up to 100 account IDs
+}
+
+// Per-account result for batch account query
+message BatchAccountQueryResult {
+  string account_id = 1;
+  bool success = 2;
+  string error_message = 3;
+  LedgerRecordResponse record = 4;
+}
+
+// Response for batch account query
+message BatchAccountQueryResponse {
+  repeated BatchAccountQueryResult results = 1;
+  int32 total_count = 2;           // Number of results returned
+}
+
+// Request to generate a random sample of accounts (Story 6.8)
+message GenerateRandomSampleRequest {
+  string bucket = 1;               // Optional aging bucket filter
+  string ecl_min = 2;              // Optional ECL minimum (Decimal as string)
+  string ecl_max = 3;              // Optional ECL maximum (Decimal as string)
+  string carrying_amount_min = 4;  // Optional carrying amount minimum (Decimal as string)
+  string carrying_amount_max = 5;  // Optional carrying amount maximum (Decimal as string)
+  int32 sample_size = 6;           // Sample size (default 50, max 500)
+  string seed = 7;                 // Optional seed for reproducible samples
+  bool allow_full_scan = 8;        // Must be true to scan entire portfolio without filters
+}
+
+// Response with random sample results (Story 6.8)
+message GenerateRandomSampleResponse {
+  repeated string account_ids = 1; // Sampled account IDs
+  int32 total_eligible = 2;        // Number of eligible accounts after filtering
+  string seed = 3;                 // Seed used for sampling
+}
+
+// Request to verify carrying amount breakdown (FR33)
+message GetCarryingAmountBreakdownRequest {
+  string account_id = 1;           // Loan account ID
+}
+
+// Response with carrying amount breakdown for audit verification (FR33)
+message CarryingAmountBreakdownResponse {
+  string account_id = 1;
+  string principal_balance = 2;           // Current principal outstanding (Decimal)
+  string accrued_yield = 3;               // Cumulative accrued yield (Decimal)
+  string carrying_amount = 4;             // Total: principal + accrued (Decimal)
+  string fee_balance = 5;                 // Current fee balance (Decimal)
+  string disbursed_principal = 6;         // Original principal (Decimal)
+  string establishment_fee = 7;           // Original fee (Decimal)
+  string total_paid = 8;                  // Total payments received (Decimal)
+  string last_accrual_date = 9;           // Last accrual date (ISO 8601)
+  int32 days_accrued = 10;                // Days for which yield has accrued
+  int32 term_days = 11;                   // Total term in days
+  string daily_accrual_rate = 12;         // Daily accrual rate (Decimal)
+  string calculation_timestamp = 13;      // When this breakdown was calculated (ISO 8601 UTC)
+}
+
+// =============================================================================
+// ECL (Expected Credit Loss) Messages
+// =============================================================================
+
+// Request to get ECL allowance for an account
+message GetECLAllowanceRequest {
+  string account_id = 1;
+}
+
+// Response with ECL allowance details
+message ECLAllowanceResponse {
+  string account_id = 1;
+  string ecl_amount = 2;               // Current ECL allowance (Decimal as string)
+  string carrying_amount = 3;          // Principal + accrued yield
+  string aging_bucket = 4;             // Current aging bucket
+  string pd_rate = 5;                  // PD rate applied (Decimal as string)
+  string overlay_multiplier = 6;       // Overlay multiplier applied
+  string last_calculated = 7;          // ISO 8601 UTC timestamp
+  int32 calculation_count = 8;         // Number of ECL calculations
+  optional string previous_ecl_amount = 9;   // Previous ECL (if available)
+  optional string ecl_delta = 10;            // Change from previous
+  optional string triggered_by_event_id = 11;  // Triggering event ID
+}
+
+// Request to get portfolio ECL summary
+message GetPortfolioECLRequest {
+  optional string as_of_date = 1;  // Reserved for future historical queries
+}
+
+// ECL summary for a single aging bucket
+message ECLBucketSummary {
+  string bucket = 1;                    // Bucket name (current, bucket_1, etc.)
+  int32 account_count = 2;              // Number of accounts in bucket
+  string total_ecl = 3;                 // Sum of ECL allowances (Decimal as string)
+  string total_carrying_amount = 4;     // Sum of carrying amounts (Decimal as string)
+  string average_pd_rate = 5;           // Average PD rate in bucket (Decimal as string)
+}
+
+// Response with portfolio ECL aggregation
+message PortfolioECLResponse {
+  string as_of_date = 1;                // Timestamp of aggregation (ISO 8601 UTC)
+  int32 total_accounts = 2;             // Total accounts with ECL state
+  string total_ecl = 3;                 // Portfolio-wide ECL sum (Decimal as string)
+  string total_carrying_amount = 4;     // Portfolio-wide carrying amount (Decimal as string)
+  repeated ECLBucketSummary buckets = 5;  // Per-bucket breakdown
+}
+
+// =============================================================================
+// Portfolio ECL Recalculation Messages
+// =============================================================================
+
+// Request to trigger portfolio-wide ECL recalculation
+message TriggerPortfolioECLRecalculationRequest {
+  int32 batch_size = 1;      // Accounts per batch (default: 100)
+  string triggered_by = 2;   // Reason: "config_change", "manual", "scheduled"
+}
+
+// Response with recalculation summary
+message PortfolioECLRecalculationResponse {
+  int32 total_accounts = 1;     // Total accounts in portfolio
+  int32 processed = 2;          // Accounts with ECL changes
+  int32 skipped = 3;            // Accounts with no ECL change
+  int32 failed = 4;             // Accounts that failed to process
+  string started_at = 5;        // Start timestamp (ISO 8601 UTC)
+  string completed_at = 6;      // Completion timestamp (ISO 8601 UTC)
+  string triggered_by = 7;      // Recalculation reason
+  repeated string failed_account_ids = 8;  // First 100 failed account IDs
+}
+
+// =============================================================================
+// Bulk ECL Recalculation Messages (FR50)
+// =============================================================================
+
+// Request to trigger ECL recalculation for specific accounts (FR50)
+message TriggerBulkECLRecalculationRequest {
+  repeated string account_ids = 1;  // Account IDs to recalculate (max 100)
+  string triggered_by = 2;          // Reason: "config_change", "data_correction", "manual"
+}
+
+// Result for a single account in bulk recalculation
+message BulkECLRecalculationResult {
+  string account_id = 1;
+  bool success = 2;
+  string error_message = 3;         // Empty if success
+  string previous_ecl = 4;          // ECL before recalculation (Decimal)
+  string new_ecl = 5;               // ECL after recalculation (Decimal)
+  string ecl_delta = 6;             // Change amount (Decimal)
+}
+
+// Response with bulk recalculation results (FR50)
+message BulkECLRecalculationResponse {
+  int32 total_requested = 1;        // Number of accounts requested
+  int32 processed = 2;              // Accounts successfully recalculated
+  int32 failed = 3;                 // Accounts that failed
+  string started_at = 4;            // Start timestamp (ISO 8601 UTC)
+  string completed_at = 5;          // Completion timestamp (ISO 8601 UTC)
+  string triggered_by = 6;          // Recalculation reason
+  repeated BulkECLRecalculationResult results = 7;  // Per-account results
+}
+
+// =============================================================================
+// Event Processing Status Messages (FR62)
+// =============================================================================
+
+// Request for event processing status (FR62)
+message GetEventProcessingStatusRequest {
+  // Empty - returns current status for all monitored streams
+}
+
+// Status for a single event stream's consumer group
+message StreamProcessingStatus {
+  string stream_name = 1;           // Stream name (e.g., "inbox", "accruals")
+  string consumer_group = 2;        // Consumer group name
+  int64 stream_length = 3;          // Total entries in stream
+  int64 pending_count = 4;          // Unprocessed messages (backlog)
+  string last_delivered_id = 5;     // Last message delivered to group
+  string last_entry_id = 6;         // Latest entry in stream
+  int64 lag_seconds = 7;            // Seconds behind real-time
+  string status = 8;                // "healthy", "lagging", "stalled", "unknown"
+  int32 consumer_count = 9;         // Active consumers in group
+  string last_error = 10;           // Most recent error message (if any)
+  string last_processed_at = 11;    // Timestamp of last processed event (ISO 8601)
+}
+
+// Response with event processing status (FR62)
+message EventProcessingStatusResponse {
+  bool success = 1;
+  string error_message = 2;         // Fatal error (only set when success=false)
+  string overall_status = 3;        // "healthy", "degraded", "critical", "unknown"
+  int64 total_pending = 4;          // Total backlog across all streams
+  int64 estimated_catchup_seconds = 5;  // Estimated time to process backlog
+  repeated StreamProcessingStatus streams = 6;
+  string queried_at = 7;            // Query timestamp (ISO 8601 UTC)
+  string warning = 8;               // Non-fatal warning (e.g., some streams unavailable)
+}
+
+// =============================================================================
+// ECL Configuration Messages
+// =============================================================================
+
+// Request to get ECL configuration
+message GetECLConfigRequest {
+  // Empty - returns current config
+}
+
+// Response with ECL configuration
+message ECLConfigResponse {
+  string overlay_multiplier = 1;      // Management overlay (Decimal as string)
+  map<string, string> pd_rates = 2;   // Bucket -> PD rate (Decimal as string)
+  string last_updated = 3;            // Last update timestamp (ISO 8601 UTC)
+  string updated_by = 4;              // User/system that made the last update
+  optional string warning = 5;        // Warning message (e.g., active preview stale warning)
+}
+
+// Request to update overlay multiplier
+message UpdateOverlayMultiplierRequest {
+  string overlay_multiplier = 1;      // New overlay value (Decimal as string)
+  string updated_by = 2;              // User making the change (required)
+}
+
+// Request to update PD rate for a bucket
+message UpdatePDRateRequest {
+  string bucket = 1;                  // Bucket name: "current", "bucket_1", etc.
+  string pd_rate = 2;                 // New PD rate (Decimal as string)
+  string updated_by = 3;              // User making the change (required)
+}
+
+// Request to get ECL config change history
+message GetECLConfigHistoryRequest {
+  int32 limit = 1;                    // Max events to return (default: 100)
+}
+
+// A single config change event
+message ECLConfigChangeEvent {
+  string timestamp = 1;               // Change timestamp (ISO 8601 UTC)
+  string field_name = 2;              // Field changed (e.g., "overlay_multiplier")
+  string old_value = 3;               // Previous value
+  string new_value = 4;               // New value
+  string changed_by = 5;              // User who made the change
+}
+
+// Response with config change history
+message ECLConfigHistoryResponse {
+  repeated ECLConfigChangeEvent events = 1;  // Events, newest first
+  int32 total_count = 2;                     // Number of events returned
+}
+
+// =============================================================================
+// Pending Config Change Messages (Story 3.7)
+// =============================================================================
+
+// Request to schedule a future config change
+message ScheduleConfigChangeRequest {
+  string field_name = 1;      // Field to change (e.g., "overlay_multiplier", "pd_rate_bucket_1")
+  string new_value = 2;       // New value (Decimal as string)
+  string effective_date = 3;  // When change takes effect (YYYY-MM-DD UTC)
+  string created_by = 4;      // User scheduling the change
+}
+
+// Response after scheduling a config change
+message ScheduleConfigChangeResponse {
+  string change_id = 1;       // Unique identifier for the scheduled change
+  string field_name = 2;
+  string new_value = 3;
+  string effective_date = 4;
+  string created_at = 5;      // When the change was scheduled
+  string created_by = 6;
+}
+
+// Request to get pending config changes
+message GetPendingConfigChangesRequest {
+  bool include_past = 1;      // Include changes with past effective dates (default: false)
+}
+
+// A single pending config change
+message PendingConfigChange {
+  string change_id = 1;       // Unique identifier
+  string field_name = 2;      // Field to change
+  string new_value = 3;       // New value
+  string effective_date = 4;  // Effective date (YYYY-MM-DD)
+  string status = 5;          // pending, applied, cancelled
+  string created_at = 6;      // When scheduled
+  string created_by = 7;      // Who scheduled it
+  string applied_at = 8;      // When applied (if status=applied)
+  string cancelled_at = 9;    // When cancelled (if status=cancelled)
+  string cancelled_by = 10;   // Who cancelled (if status=cancelled)
+}
+
+// Response with pending config changes
+message PendingConfigChangesResponse {
+  repeated PendingConfigChange changes = 1;  // Pending changes, sorted by effective_date
+  int32 total_count = 2;                     // Number of changes returned
+}
+
+// Request to cancel a pending config change
+message CancelPendingConfigChangeRequest {
+  string change_id = 1;       // ID of the change to cancel
+  string cancelled_by = 2;    // User cancelling the change
+}
+
+// Response after cancelling a config change
+message CancelPendingConfigChangeResponse {
+  bool success = 1;
+  PendingConfigChange cancelled_change = 2;  // The cancelled change (if found)
+  string error_message = 3;                  // Error message if not successful
+}
+
+// Request to apply pending config changes
+message ApplyPendingConfigChangesRequest {
+  string as_of_date = 1;      // Apply changes up to this date (YYYY-MM-DD, default: today)
+}
+
+// Response after applying pending config changes
+message ApplyPendingConfigChangesResponse {
+  int32 applied_count = 1;                     // Number of changes applied
+  repeated PendingConfigChange applied_changes = 2;  // The applied changes
+}
+
+// =============================================================================
+// Period-End Close Messages (Epic 4)
+// =============================================================================
+
+// Request to generate period close preview
+message PreviewPeriodCloseRequest {
+  string period_date = 1;     // Period end date (YYYY-MM-DD)
+  string requested_by = 2;    // User requesting the preview
+}
+
+// ECL summary by bucket
+message BucketSummary {
+  string bucket = 1;                  // Bucket name (current, bucket_1, etc.)
+  int32 account_count = 2;            // Number of accounts
+  string total_ecl = 3;               // Total ECL (Decimal as string)
+  string total_carrying_amount = 4;   // Total carrying amount
+  string average_pd_rate = 5;         // Average PD rate
+}
+
+// ECL movement for a single bucket (comparison to prior period)
+message BucketMovement {
+  string bucket = 1;                   // Bucket name
+  string prior_ecl = 2;                // ECL in prior period
+  string current_ecl = 3;              // ECL in current period
+  string net_change = 4;               // Net ECL change
+  int32 prior_account_count = 5;       // Account count in prior period
+  int32 current_account_count = 6;     // Account count in current period
+  int32 accounts_entered = 7;          // Accounts that entered this bucket
+  int32 accounts_exited = 8;           // Accounts that exited this bucket
+}
+
+// ECL movement cause breakdown
+message ECLMovementByCause {
+  string cause = 1;                    // Cause type (bucket_transition, rate_change, etc.)
+  string amount = 2;                   // Amount attributed to this cause
+}
+
+// ECL movement analysis (comparison to prior period close)
+message ECLMovement {
+  // Summary totals
+  string prior_total_ecl = 1;          // Total ECL from prior period
+  string current_total_ecl = 2;        // Total ECL in current period
+  string net_change = 3;               // Net change (current - prior)
+  string change_percent = 4;           // Percentage change
+  
+  // Breakdowns
+  repeated ECLMovementByCause by_cause = 5;   // Breakdown by cause
+  repeated BucketMovement by_bucket = 6;       // Movement per bucket
+  
+  // Prior period reference
+  string prior_period_date = 7;        // Prior period date (empty if first close)
+  bool is_first_close = 8;             // True if no prior period exists
+}
+
+// Anomaly detected during preview
+message Anomaly {
+  string anomaly_id = 1;       // Unique anomaly ID
+  string anomaly_type = 2;     // Type (e.g., "unusual_bucket_transition")
+  string account_id = 3;       // Affected account
+  string severity = 4;         // info, warning, critical
+  string description = 5;      // Human-readable description
+  bool acknowledged = 6;       // Whether acknowledged
+  string acknowledged_by = 7;  // User who acknowledged
+  string acknowledged_at = 8;  // Acknowledgment timestamp
+}
+
+// Journal entry for GL posting
+message JournalEntry {
+  string entry_id = 1;         // Unique entry ID
+  string period_date = 2;      // Period date
+  string entry_type = 3;       // "accrued_yield" or "ecl_allowance"
+  string debit_account = 4;    // Debit GL account
+  string credit_account = 5;   // Credit GL account
+  string amount = 6;           // Amount (Decimal as string)
+  string description = 7;      // Entry description
+  string created_at = 8;       // Creation timestamp
+}
+
+// Account reconciliation result (ECL vs Accrual accounts)
+message ReconciliationResult {
+  int32 ecl_count = 1;           // Number of accounts with ECL
+  int32 accrual_count = 2;       // Number of accounts with accruals
+  int32 in_both = 3;             // Accounts present in both systems
+  repeated string ecl_only = 4;  // Account IDs only in ECL (max 100)
+  repeated string accrual_only = 5;  // Account IDs only in accruals (max 100)
+  bool is_reconciled = 6;        // True if all accounts match
+  int32 discrepancy_count = 7;   // Total discrepancy count
+}
+
+// Period close preview response
+message PreviewPeriodCloseResponse {
+  bool success = 1;
+  string error_message = 2;
+  
+  // Preview data (if successful)
+  string preview_id = 3;
+  string period_date = 4;
+  string created_at = 5;
+  string expires_at = 6;
+  
+  // Aggregated totals
+  int32 total_accounts = 7;
+  string total_accrued_yield = 8;
+  string total_ecl_allowance = 9;
+  string total_carrying_amount = 10;
+  
+  // Breakdown and anomalies
+  repeated BucketSummary ecl_by_bucket = 11;
+  repeated Anomaly anomalies = 12;
+  bool all_anomalies_acknowledged = 13;
+  
+  // ECL movement analysis (comparison to prior period)
+  ECLMovement ecl_movement = 14;
+  
+  // Processing metadata
+  double processing_time_seconds = 15;
+  
+  // Account reconciliation (ECL vs Accrual)
+  ReconciliationResult reconciliation = 16;
+}
+
+// Request to finalize period close
+message FinalizePeriodCloseRequest {
+  string preview_id = 1;       // Preview ID to finalize
+  string finalized_by = 2;     // User finalizing
+}
+
+// Response after finalizing period close
+message FinalizePeriodCloseResponse {
+  bool success = 1;
+  string error_message = 2;
+  
+  // Finalized data (if successful)
+  string period_date = 3;
+  string status = 4;           // "finalized" or "failed"
+  string finalized_at = 5;
+  
+  // Snapshot values
+  int32 total_accounts = 6;
+  string total_accrued_yield = 7;
+  string total_ecl_allowance = 8;
+  string total_carrying_amount = 9;
+  
+  // Generated journal entries
+  repeated JournalEntry journal_entries = 10;
+  
+  // Event ID for period.close.completed.v1
+  string event_id = 11;
+}
+
+// Request to get a period close
+message GetPeriodCloseRequest {
+  string period_date = 1;           // Period date (YYYY-MM-DD)
+  bool include_corrections = 2;     // Include correction details (default: false)
+}
+
+// Period close response
+message PeriodCloseResponse {
+  bool found = 1;
+  
+  // Period close data
+  string period_date = 2;
+  string status = 3;
+  string finalized_at = 4;
+  string finalized_by = 5;
+  
+  // Snapshot values
+  int32 total_accounts = 6;
+  string total_accrued_yield = 7;
+  string total_ecl_allowance = 8;
+  string total_carrying_amount = 9;
+  
+  // Breakdown
+  repeated BucketSummary ecl_by_bucket = 10;
+  repeated JournalEntry journal_entries = 11;
+  
+  // Correction info
+  bool has_corrections = 12;
+  int32 correction_count = 13;
+}
+
+// Request to get closed periods
+message GetClosedPeriodsRequest {
+  int32 limit = 1;             // Max periods to return (default: 100)
+}
+
+// Response with closed periods
+message GetClosedPeriodsResponse {
+  repeated string period_dates = 1;  // Period dates (YYYY-MM-DD), newest first
+  int32 total_count = 2;
+}
+
+// Request to acknowledge an anomaly
+message AcknowledgeAnomalyRequest {
+  string preview_id = 1;       // Preview ID
+  string anomaly_id = 2;       // Anomaly ID to acknowledge
+  string acknowledged_by = 3;  // User acknowledging
+}
+
+// Response after acknowledging anomaly
+message AcknowledgeAnomalyResponse {
+  bool success = 1;
+  string error_message = 2;
+  bool all_anomalies_acknowledged = 3;  // True if all anomalies now acknowledged
+}
+
+// =============================================================================
+// Export Messages (Epic 5)
+// =============================================================================
+
+// Export type enum
+enum ExportType {
+  EXPORT_TYPE_UNSPECIFIED = 0;
+  EXPORT_TYPE_JOURNAL_ENTRIES = 1;  // Xero-compatible journal entries
+  EXPORT_TYPE_AUDIT_TRAIL = 2;      // Account audit trail with calculation breakdown
+  EXPORT_TYPE_METHODOLOGY = 3;      // Methodology documentation
+}
+
+// Export format enum
+enum ExportFormat {
+  EXPORT_FORMAT_UNSPECIFIED = 0;
+  EXPORT_FORMAT_CSV = 1;
+  EXPORT_FORMAT_JSON = 2;
+}
+
+// Export status enum
+enum ExportStatus {
+  EXPORT_STATUS_UNSPECIFIED = 0;
+  EXPORT_STATUS_PENDING = 1;
+  EXPORT_STATUS_PROCESSING = 2;
+  EXPORT_STATUS_COMPLETED = 3;
+  EXPORT_STATUS_FAILED = 4;
+}
+
+// Request to create an export job
+message CreateExportJobRequest {
+  ExportType export_type = 1;        // Type of export
+  ExportFormat export_format = 2;    // Output format (default: CSV)
+  string created_by = 3;             // User requesting export (required)
+  
+  // For journal exports
+  string period_date = 4;            // Period to export (YYYY-MM-DD)
+  
+  // For audit trail exports
+  repeated string account_ids = 5;   // Specific accounts to export
+  string date_range_start = 6;       // Start of date range
+  string date_range_end = 7;         // End of date range
+  bool include_calculation_breakdown = 8;  // Include calculation details (FR52)
+}
+
+// Response after creating export job
+message CreateExportJobResponse {
+  bool success = 1;
+  string job_id = 2;                 // Job ID for status polling
+  string error_message = 3;
+}
+
+// Request to get export job status
+message GetExportStatusRequest {
+  string job_id = 1;
+}
+
+// Export job details response
+message ExportJobResponse {
+  bool success = 1;
+  string error_message = 2;
+  
+  // Job details
+  string job_id = 3;
+  ExportType export_type = 4;
+  ExportFormat export_format = 5;
+  ExportStatus status = 6;
+  
+  // Timestamps
+  string created_at = 7;
+  string created_by = 8;
+  string started_at = 9;
+  string completed_at = 10;
+  
+  // Progress
+  int32 total_records = 11;
+  int32 processed_records = 12;
+  float progress_percent = 13;
+  
+  // Result (when completed)
+  string result_url = 14;
+  int64 result_size_bytes = 15;
+  
+  // Retry info
+  int32 retry_count = 16;
+  int32 max_retries = 17;
+  bool can_retry = 18;
+  
+  // Warning message (non-fatal issues, e.g., retry queued but not started)
+  string warning = 19;
+}
+
+// Request to get export result
+message GetExportResultRequest {
+  string job_id = 1;
+}
+
+// Response with export result data
+message GetExportResultResponse {
+  bool success = 1;
+  string error_message = 2;
+  
+  ExportFormat format = 3;
+  string data = 4;                   // Export content (CSV or JSON string)
+  int64 size_bytes = 5;
+  string validation_json = 6;        // Validation metadata JSON (if available)
+}
+
+// Request to retry a failed export
+message RetryExportRequest {
+  string job_id = 1;
+}
+
+// Request to list user's export jobs
+message ListExportJobsRequest {
+  string user_id = 1;
+  int32 limit = 2;                   // Max jobs to return (default: 20)
+  optional bool include_completed = 3;  // Include completed/failed jobs (default: true if unset)
+}
+
+// Response with list of export jobs
+message ListExportJobsResponse {
+  bool success = 1;
+  repeated ExportJobResponse jobs = 2;
+  string error_message = 3;  // Added for auth error context
+}

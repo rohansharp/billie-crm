@@ -187,6 +187,15 @@ export interface MakeAdjustmentRequest {
   idempotencyKey?: string
 }
 
+export interface InstalmentAllocation {
+  paymentNumber: number
+  amountApplied: string
+  instalmentStatus: string
+  amountRemaining: string
+  dueDate: string
+  scheduledAmount: string
+}
+
 export interface TransactionResponse {
   transaction: Transaction
   eventId: string
@@ -194,6 +203,750 @@ export interface TransactionResponse {
   allocatedToPrincipal?: string
   overpayment?: string
   idempotentReplay?: boolean // True if this is a cached response from a previous request
+  appliedToInstalments?: InstalmentAllocation[]
+  allocationWarning?: string
+}
+
+// =============================================================================
+// Schedule with Status Types (E0-S2)
+// =============================================================================
+
+export interface GetScheduleWithStatusRequest {
+  loanAccountId?: string
+  scheduleId?: string
+  applicationNumber?: string
+}
+
+export interface InstalmentWithStatus {
+  paymentNumber: number
+  dueDate: string
+  scheduledAmount: string
+  status: string // PENDING, PARTIAL, PAID, OVERDUE
+  amountPaid: string
+  amountRemaining: string
+  paidDate?: string
+  linkedTransactionIds: string[]
+  lastUpdated?: string
+}
+
+export interface ScheduleSummary {
+  totalInstalments: number
+  paidCount: number
+  partialCount: number
+  overdueCount: number
+  pendingCount: number
+  nextDueDate?: string
+  nextDueAmount?: string
+  totalScheduled: string
+  totalPaid: string
+  totalRemaining: string
+}
+
+export interface ScheduleWithStatusResponse {
+  scheduleId: string
+  loanAccountId: string
+  customerId: string
+  applicationNumber: string
+  instalments: InstalmentWithStatus[]
+  summary: ScheduleSummary
+}
+
+// =============================================================================
+// Account Aging Types (E0-S2)
+// =============================================================================
+
+export interface GetAccountAgingRequest {
+  accountId: string
+}
+
+export interface AccountAgingResponse {
+  accountId: string
+  dpd: number
+  bucket: string
+  daysUntilOverdue: number
+  lastUpdated: string
+  previousBucket?: string
+  transitionReason?: string
+  oldestOverdueInstalmentId?: string
+  totalOverdueAmount: string
+}
+
+export interface GetOverdueAccountsRequest {
+  bucketFilter?: string
+  minDpd?: number
+  maxDpd?: number
+  pageSize: number
+  pageToken?: string
+}
+
+export interface OverdueAccount {
+  accountId: string
+  dpd: number
+  bucket: string
+  daysUntilOverdue: number
+  totalOverdueAmount: string
+  lastUpdated: string
+}
+
+export interface OverdueAccountsResponse {
+  accounts: OverdueAccount[]
+  totalCount: number
+  nextPageToken?: string
+}
+
+// =============================================================================
+// Revenue Recognition Types (E0-S3)
+// =============================================================================
+
+export interface GetAccruedYieldRequest {
+  accountId: string
+}
+
+export interface AccruedYieldResponse {
+  accountId: string
+  cumulativeAccrued: string
+  daysAccrued: number
+  termDays: number
+  feeAmount: string
+  dailyRate: string
+  lastAccrualDate: string
+  lastUpdated: string
+  disbursementDate: string
+  isCompleted: boolean
+}
+
+export interface GetAccrualEventHistoryRequest {
+  accountId: string
+  limit?: number
+}
+
+export interface AccrualEventDetail {
+  accountId: string
+  accrualDate: string
+  dailyAmount: string
+  cumulativeAmount: string
+  daysAccrued: number
+  termDays: number
+  feeAmount: string
+  dailyRate: string
+  timestamp: string
+  correlationId?: string
+}
+
+export interface AccrualEventHistoryResponse {
+  accountId: string
+  events: AccrualEventDetail[]
+  totalCount: number
+}
+
+// =============================================================================
+// ECL (Expected Credit Loss) Types (E0-S4)
+// =============================================================================
+
+export interface GetECLAllowanceRequest {
+  accountId: string
+}
+
+export interface ECLAllowanceResponse {
+  accountId: string
+  eclAmount: string
+  carryingAmount: string
+  agingBucket: string
+  pdRate: string
+  overlayMultiplier: string
+  lastCalculated: string
+  calculationCount: number
+  previousEclAmount?: string
+  eclDelta?: string
+  triggeredByEventId?: string
+}
+
+export interface GetPortfolioECLRequest {
+  asOfDate?: string
+}
+
+export interface ECLBucketSummary {
+  bucket: string
+  accountCount: number
+  totalEcl: string
+  totalCarryingAmount: string
+  averagePdRate: string
+}
+
+export interface PortfolioECLResponse {
+  asOfDate: string
+  totalAccounts: number
+  totalEcl: string
+  totalCarryingAmount: string
+  buckets: ECLBucketSummary[]
+}
+
+export interface TriggerPortfolioECLRecalculationRequest {
+  batchSize?: number
+  triggeredBy: string
+}
+
+export interface PortfolioECLRecalculationResponse {
+  totalAccounts: number
+  processed: number
+  skipped: number
+  failed: number
+  startedAt: string
+  completedAt: string
+  triggeredBy: string
+  failedAccountIds: string[]
+}
+
+export interface TriggerBulkECLRecalculationRequest {
+  accountIds: string[]
+  triggeredBy: string
+}
+
+export interface BulkECLRecalculationResult {
+  accountId: string
+  success: boolean
+  errorMessage: string
+  previousEcl: string
+  newEcl: string
+  eclDelta: string
+}
+
+export interface BulkECLRecalculationResponse {
+  totalRequested: number
+  processed: number
+  failed: number
+  startedAt: string
+  completedAt: string
+  triggeredBy: string
+  results: BulkECLRecalculationResult[]
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface GetEventProcessingStatusRequest {}
+
+export interface StreamProcessingStatus {
+  streamName: string
+  consumerGroup: string
+  streamLength: string
+  pendingCount: string
+  lastDeliveredId: string
+  lastEntryId: string
+  lagSeconds: string
+  status: string
+  consumerCount: number
+  lastError: string
+  lastProcessedAt: string
+}
+
+export interface EventProcessingStatusResponse {
+  success: boolean
+  errorMessage: string
+  overallStatus: string
+  totalPending: string
+  estimatedCatchupSeconds: string
+  streams: StreamProcessingStatus[]
+  queriedAt: string
+  warning: string
+}
+
+// =============================================================================
+// ECL Configuration Types (E0-S5)
+// =============================================================================
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface GetECLConfigRequest {}
+
+export interface ECLConfigResponse {
+  overlayMultiplier: string
+  pdRates: Record<string, string>
+  lastUpdated: string
+  updatedBy: string
+  warning?: string
+}
+
+export interface UpdateOverlayMultiplierRequest {
+  overlayMultiplier: string
+  updatedBy: string
+}
+
+export interface UpdatePDRateRequest {
+  bucket: string
+  pdRate: string
+  updatedBy: string
+}
+
+export interface GetECLConfigHistoryRequest {
+  limit?: number
+}
+
+export interface ECLConfigChangeEvent {
+  timestamp: string
+  fieldName: string
+  oldValue: string
+  newValue: string
+  changedBy: string
+}
+
+export interface ECLConfigHistoryResponse {
+  events: ECLConfigChangeEvent[]
+  totalCount: number
+}
+
+export interface ScheduleConfigChangeRequest {
+  fieldName: string
+  newValue: string
+  effectiveDate: string
+  createdBy: string
+}
+
+export interface ScheduleConfigChangeResponse {
+  changeId: string
+  fieldName: string
+  newValue: string
+  effectiveDate: string
+  createdAt: string
+  createdBy: string
+}
+
+export interface GetPendingConfigChangesRequest {
+  includePast?: boolean
+}
+
+export interface PendingConfigChange {
+  changeId: string
+  fieldName: string
+  newValue: string
+  effectiveDate: string
+  status: string
+  createdAt: string
+  createdBy: string
+  appliedAt?: string
+  cancelledAt?: string
+  cancelledBy?: string
+}
+
+export interface PendingConfigChangesResponse {
+  changes: PendingConfigChange[]
+  totalCount: number
+}
+
+export interface CancelPendingConfigChangeRequest {
+  changeId: string
+  cancelledBy: string
+}
+
+export interface CancelPendingConfigChangeResponse {
+  success: boolean
+  cancelledChange?: PendingConfigChange
+  errorMessage: string
+}
+
+export interface ApplyPendingConfigChangesRequest {
+  asOfDate?: string
+}
+
+export interface ApplyPendingConfigChangesResponse {
+  appliedCount: number
+  appliedChanges: PendingConfigChange[]
+}
+
+// =============================================================================
+// Period Close Types (E0-S6)
+// =============================================================================
+
+export interface PreviewPeriodCloseRequest {
+  periodDate: string
+  requestedBy: string
+}
+
+export interface BucketSummary {
+  bucket: string
+  accountCount: number
+  totalEcl: string
+  totalCarryingAmount: string
+  averagePdRate: string
+}
+
+export interface BucketMovement {
+  bucket: string
+  priorEcl: string
+  currentEcl: string
+  netChange: string
+  priorAccountCount: number
+  currentAccountCount: number
+  accountsEntered: number
+  accountsExited: number
+}
+
+export interface ECLMovementByCause {
+  cause: string
+  amount: string
+}
+
+export interface ECLMovement {
+  priorTotalEcl: string
+  currentTotalEcl: string
+  netChange: string
+  changePercent: string
+  byCause: ECLMovementByCause[]
+  byBucket: BucketMovement[]
+  priorPeriodDate: string
+  isFirstClose: boolean
+}
+
+export interface Anomaly {
+  anomalyId: string
+  anomalyType: string
+  accountId: string
+  severity: string
+  description: string
+  acknowledged: boolean
+  acknowledgedBy: string
+  acknowledgedAt: string
+}
+
+export interface JournalEntry {
+  entryId: string
+  periodDate: string
+  entryType: string
+  debitAccount: string
+  creditAccount: string
+  amount: string
+  description: string
+  createdAt: string
+}
+
+export interface ReconciliationResult {
+  eclCount: number
+  accrualCount: number
+  inBoth: number
+  eclOnly: string[]
+  accrualOnly: string[]
+  isReconciled: boolean
+  discrepancyCount: number
+}
+
+export interface PreviewPeriodCloseResponse {
+  success: boolean
+  errorMessage: string
+  previewId: string
+  periodDate: string
+  createdAt: string
+  expiresAt: string
+  totalAccounts: number
+  totalAccruedYield: string
+  totalEclAllowance: string
+  totalCarryingAmount: string
+  eclByBucket: BucketSummary[]
+  anomalies: Anomaly[]
+  allAnomaliesAcknowledged: boolean
+  eclMovement: ECLMovement
+  processingTimeSeconds: number
+  reconciliation: ReconciliationResult
+}
+
+export interface FinalizePeriodCloseRequest {
+  previewId: string
+  finalizedBy: string
+}
+
+export interface FinalizePeriodCloseResponse {
+  success: boolean
+  errorMessage: string
+  periodDate: string
+  status: string
+  finalizedAt: string
+  totalAccounts: number
+  totalAccruedYield: string
+  totalEclAllowance: string
+  totalCarryingAmount: string
+  journalEntries: JournalEntry[]
+  eventId: string
+}
+
+export interface GetPeriodCloseRequest {
+  periodDate: string
+  includeCorrections?: boolean
+}
+
+export interface PeriodCloseResponse {
+  found: boolean
+  periodDate: string
+  status: string
+  finalizedAt: string
+  finalizedBy: string
+  totalAccounts: number
+  totalAccruedYield: string
+  totalEclAllowance: string
+  totalCarryingAmount: string
+  eclByBucket: BucketSummary[]
+  journalEntries: JournalEntry[]
+  hasCorrections: boolean
+  correctionCount: number
+}
+
+export interface GetClosedPeriodsRequest {
+  limit?: number
+}
+
+export interface GetClosedPeriodsResponse {
+  periodDates: string[]
+  totalCount: number
+}
+
+export interface AcknowledgeAnomalyRequest {
+  previewId: string
+  anomalyId: string
+  acknowledgedBy: string
+}
+
+export interface AcknowledgeAnomalyResponse {
+  success: boolean
+  errorMessage: string
+  allAnomaliesAcknowledged: boolean
+}
+
+// =============================================================================
+// Export Types (E0-S7)
+// =============================================================================
+
+export enum ExportType {
+  EXPORT_TYPE_UNSPECIFIED = 'EXPORT_TYPE_UNSPECIFIED',
+  EXPORT_TYPE_JOURNAL_ENTRIES = 'EXPORT_TYPE_JOURNAL_ENTRIES',
+  EXPORT_TYPE_AUDIT_TRAIL = 'EXPORT_TYPE_AUDIT_TRAIL',
+  EXPORT_TYPE_METHODOLOGY = 'EXPORT_TYPE_METHODOLOGY',
+}
+
+export enum ExportFormat {
+  EXPORT_FORMAT_UNSPECIFIED = 'EXPORT_FORMAT_UNSPECIFIED',
+  EXPORT_FORMAT_CSV = 'EXPORT_FORMAT_CSV',
+  EXPORT_FORMAT_JSON = 'EXPORT_FORMAT_JSON',
+}
+
+export enum ExportStatus {
+  EXPORT_STATUS_UNSPECIFIED = 'EXPORT_STATUS_UNSPECIFIED',
+  EXPORT_STATUS_PENDING = 'EXPORT_STATUS_PENDING',
+  EXPORT_STATUS_PROCESSING = 'EXPORT_STATUS_PROCESSING',
+  EXPORT_STATUS_COMPLETED = 'EXPORT_STATUS_COMPLETED',
+  EXPORT_STATUS_FAILED = 'EXPORT_STATUS_FAILED',
+}
+
+export interface CreateExportJobRequest {
+  exportType: ExportType
+  exportFormat?: ExportFormat
+  createdBy: string
+  periodDate?: string
+  accountIds?: string[]
+  dateRangeStart?: string
+  dateRangeEnd?: string
+  includeCalculationBreakdown?: boolean
+}
+
+export interface CreateExportJobResponse {
+  success: boolean
+  jobId: string
+  errorMessage: string
+}
+
+export interface GetExportStatusRequest {
+  jobId: string
+}
+
+export interface ExportJobResponse {
+  success: boolean
+  errorMessage: string
+  jobId: string
+  exportType: ExportType
+  exportFormat: ExportFormat
+  status: ExportStatus
+  createdAt: string
+  createdBy: string
+  startedAt: string
+  completedAt: string
+  totalRecords: number
+  processedRecords: number
+  progressPercent: number
+  resultUrl: string
+  resultSizeBytes: string
+  retryCount: number
+  maxRetries: number
+  canRetry: boolean
+  warning: string
+}
+
+export interface GetExportResultRequest {
+  jobId: string
+}
+
+export interface GetExportResultResponse {
+  success: boolean
+  errorMessage: string
+  format: ExportFormat
+  data: string
+  sizeBytes: string
+  validationJson: string
+}
+
+export interface RetryExportRequest {
+  jobId: string
+}
+
+export interface ListExportJobsRequest {
+  userId: string
+  limit?: number
+  includeCompleted?: boolean
+}
+
+export interface ListExportJobsResponse {
+  success: boolean
+  jobs: ExportJobResponse[]
+  errorMessage: string
+}
+
+// =============================================================================
+// Investigation Types (E0-S8)
+// =============================================================================
+
+export interface GetEventHistoryRequest {
+  accountId: string
+  limit?: number
+  cursor?: string
+}
+
+export interface EventHistoryEntry {
+  eventId: string
+  stream: string
+  eventType: string
+  accountId: string
+  timestamp: string
+  dataJson: string
+}
+
+export interface EventHistoryResponse {
+  success: boolean
+  errorMessage: string
+  events: EventHistoryEntry[]
+  nextCursor: string
+}
+
+export interface TraceECLToSourceRequest {
+  accountIds: string[]
+}
+
+export interface TraceECLToSourceResult {
+  accountId: string
+  success: boolean
+  errorMessage: string
+  eclEventId: string
+  triggeredBy: string
+  triggeredByEventId: string
+  timestamp: string
+  agingBucket: string
+  eclAmount: string
+  carryingAmount: string
+  pdRate: string
+  overlayMultiplier: string
+}
+
+export interface TraceECLToSourceResponse {
+  results: TraceECLToSourceResult[]
+}
+
+export interface TraceAccruedYieldToSourceRequest {
+  accountIds: string[]
+}
+
+export interface TraceAccruedYieldToSourceResult {
+  accountId: string
+  success: boolean
+  errorMessage: string
+  feeAmount: string
+  termDays: number
+  disbursementDate: string
+  dailyAccrualRate: string
+  cumulativeAccrued: string
+  daysAccrued: number
+  lastAccrualDate: string
+  lastUpdated: string
+  accrualEventCount: number
+}
+
+export interface TraceAccruedYieldToSourceResponse {
+  results: TraceAccruedYieldToSourceResult[]
+}
+
+export interface SearchAccountsRequest {
+  query: string
+  limit?: number
+}
+
+export interface AccountSearchResult {
+  loanAccountId: string
+  accountNumber: string
+  customerId: string
+  applicationNumber: string
+  principalBalance: string
+  feeBalance: string
+  totalOutstanding: string
+  createdAt: string
+}
+
+export interface SearchAccountsResponse {
+  results: AccountSearchResult[]
+  totalCount: number
+}
+
+export interface BatchAccountQueryRequest {
+  accountIds: string[]
+}
+
+export interface BatchAccountQueryResult {
+  accountId: string
+  success: boolean
+  errorMessage: string
+  record: LedgerRecordResponse
+}
+
+export interface BatchAccountQueryResponse {
+  results: BatchAccountQueryResult[]
+  totalCount: number
+}
+
+export interface GenerateRandomSampleRequest {
+  bucket?: string
+  eclMin?: string
+  eclMax?: string
+  carryingAmountMin?: string
+  carryingAmountMax?: string
+  sampleSize?: number
+  seed?: string
+  allowFullScan?: boolean
+}
+
+export interface GenerateRandomSampleResponse {
+  accountIds: string[]
+  totalEligible: number
+  seed: string
+}
+
+export interface GetCarryingAmountBreakdownRequest {
+  accountId: string
+}
+
+export interface CarryingAmountBreakdownResponse {
+  accountId: string
+  principalBalance: string
+  accruedYield: string
+  carryingAmount: string
+  feeBalance: string
+  disbursedPrincipal: string
+  establishmentFee: string
+  totalPaid: string
+  lastAccrualDate: string
+  daysAccrued: number
+  termDays: number
+  dailyAccrualRate: string
+  calculationTimestamp: string
 }
 
 // =============================================================================
@@ -308,6 +1061,272 @@ export class LedgerClient {
     return {
       cancel: () => call.cancel(),
     }
+  }
+
+  // ===========================================================================
+  // Schedule & Aging Operations (E0-S2)
+  // ===========================================================================
+
+  async getScheduleWithStatus(
+    request: GetScheduleWithStatusRequest,
+  ): Promise<ScheduleWithStatusResponse> {
+    return this.promisify<GetScheduleWithStatusRequest, ScheduleWithStatusResponse>(
+      this.client.getScheduleWithStatus,
+    )(request)
+  }
+
+  async getAccountAging(request: GetAccountAgingRequest): Promise<AccountAgingResponse> {
+    return this.promisify<GetAccountAgingRequest, AccountAgingResponse>(
+      this.client.getAccountAging,
+    )(request)
+  }
+
+  async getOverdueAccounts(request: GetOverdueAccountsRequest): Promise<OverdueAccountsResponse> {
+    return this.promisify<GetOverdueAccountsRequest, OverdueAccountsResponse>(
+      this.client.getOverdueAccounts,
+    )(request)
+  }
+
+  // ===========================================================================
+  // Revenue Recognition Operations (E0-S3)
+  // ===========================================================================
+
+  async getAccruedYield(request: GetAccruedYieldRequest): Promise<AccruedYieldResponse> {
+    return this.promisify<GetAccruedYieldRequest, AccruedYieldResponse>(
+      this.client.getAccruedYield,
+    )(request)
+  }
+
+  async getAccrualEventHistory(
+    request: GetAccrualEventHistoryRequest,
+  ): Promise<AccrualEventHistoryResponse> {
+    return this.promisify<GetAccrualEventHistoryRequest, AccrualEventHistoryResponse>(
+      this.client.getAccrualEventHistory,
+    )(request)
+  }
+
+  // ===========================================================================
+  // ECL Operations (E0-S4)
+  // ===========================================================================
+
+  async getECLAllowance(request: GetECLAllowanceRequest): Promise<ECLAllowanceResponse> {
+    return this.promisify<GetECLAllowanceRequest, ECLAllowanceResponse>(
+      this.client.getECLAllowance,
+    )(request)
+  }
+
+  async getPortfolioECL(request: GetPortfolioECLRequest): Promise<PortfolioECLResponse> {
+    return this.promisify<GetPortfolioECLRequest, PortfolioECLResponse>(
+      this.client.getPortfolioECL,
+    )(request)
+  }
+
+  async triggerPortfolioECLRecalculation(
+    request: TriggerPortfolioECLRecalculationRequest,
+  ): Promise<PortfolioECLRecalculationResponse> {
+    return this.promisify<TriggerPortfolioECLRecalculationRequest, PortfolioECLRecalculationResponse>(
+      this.client.triggerPortfolioECLRecalculation,
+    )(request)
+  }
+
+  async triggerBulkECLRecalculation(
+    request: TriggerBulkECLRecalculationRequest,
+  ): Promise<BulkECLRecalculationResponse> {
+    return this.promisify<TriggerBulkECLRecalculationRequest, BulkECLRecalculationResponse>(
+      this.client.triggerBulkECLRecalculation,
+    )(request)
+  }
+
+  async getEventProcessingStatus(
+    request: GetEventProcessingStatusRequest,
+  ): Promise<EventProcessingStatusResponse> {
+    return this.promisify<GetEventProcessingStatusRequest, EventProcessingStatusResponse>(
+      this.client.getEventProcessingStatus,
+    )(request)
+  }
+
+  // ===========================================================================
+  // ECL Configuration Operations (E0-S5)
+  // ===========================================================================
+
+  async getECLConfig(request: GetECLConfigRequest): Promise<ECLConfigResponse> {
+    return this.promisify<GetECLConfigRequest, ECLConfigResponse>(this.client.getECLConfig)(request)
+  }
+
+  async updateOverlayMultiplier(
+    request: UpdateOverlayMultiplierRequest,
+  ): Promise<ECLConfigResponse> {
+    return this.promisify<UpdateOverlayMultiplierRequest, ECLConfigResponse>(
+      this.client.updateOverlayMultiplier,
+    )(request)
+  }
+
+  async updatePDRate(request: UpdatePDRateRequest): Promise<ECLConfigResponse> {
+    return this.promisify<UpdatePDRateRequest, ECLConfigResponse>(this.client.updatePDRate)(request)
+  }
+
+  async getECLConfigHistory(
+    request: GetECLConfigHistoryRequest,
+  ): Promise<ECLConfigHistoryResponse> {
+    return this.promisify<GetECLConfigHistoryRequest, ECLConfigHistoryResponse>(
+      this.client.getECLConfigHistory,
+    )(request)
+  }
+
+  async scheduleECLConfigChange(
+    request: ScheduleConfigChangeRequest,
+  ): Promise<ScheduleConfigChangeResponse> {
+    return this.promisify<ScheduleConfigChangeRequest, ScheduleConfigChangeResponse>(
+      this.client.scheduleECLConfigChange,
+    )(request)
+  }
+
+  async getPendingConfigChanges(
+    request: GetPendingConfigChangesRequest,
+  ): Promise<PendingConfigChangesResponse> {
+    return this.promisify<GetPendingConfigChangesRequest, PendingConfigChangesResponse>(
+      this.client.getPendingConfigChanges,
+    )(request)
+  }
+
+  async cancelPendingConfigChange(
+    request: CancelPendingConfigChangeRequest,
+  ): Promise<CancelPendingConfigChangeResponse> {
+    return this.promisify<CancelPendingConfigChangeRequest, CancelPendingConfigChangeResponse>(
+      this.client.cancelPendingConfigChange,
+    )(request)
+  }
+
+  async applyPendingConfigChanges(
+    request: ApplyPendingConfigChangesRequest,
+  ): Promise<ApplyPendingConfigChangesResponse> {
+    return this.promisify<ApplyPendingConfigChangesRequest, ApplyPendingConfigChangesResponse>(
+      this.client.applyPendingConfigChanges,
+    )(request)
+  }
+
+  // ===========================================================================
+  // Period Close Operations (E0-S6)
+  // ===========================================================================
+
+  async previewPeriodClose(
+    request: PreviewPeriodCloseRequest,
+  ): Promise<PreviewPeriodCloseResponse> {
+    return this.promisify<PreviewPeriodCloseRequest, PreviewPeriodCloseResponse>(
+      this.client.previewPeriodClose,
+    )(request)
+  }
+
+  async finalizePeriodClose(
+    request: FinalizePeriodCloseRequest,
+  ): Promise<FinalizePeriodCloseResponse> {
+    return this.promisify<FinalizePeriodCloseRequest, FinalizePeriodCloseResponse>(
+      this.client.finalizePeriodClose,
+    )(request)
+  }
+
+  async getPeriodClose(request: GetPeriodCloseRequest): Promise<PeriodCloseResponse> {
+    return this.promisify<GetPeriodCloseRequest, PeriodCloseResponse>(
+      this.client.getPeriodClose,
+    )(request)
+  }
+
+  async getClosedPeriods(request: GetClosedPeriodsRequest): Promise<GetClosedPeriodsResponse> {
+    return this.promisify<GetClosedPeriodsRequest, GetClosedPeriodsResponse>(
+      this.client.getClosedPeriods,
+    )(request)
+  }
+
+  async acknowledgeAnomaly(
+    request: AcknowledgeAnomalyRequest,
+  ): Promise<AcknowledgeAnomalyResponse> {
+    return this.promisify<AcknowledgeAnomalyRequest, AcknowledgeAnomalyResponse>(
+      this.client.acknowledgeAnomaly,
+    )(request)
+  }
+
+  // ===========================================================================
+  // Export Operations (E0-S7)
+  // ===========================================================================
+
+  async createExportJob(request: CreateExportJobRequest): Promise<CreateExportJobResponse> {
+    return this.promisify<CreateExportJobRequest, CreateExportJobResponse>(
+      this.client.createExportJob,
+    )(request)
+  }
+
+  async getExportStatus(request: GetExportStatusRequest): Promise<ExportJobResponse> {
+    return this.promisify<GetExportStatusRequest, ExportJobResponse>(
+      this.client.getExportStatus,
+    )(request)
+  }
+
+  async getExportResult(request: GetExportResultRequest): Promise<GetExportResultResponse> {
+    return this.promisify<GetExportResultRequest, GetExportResultResponse>(
+      this.client.getExportResult,
+    )(request)
+  }
+
+  async retryExport(request: RetryExportRequest): Promise<ExportJobResponse> {
+    return this.promisify<RetryExportRequest, ExportJobResponse>(this.client.retryExport)(request)
+  }
+
+  async listExportJobs(request: ListExportJobsRequest): Promise<ListExportJobsResponse> {
+    return this.promisify<ListExportJobsRequest, ListExportJobsResponse>(
+      this.client.listExportJobs,
+    )(request)
+  }
+
+  // ===========================================================================
+  // Investigation Operations (E0-S8)
+  // ===========================================================================
+
+  async getEventHistory(request: GetEventHistoryRequest): Promise<EventHistoryResponse> {
+    return this.promisify<GetEventHistoryRequest, EventHistoryResponse>(
+      this.client.getEventHistory,
+    )(request)
+  }
+
+  async traceECLToSource(request: TraceECLToSourceRequest): Promise<TraceECLToSourceResponse> {
+    return this.promisify<TraceECLToSourceRequest, TraceECLToSourceResponse>(
+      this.client.traceECLToSource,
+    )(request)
+  }
+
+  async traceAccruedYieldToSource(
+    request: TraceAccruedYieldToSourceRequest,
+  ): Promise<TraceAccruedYieldToSourceResponse> {
+    return this.promisify<TraceAccruedYieldToSourceRequest, TraceAccruedYieldToSourceResponse>(
+      this.client.traceAccruedYieldToSource,
+    )(request)
+  }
+
+  async searchAccounts(request: SearchAccountsRequest): Promise<SearchAccountsResponse> {
+    return this.promisify<SearchAccountsRequest, SearchAccountsResponse>(
+      this.client.searchAccounts,
+    )(request)
+  }
+
+  async batchAccountQuery(request: BatchAccountQueryRequest): Promise<BatchAccountQueryResponse> {
+    return this.promisify<BatchAccountQueryRequest, BatchAccountQueryResponse>(
+      this.client.batchAccountQuery,
+    )(request)
+  }
+
+  async generateRandomSample(
+    request: GenerateRandomSampleRequest,
+  ): Promise<GenerateRandomSampleResponse> {
+    return this.promisify<GenerateRandomSampleRequest, GenerateRandomSampleResponse>(
+      this.client.generateRandomSample,
+    )(request)
+  }
+
+  async getCarryingAmountBreakdown(
+    request: GetCarryingAmountBreakdownRequest,
+  ): Promise<CarryingAmountBreakdownResponse> {
+    return this.promisify<GetCarryingAmountBreakdownRequest, CarryingAmountBreakdownResponse>(
+      this.client.getCarryingAmountBreakdown,
+    )(request)
   }
 }
 

@@ -1,0 +1,48 @@
+/**
+ * API Route: POST /api/period-close/acknowledge-anomaly
+ *
+ * Acknowledge an anomaly in a preview.
+ *
+ * Body:
+ * - previewId: string (required) - Preview ID
+ * - anomalyId: string (required) - Anomaly ID to acknowledge
+ * - acknowledgedBy: string (required) - User acknowledging
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { getLedgerClient } from '@/server/grpc-client'
+
+interface AcknowledgeBody {
+  previewId: string
+  anomalyId: string
+  acknowledgedBy: string
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body: AcknowledgeBody = await request.json()
+
+    if (!body.previewId || !body.anomalyId || !body.acknowledgedBy) {
+      return NextResponse.json(
+        { error: 'previewId, anomalyId, and acknowledgedBy are required' },
+        { status: 400 },
+      )
+    }
+
+    const client = getLedgerClient()
+
+    const response = await client.acknowledgeAnomaly({
+      previewId: body.previewId,
+      anomalyId: body.anomalyId,
+      acknowledgedBy: body.acknowledgedBy,
+    })
+
+    return NextResponse.json(response)
+  } catch (error) {
+    console.error('Error acknowledging anomaly:', error)
+    return NextResponse.json(
+      { error: 'Failed to acknowledge anomaly', details: (error as Error).message },
+      { status: 500 },
+    )
+  }
+}

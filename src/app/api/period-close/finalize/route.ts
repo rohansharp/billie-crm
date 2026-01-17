@@ -1,0 +1,46 @@
+/**
+ * API Route: POST /api/period-close/finalize
+ *
+ * Finalize a period close.
+ *
+ * Body:
+ * - previewId: string (required) - Preview ID to finalize
+ * - finalizedBy: string (required) - User finalizing
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { getLedgerClient } from '@/server/grpc-client'
+
+interface FinalizeBody {
+  previewId: string
+  finalizedBy: string
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body: FinalizeBody = await request.json()
+
+    if (!body.previewId) {
+      return NextResponse.json({ error: 'previewId is required' }, { status: 400 })
+    }
+
+    if (!body.finalizedBy) {
+      return NextResponse.json({ error: 'finalizedBy is required' }, { status: 400 })
+    }
+
+    const client = getLedgerClient()
+
+    const response = await client.finalizePeriodClose({
+      previewId: body.previewId,
+      finalizedBy: body.finalizedBy,
+    })
+
+    return NextResponse.json(response)
+  } catch (error) {
+    console.error('Error finalizing period close:', error)
+    return NextResponse.json(
+      { error: 'Failed to finalize period close', details: (error as Error).message },
+      { status: 500 },
+    )
+  }
+}
