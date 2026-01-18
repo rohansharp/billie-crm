@@ -26,20 +26,23 @@ export async function GET() {
         error.message?.includes('call')
       ) {
         console.warn('Ledger service unavailable or method not implemented for ECL config')
+        const now = new Date().toISOString()
         return NextResponse.json(
           {
-            overlayMultiplier: '1.00',
-            pdRates: {
-              CURRENT: '0.01',
-              DAYS_1_30: '0.05',
-              DAYS_31_60: '0.15',
-              DAYS_61_90: '0.30',
-              DAYS_90_PLUS: '0.50',
-            },
-            lgdRate: '0.50',
-            effectiveDate: new Date().toISOString().split('T')[0],
-            lastUpdatedBy: null,
-            lastUpdatedAt: null,
+            overlayMultiplier: 1.0,
+            overlayUpdatedAt: now,
+            overlayUpdatedBy: 'system',
+            overlayUpdatedByName: 'System Default',
+            pdRates: [
+              { bucket: 'CURRENT', rate: 0.01, updatedAt: now, updatedBy: 'system', updatedByName: 'System Default' },
+              { bucket: 'DAYS_1_30', rate: 0.05, updatedAt: now, updatedBy: 'system', updatedByName: 'System Default' },
+              { bucket: 'DAYS_31_60', rate: 0.15, updatedAt: now, updatedBy: 'system', updatedByName: 'System Default' },
+              { bucket: 'DAYS_61_90', rate: 0.30, updatedAt: now, updatedBy: 'system', updatedByName: 'System Default' },
+              { bucket: 'DAYS_90_PLUS', rate: 0.50, updatedAt: now, updatedBy: 'system', updatedByName: 'System Default' },
+            ],
+            lgd: 0.50,
+            lgdUpdatedAt: now,
+            lgdUpdatedBy: 'system',
             _fallback: true,
             _message: 'Using default ECL configuration',
           },
