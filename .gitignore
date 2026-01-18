@@ -78,3 +78,4 @@ _bmad/_config/ides/*
 _bmad/core/resources/*
 _bmad/core/*
 _bmad/_config/*
+event-processor/src/billie_servicing/__pycache__/*
