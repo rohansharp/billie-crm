@@ -3,7 +3,7 @@
 import { useCallback } from 'react'
 import styles from './styles.module.css'
 
-export type TabId = 'overview' | 'transactions' | 'fees' | 'actions'
+export type TabId = 'overview' | 'transactions' | 'fees' | 'accruals' | 'ecl' | 'actions'
 
 export interface TabConfig {
   id: TabId
@@ -24,7 +24,9 @@ const TABS: TabConfig[] = [
   { id: 'overview', label: 'Overview', shortcut: '1' },
   { id: 'transactions', label: 'Transactions', shortcut: '2' },
   { id: 'fees', label: 'Fees', shortcut: '3' },
-  { id: 'actions', label: 'Actions', shortcut: '4' },
+  { id: 'accruals', label: 'Accruals', shortcut: '4' },
+  { id: 'ecl', label: 'ECL', shortcut: '5' },
+  { id: 'actions', label: 'Actions', shortcut: '6' },
 ]
 
 /**

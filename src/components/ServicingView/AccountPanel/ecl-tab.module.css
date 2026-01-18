@@ -1,0 +1,293 @@
+/* ECL Tab Styles - Story E2-S6 */
+
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  gap: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--theme-elevation-200, #ddd);
+  border-top-color: var(--theme-elevation-600, #666);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error State */
+.error,
+.fallback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+}
+
+.errorIcon,
+.fallbackIcon {
+  font-size: 18px;
+}
+
+.errorText,
+.fallbackText {
+  font-size: 14px;
+  color: #b45309;
+}
+
+/* Summary Grid */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--theme-elevation-50, #fafafa);
+  border: 1px solid var(--theme-elevation-100, #e5e5e5);
+  border-radius: 8px;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--theme-elevation-500, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summaryValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryMeta {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.summaryChange {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.changeIncrease {
+  color: #dc2626;
+}
+
+.changeDecrease {
+  color: #16a34a;
+}
+
+/* Section */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+/* Calculation Grid */
+.calculationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.calculationItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.calculationLabel {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.calculationValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+}
+
+/* Formula */
+.formula {
+  padding: 16px;
+  background: var(--theme-elevation-50, #fafafa);
+  border: 1px solid var(--theme-elevation-100, #e5e5e5);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.formulaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.formulaLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-elevation-500, #888);
+}
+
+.formulaExpression {
+  font-size: 13px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  color: var(--theme-text, #1a1a1a);
+}
+
+.formulaResult {
+  font-size: 14px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  color: var(--theme-text, #1a1a1a);
+  padding-left: 32px;
+}
+
+.formulaResult strong {
+  color: #059669;
+}
+
+/* Trigger Card */
+.triggerCard {
+  padding: 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.triggerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.triggerLabel {
+  font-size: 13px;
+  color: #166534;
+}
+
+.triggerValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: #166534;
+}
+
+/* History Table */
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.historyTable th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--theme-elevation-500, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.historyTable td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--theme-text, #1a1a1a);
+  border-bottom: 1px solid var(--theme-elevation-50, #fafafa);
+}
+
+.historyTable tr:last-child td {
+  border-bottom: none;
+}
+
+.amountCell {
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+/* Trace Link */
+.traceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  align-self: flex-start;
+}
+
+.traceLink:hover {
+  color: #1d4ed8;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .calculationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryValue {
+    font-size: 20px;
+  }
+}

@@ -1,0 +1,224 @@
+/* Dashboard Widget Styles */
+
+.widget {
+  background: var(--theme-elevation-100, #1a1a1a);
+  border: 1px solid var(--theme-elevation-200, #333);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.widgetHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.widgetIcon {
+  font-size: 18px;
+}
+
+.widgetTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-elevation-500, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.widgetContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.widgetSkeleton {
+  height: 80px;
+  background: linear-gradient(90deg, var(--theme-elevation-150) 0%, var(--theme-elevation-200) 50%, var(--theme-elevation-150) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Metric Row */
+.metricRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.metricLabel {
+  font-size: 13px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.metricValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text, #fff);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+.metricWarning {
+  color: var(--theme-warning-500, #f59e0b);
+}
+
+/* Status Row */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.statusDot {
+  font-size: 12px;
+}
+
+.statusHealthy {
+  color: var(--theme-success-500, #22c55e);
+}
+
+.statusDegraded {
+  color: var(--theme-warning-500, #f59e0b);
+}
+
+.statusCritical {
+  color: var(--theme-error-500, #ef4444);
+}
+
+.statusUnknown {
+  color: var(--theme-elevation-400, #666);
+}
+
+.statusLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text, #fff);
+}
+
+/* Widget Link */
+.widgetLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--theme-elevation-600, #aaa);
+  text-decoration: none;
+  margin-top: 4px;
+  transition: color 0.15s ease;
+}
+
+.widgetLink:hover {
+  color: var(--theme-text, #fff);
+}
+
+/* Success State */
+.widgetSuccess {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--theme-success-500, #22c55e);
+  background-opacity: 0.1;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--theme-success-400, #4ade80);
+}
+
+/* Fallback State */
+.widgetFallback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--theme-elevation-150, #2a2a2a);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--theme-elevation-500, #888);
+}
+
+/* ECL Widget Specific */
+.eclMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eclAmount {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--theme-text, #fff);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+.eclPercent {
+  font-size: 13px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.eclMeta {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+/* Bucket Distribution Bar */
+.bucketBar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--theme-elevation-200, #333);
+  margin-top: 4px;
+}
+
+.bucketSegment {
+  height: 100%;
+  min-width: 2px;
+}
+
+.bucket0 {
+  background: var(--theme-success-500, #22c55e);
+}
+
+.bucket1 {
+  background: var(--theme-warning-400, #fbbf24);
+}
+
+.bucket2 {
+  background: var(--theme-warning-500, #f59e0b);
+}
+
+.bucket3 {
+  background: var(--theme-error-400, #f87171);
+}
+
+.bucket4 {
+  background: var(--theme-error-500, #ef4444);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .widget {
+    padding: 12px;
+  }
+
+  .eclAmount {
+    font-size: 20px;
+  }
+}

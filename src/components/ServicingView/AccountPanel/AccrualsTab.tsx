@@ -1,0 +1,199 @@
+'use client'
+
+import React from 'react'
+import { useAccruedYield, useAccrualHistory } from '@/hooks/queries/useAccruedYield'
+import styles from './accruals-tab.module.css'
+
+export interface AccrualsTabProps {
+  /** Loan account ID to fetch accruals for */
+  loanAccountId: string
+}
+
+/**
+ * Format currency for display
+ */
+function formatCurrency(amount: string): string {
+  const num = parseFloat(amount)
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: 'AUD',
+  }).format(num)
+}
+
+/**
+ * Format date for display
+ */
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return '—'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+/**
+ * AccrualsTab - Displays accrued yield (revenue recognition) information.
+ *
+ * Shows:
+ * - Cumulative accrued amount and remaining
+ * - Progress bar (days accrued / term days)
+ * - Calculation breakdown (fee, term, daily rate)
+ * - Recent accrual events table
+ *
+ * Story E2-S5: Implement Accruals Tab Component
+ */
+export const AccrualsTab: React.FC<AccrualsTabProps> = ({ loanAccountId }) => {
+  const {
+    accruedAmount,
+    remainingAmount,
+    totalFeeAmount,
+    termDays,
+    daysAccrued,
+    dailyRate,
+    progress,
+    accrualStartDate,
+    accrualEndDate,
+    isFallback,
+    isLoading,
+    error,
+  } = useAccruedYield({ accountId: loanAccountId })
+
+  const {
+    events,
+    isLoading: historyLoading,
+  } = useAccrualHistory({ accountId: loanAccountId, limit: 5 })
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>
+          <div className={styles.spinner} />
+          <span>Loading accrual data...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.error}>
+          <span className={styles.errorIcon}>⚠️</span>
+          <span className={styles.errorText}>Failed to load accrual data</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (isFallback) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.fallback}>
+          <span className={styles.fallbackIcon}>⚠️</span>
+          <span className={styles.fallbackText}>
+            Ledger service unavailable. Accrual data cannot be displayed.
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.container}>
+      <h3 className={styles.title}>Accrued Yield</h3>
+
+      {/* Summary Cards */}
+      <div className={styles.summaryGrid}>
+        <div className={styles.summaryCard}>
+          <span className={styles.summaryLabel}>Cumulative Accrued</span>
+          <span className={styles.summaryValue}>{formatCurrency(accruedAmount)}</span>
+          <span className={styles.summaryMeta}>of {formatCurrency(totalFeeAmount)} total fee</span>
+        </div>
+
+        <div className={styles.summaryCard}>
+          <span className={styles.summaryLabel}>Accrual Progress</span>
+          <span className={styles.summaryValue}>
+            Day {daysAccrued} of {termDays}
+          </span>
+          <div className={styles.progressBar}>
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+          </div>
+          <span className={styles.summaryMeta}>
+            Est. completion: {formatDate(accrualEndDate)}
+          </span>
+        </div>
+      </div>
+
+      {/* Calculation Breakdown */}
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Calculation Breakdown</h4>
+        <div className={styles.breakdownGrid}>
+          <div className={styles.breakdownItem}>
+            <span className={styles.breakdownLabel}>Fee Amount</span>
+            <span className={styles.breakdownValue}>{formatCurrency(totalFeeAmount)}</span>
+          </div>
+          <div className={styles.breakdownItem}>
+            <span className={styles.breakdownLabel}>Term Days</span>
+            <span className={styles.breakdownValue}>{termDays}</span>
+          </div>
+          <div className={styles.breakdownItem}>
+            <span className={styles.breakdownLabel}>Daily Rate</span>
+            <span className={styles.breakdownValue}>{formatCurrency(dailyRate)}</span>
+          </div>
+          <div className={styles.breakdownItem}>
+            <span className={styles.breakdownLabel}>Disbursement</span>
+            <span className={styles.breakdownValue}>{formatDate(accrualStartDate)}</span>
+          </div>
+        </div>
+        <div className={styles.formula}>
+          <span className={styles.formulaLabel}>Formula:</span>
+          <code className={styles.formulaCode}>
+            {formatCurrency(totalFeeAmount)} ÷ {termDays} days = {formatCurrency(dailyRate)}/day
+          </code>
+        </div>
+      </div>
+
+      {/* Remaining Amount */}
+      <div className={styles.remainingCard}>
+        <span className={styles.remainingLabel}>Remaining to Recognize</span>
+        <span className={styles.remainingValue}>{formatCurrency(remainingAmount)}</span>
+      </div>
+
+      {/* Recent Accrual Events */}
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Recent Accrual Events</h4>
+        {historyLoading ? (
+          <div className={styles.tableLoading}>Loading events...</div>
+        ) : events.length === 0 ? (
+          <div className={styles.tableEmpty}>No accrual events recorded yet.</div>
+        ) : (
+          <table className={styles.eventsTable}>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Daily</th>
+                <th>Cumulative</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event) => (
+                <tr key={event.eventId}>
+                  <td>{formatDate(event.timestamp)}</td>
+                  <td className={styles.amountCell}>{formatCurrency(event.amount)}</td>
+                  <td className={styles.amountCell}>{formatCurrency(event.cumulativeAmount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {events.length > 0 && (
+          <button type="button" className={styles.viewHistoryLink}>
+            View Full History →
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}

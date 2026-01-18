@@ -1,0 +1,284 @@
+/* Accruals Tab Styles - Story E2-S5 */
+
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  gap: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--theme-elevation-200, #ddd);
+  border-top-color: var(--theme-elevation-600, #666);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error State */
+.error,
+.fallback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+}
+
+.errorIcon,
+.fallbackIcon {
+  font-size: 18px;
+}
+
+.errorText,
+.fallbackText {
+  font-size: 14px;
+  color: #b45309;
+}
+
+/* Summary Grid */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--theme-elevation-50, #fafafa);
+  border: 1px solid var(--theme-elevation-100, #e5e5e5);
+  border-radius: 8px;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--theme-elevation-500, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summaryValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryMeta {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+/* Progress Bar */
+.progressBar {
+  height: 8px;
+  background: var(--theme-elevation-200, #ddd);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.progressFill {
+  height: 100%;
+  background: #10b981;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Section */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text, #1a1a1a);
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+/* Breakdown Grid */
+.breakdownGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.breakdownItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.breakdownLabel {
+  font-size: 12px;
+  color: var(--theme-elevation-500, #888);
+}
+
+.breakdownValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--theme-text, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Formula */
+.formula {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--theme-elevation-50, #fafafa);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.formulaLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--theme-elevation-500, #888);
+}
+
+.formulaCode {
+  font-size: 13px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  color: var(--theme-text, #1a1a1a);
+}
+
+/* Remaining Card */
+.remainingCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #dbeafe;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+}
+
+.remainingLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d4ed8;
+}
+
+.remainingValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d4ed8;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Events Table */
+.eventsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.eventsTable th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--theme-elevation-500, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--theme-elevation-100, #e5e5e5);
+}
+
+.eventsTable td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--theme-text, #1a1a1a);
+  border-bottom: 1px solid var(--theme-elevation-50, #fafafa);
+}
+
+.eventsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.amountCell {
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+.tableLoading,
+.tableEmpty {
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--theme-elevation-500, #888);
+}
+
+/* View History Link */
+.viewHistoryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.viewHistoryLink:hover {
+  color: #1d4ed8;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .breakdownGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryValue {
+    font-size: 20px;
+  }
+}

@@ -30,6 +30,7 @@ export default buildConfig({
       beforeNavLinks: [
         '@/components/navigation/NavSearchTrigger#NavSearchTrigger',
         '@/components/navigation/NavDashboardLink#NavDashboardLink',
+        '@/components/navigation/NavCollectionsLink#NavCollectionsLink',
         '@/components/navigation/NavApprovalsLink#NavApprovalsLink',
       ],
       // Notification bell in header actions (next to user profile button)
@@ -55,6 +56,16 @@ export default buildConfig({
         myActivity: {
           Component: '@/components/MyActivityView/MyActivityViewWithTemplate#MyActivityViewWithTemplate',
           path: '/my-activity',
+        },
+        // Collections Queue view (Story E1-S1)
+        collections: {
+          Component: '@/components/CollectionsView/CollectionsViewWithTemplate#CollectionsViewWithTemplate',
+          path: '/collections',
+        },
+        // System Status view (Story E1-S10)
+        systemStatus: {
+          Component: '@/components/SystemStatusView/SystemStatusViewWithTemplate#SystemStatusViewWithTemplate',
+          path: '/system-status',
         },
       },
     },

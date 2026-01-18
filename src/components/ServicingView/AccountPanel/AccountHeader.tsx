@@ -1,6 +1,7 @@
 'use client'
 
 import type { LoanAccountData } from '@/hooks/queries/useCustomer'
+import { useAccountAging } from '@/hooks/queries/useAccountAging'
 import { CopyButton } from '@/components/ui'
 import { getStatusConfig } from '../account-status'
 import styles from './styles.module.css'
@@ -12,6 +13,50 @@ export interface AccountHeaderProps {
   onRefresh?: () => void
   isRefreshing?: boolean
   hasPendingWriteOff?: boolean
+}
+
+/**
+ * Get bucket badge configuration
+ */
+function getBucketConfig(bucket: string, dpd: number): { label: string; className: string; tooltip: string } {
+  switch (bucket) {
+    case 'current':
+      return {
+        label: 'Current',
+        className: styles.bucketCurrent,
+        tooltip: 'Account is current - no overdue payments',
+      }
+    case 'bucket_1':
+      return {
+        label: `Bucket 1 (${dpd} DPD)`,
+        className: styles.bucket1,
+        tooltip: `${dpd} days past due - 1-30 day delinquency`,
+      }
+    case 'bucket_2':
+      return {
+        label: `Bucket 2 (${dpd} DPD)`,
+        className: styles.bucket2,
+        tooltip: `${dpd} days past due - 31-60 day delinquency`,
+      }
+    case 'bucket_3':
+      return {
+        label: `Bucket 3 (${dpd} DPD)`,
+        className: styles.bucket3,
+        tooltip: `${dpd} days past due - 61-90 day delinquency`,
+      }
+    case 'bucket_4':
+      return {
+        label: `Bucket 4 (${dpd} DPD)`,
+        className: styles.bucket4,
+        tooltip: `${dpd} days past due - 90+ day delinquency`,
+      }
+    default:
+      return {
+        label: bucket,
+        className: '',
+        tooltip: `${dpd} days past due`,
+      }
+  }
 }
 
 // Hoisted for performance
@@ -35,6 +80,15 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({
   const statusConfig = getStatusConfig(account.accountStatus)
   const hasLiveBalance = account.liveBalance !== null
 
+  // Fetch aging status from ledger
+  const { dpd, bucket, isFallback: agingFallback, isLoading: agingLoading } = useAccountAging({
+    accountId: account.loanAccountId,
+    enabled: account.accountStatus !== 'PAID_OFF' && account.accountStatus !== 'WRITTEN_OFF',
+  })
+
+  const bucketConfig = getBucketConfig(bucket, dpd)
+  const showAgingBadge = !agingLoading && bucket !== 'current' && !agingFallback
+
   const totalOutstanding = hasLiveBalance
     ? account.liveBalance!.totalOutstanding
     : account.balances?.totalOutstanding ?? 0
@@ -50,6 +104,16 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({
         <span className={`${styles.accountHeaderStatus} ${styles[statusConfig.colorClass]}`}>
           {statusConfig.label}
         </span>
+        {/* Aging Badge - Story E2-S4 */}
+        {showAgingBadge && (
+          <span
+            className={`${styles.agingBadge} ${bucketConfig.className}`}
+            title={bucketConfig.tooltip}
+            data-testid="aging-badge"
+          >
+            {bucketConfig.label}
+          </span>
+        )}
         {hasLiveBalance ? (
           <span className={styles.accountHeaderLive}>
             <span className={styles.accountHeaderLiveDot} />

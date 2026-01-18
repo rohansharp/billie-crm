@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useDashboard } from '@/hooks/queries/useDashboard'
 import { useRecentCustomersStore } from '@/stores/recentCustomers'
 import { useFailedActionsStore } from '@/stores/failed-actions'
 import { SortableTable, type ColumnDef } from '@/components/SortableTable'
+import { PortfolioHealthWidget } from './PortfolioHealthWidget'
+import { ECLSummaryWidget } from './ECLSummaryWidget'
+import { SystemStatusWidget } from './SystemStatusWidget'
 import type { RecentAccount, UpcomingPayment } from '@/lib/schemas/dashboard'
 import styles from './styles.module.css'
 
@@ -250,6 +252,13 @@ export function DashboardView() {
         <h1 className={styles.greeting} data-testid="dashboard-greeting">
           {greeting}, {firstName}!
         </h1>
+      </div>
+
+      {/* Portfolio Overview Widgets */}
+      <div className={styles.widgetRow} data-testid="portfolio-widgets">
+        <PortfolioHealthWidget />
+        <ECLSummaryWidget />
+        <SystemStatusWidget />
       </div>
 
       {/* Main Grid */}

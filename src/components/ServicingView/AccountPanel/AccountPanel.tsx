@@ -9,6 +9,8 @@ import { AccountSwitcher } from './AccountSwitcher'
 import { OverviewTab } from './OverviewTab'
 import { TransactionsTab } from './TransactionsTab'
 import { FeesTab } from './FeesTab'
+import { AccrualsTab } from './AccrualsTab'
+import { ECLTab } from './ECLTab'
 import { ActionsTab } from './ActionsTab'
 import { useAccountPanelHotkeys } from './useAccountPanelHotkeys'
 import { useUIStore } from '@/stores/ui'
@@ -41,7 +43,7 @@ export interface AccountPanelProps {
  * Replaces the drawer-based approach with an inline panel.
  *
  * Keyboard shortcuts:
- * - 1-4: Switch tabs (Overview, Transactions, Fees, Actions)
+ * - 1-6: Switch tabs (Overview, Transactions, Fees, Actions)
  * - ↑/↓: Navigate between accounts
  * - Escape: Close panel
  */
@@ -132,6 +134,10 @@ export const AccountPanel: React.FC<AccountPanelProps> = ({
         )
       case 'fees':
         return <FeesTab loanAccountId={account.loanAccountId} onBulkWaive={onBulkWaive} />
+      case 'accruals':
+        return <AccrualsTab loanAccountId={account.loanAccountId} />
+      case 'ecl':
+        return <ECLTab loanAccountId={account.loanAccountId} />
       case 'actions':
         return (
           <ActionsTab

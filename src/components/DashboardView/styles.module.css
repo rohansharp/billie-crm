@@ -21,6 +21,26 @@
   color: var(--theme-text, #fff);
 }
 
+/* Widget Row - 3 columns for portfolio widgets */
+.widgetRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 1000px) {
+  .widgetRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .widgetRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Grid Layout - 2x2 on larger screens */
 .grid {
   display: grid;

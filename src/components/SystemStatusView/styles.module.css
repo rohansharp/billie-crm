@@ -1,0 +1,377 @@
+/* System Status View Styles */
+
+.container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--theme-text);
+  margin: 0;
+}
+
+.refreshButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 6px;
+  background: var(--theme-elevation-0);
+  color: var(--theme-text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.refreshButton:hover {
+  border-color: var(--theme-elevation-400);
+  background: var(--theme-elevation-50);
+}
+
+.refreshButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Overall Status Card */
+.overallStatus {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.statusIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 32px;
+}
+
+.statusHealthy {
+  background: var(--theme-success-100);
+}
+
+.statusDegraded {
+  background: var(--theme-warning-100);
+}
+
+.statusCritical {
+  background: var(--theme-error-100);
+}
+
+.statusUnknown {
+  background: var(--theme-elevation-100);
+}
+
+.statusInfo {
+  flex: 1;
+}
+
+.statusLabel {
+  font-size: 14px;
+  color: var(--theme-elevation-500);
+  margin: 0 0 4px 0;
+}
+
+.statusValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--theme-text);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.statusMeta {
+  display: flex;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.statusMetaItem {
+  font-size: 14px;
+  color: var(--theme-elevation-600);
+}
+
+.statusMetaValue {
+  font-weight: 500;
+  color: var(--theme-text);
+}
+
+/* Summary Cards */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summaryCard {
+  padding: 20px;
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 8px;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--theme-elevation-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 8px 0;
+}
+
+.summaryValue {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--theme-text);
+  margin: 0;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+/* Streams Section */
+.streamsSection {
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sectionHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text);
+  margin: 0;
+}
+
+/* Stream Cards */
+.streamsList {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.streamCard {
+  padding: 16px;
+  background: var(--theme-elevation-50);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.streamStatus {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.streamHealthy {
+  background: var(--theme-success-500);
+  box-shadow: 0 0 0 3px var(--theme-success-100);
+}
+
+.streamLagging {
+  background: var(--theme-warning-500);
+  box-shadow: 0 0 0 3px var(--theme-warning-100);
+}
+
+.streamStalled {
+  background: var(--theme-error-500);
+  box-shadow: 0 0 0 3px var(--theme-error-100);
+}
+
+.streamUnknown {
+  background: var(--theme-elevation-400);
+  box-shadow: 0 0 0 3px var(--theme-elevation-100);
+}
+
+.streamInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.streamName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text);
+  margin: 0 0 4px 0;
+}
+
+.streamMeta {
+  font-size: 12px;
+  color: var(--theme-elevation-500);
+}
+
+.streamStats {
+  display: flex;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.streamStat {
+  text-align: right;
+}
+
+.streamStatLabel {
+  font-size: 11px;
+  color: var(--theme-elevation-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.streamStatValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+.streamStatWarning {
+  color: var(--theme-warning-600);
+}
+
+.streamStatError {
+  color: var(--theme-error-500);
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  gap: 16px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--theme-elevation-100);
+  border-top-color: var(--theme-elevation-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  font-size: 14px;
+  color: var(--theme-elevation-500);
+}
+
+/* Error State */
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  gap: 12px;
+  text-align: center;
+}
+
+.errorIcon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.errorTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text);
+  margin: 0;
+}
+
+.errorText {
+  font-size: 14px;
+  color: var(--theme-elevation-500);
+  margin: 0;
+}
+
+/* Warning Banner */
+.warningBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--theme-warning-100);
+  border: 1px solid var(--theme-warning-200);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.warningIcon {
+  font-size: 16px;
+}
+
+.warningText {
+  font-size: 14px;
+  color: var(--theme-warning-600);
+}
+
+/* Last Updated */
+.lastUpdated {
+  text-align: center;
+  padding: 16px;
+  font-size: 12px;
+  color: var(--theme-elevation-500);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .overallStatus {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .statusMeta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .streamCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .streamStats {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

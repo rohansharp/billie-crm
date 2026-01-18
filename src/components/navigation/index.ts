@@ -3,5 +3,6 @@
 
 export { NavSearchTrigger } from './NavSearchTrigger'
 export { NavDashboardLink } from './NavDashboardLink'
+export { NavCollectionsLink } from './NavCollectionsLink'
 export { NavApprovalsLink } from './NavApprovalsLink'
 export { NavSystemStatus } from './NavSystemStatus'
