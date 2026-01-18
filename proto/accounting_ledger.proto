@@ -422,7 +422,7 @@ message GLReconciliationResponse {
 message TransactionResponse {
   Transaction transaction = 1;
   string event_id = 2;  // ID of the published event (for correlation)
-
+  
   // Payment allocation details (only for RepaymentResponse)
   optional string allocated_to_fees = 3;
   optional string allocated_to_principal = 4;

@@ -277,7 +277,8 @@
   transform: translate(-50%, -50%);
   width: 90%;
   max-width: 500px;
-  background: var(--color-surface);
+  background-color: #ffffff;
+  background-color: var(--theme-elevation-500, #ffffff);
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   z-index: 1000;
