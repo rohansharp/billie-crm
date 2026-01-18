@@ -46,17 +46,10 @@ export async function POST(request: NextRequest) {
         console.warn('Ledger service unavailable or method not implemented for portfolio recalc')
         return NextResponse.json(
           {
-            jobId: `mock-${Date.now()}`,
-            status: 'queued',
-            totalAccounts: 0,
-            processedAccounts: 0,
-            estimatedCompletionTime: null,
-            triggeredBy: body.triggeredBy,
-            triggeredAt: new Date().toISOString(),
-            _fallback: true,
-            _message: 'Portfolio recalculation service not available',
+            error: 'Recalculation service not available',
+            message: 'The portfolio ECL recalculation service is not currently available. Please try again later.',
           },
-          { status: 200 },
+          { status: 503 },
         )
       }
       throw grpcError
