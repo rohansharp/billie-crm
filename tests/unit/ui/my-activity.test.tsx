@@ -115,12 +115,14 @@ describe('MyActivityView', () => {
     const mockSubmittedDocs = [
       {
         id: 'req-1',
+        requestId: 'req-1',
         requestNumber: 'WO-2024-001',
         customerId: 'CUST-001',
         customerName: 'John Smith',
         amount: 150.00,
         reason: 'financial_hardship',
         status: 'pending',
+        requestedBy: 'user-123', // Needed for client-side filtering
         createdAt: '2024-12-10T10:00:00Z',
         updatedAt: '2024-12-10T10:00:00Z',
       },
@@ -129,6 +131,7 @@ describe('MyActivityView', () => {
     const mockDecidedDocs = [
       {
         id: 'req-2',
+        requestId: 'req-2',
         requestNumber: 'WO-2024-002',
         customerId: 'CUST-002',
         customerName: 'Jane Doe',
@@ -141,6 +144,7 @@ describe('MyActivityView', () => {
           decidedBy: 'user-123',
           decidedByName: 'Test User',
           decidedAt: '2024-12-10T14:00:00Z',
+          approvedBy: 'user-123', // This is the field the component actually checks
         },
       },
     ]

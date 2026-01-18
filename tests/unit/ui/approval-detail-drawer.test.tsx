@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ApprovalDetailDrawer } from '@/components/ApprovalsView'
 import type { WriteOffApproval } from '@/hooks/queries/usePendingApprovals'
 
 // Mock the mutation hooks
 const mockApproveRequestAsync = vi.fn()
 const mockRejectRequestAsync = vi.fn()
+const mockCancelRequestAsync = vi.fn()
 
 vi.mock('@/hooks/mutations/useApproveWriteOff', () => ({
   useApproveWriteOff: () => ({
@@ -20,6 +22,28 @@ vi.mock('@/hooks/mutations/useRejectWriteOff', () => ({
     isPending: false,
   }),
 }))
+
+vi.mock('@/hooks/mutations/useCancelWriteOff', () => ({
+  useCancelWriteOff: () => ({
+    cancelRequestAsync: mockCancelRequestAsync,
+    isPending: false,
+  }),
+}))
+
+// Test utilities
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  })
+
+const renderWithProviders = (ui: React.ReactElement) => {
+  const queryClient = createQueryClient()
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
+}
 
 const mockApproval: WriteOffApproval = {
   id: 'req-123',
@@ -52,7 +76,7 @@ describe('ApprovalDetailDrawer', () => {
 
   describe('Rendering', () => {
     it('should render drawer when open with approval', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -63,7 +87,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should not render when approval is null', () => {
-      const { container } = render(
+      const { container } = renderWithProviders(
         <ApprovalDetailDrawer
           approval={null}
           isOpen={true}
@@ -74,7 +98,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should display customer and account details', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -89,7 +113,7 @@ describe('ApprovalDetailDrawer', () => {
 
   describe('Segregation of Duties', () => {
     it('should disable Approve button when user is the requestor', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -104,7 +128,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should show disabled reason text when user is the requestor', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -117,7 +141,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should enable Approve button when user is NOT the requestor', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -131,7 +155,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should enable Reject button even when user is the requestor', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -145,7 +169,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should show correct tooltip when user is the requestor', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -159,7 +183,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should show correct tooltip when user is NOT the requestor', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -175,7 +199,7 @@ describe('ApprovalDetailDrawer', () => {
 
   describe('Action Buttons', () => {
     it('should only show action buttons for pending status', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -189,7 +213,7 @@ describe('ApprovalDetailDrawer', () => {
 
     it('should NOT show action buttons for approved status', () => {
       const approvedRequest = { ...mockApproval, status: 'approved' as const }
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={approvedRequest}
           isOpen={true}
@@ -202,7 +226,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should open modal when Approve is clicked', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -217,7 +241,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should open modal when Reject is clicked', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}
@@ -235,7 +259,7 @@ describe('ApprovalDetailDrawer', () => {
   describe('Senior Approval Warning', () => {
     it('should show senior approval warning when required', () => {
       const seniorApproval = { ...mockApproval, requiresSeniorApproval: true }
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={seniorApproval}
           isOpen={true}
@@ -247,7 +271,7 @@ describe('ApprovalDetailDrawer', () => {
     })
 
     it('should NOT show senior approval warning when not required', () => {
-      render(
+      renderWithProviders(
         <ApprovalDetailDrawer
           approval={mockApproval}
           isOpen={true}

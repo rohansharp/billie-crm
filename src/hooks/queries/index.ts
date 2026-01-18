@@ -72,6 +72,10 @@ export type {
   UseCarryingAmountBreakdownOptions,
 } from './useCarryingAmountBreakdown'
 
+// Period Close hooks (E3)
+export { useClosedPeriods } from './useClosedPeriods'
+export type { ClosedPeriod } from './useClosedPeriods'
+
 // Re-export types from canonical location
 export type {
   CustomerSearchResult,

@@ -14,5 +14,12 @@ export default defineConfig({
     sequence: {
       concurrent: false,
     },
+    // Handle CSS imports from node_modules
+    css: true,
+  },
+  resolve: {
+    alias: {
+      'react-image-crop/dist/ReactCrop.css': '/dev/null',
+    },
   },
 })

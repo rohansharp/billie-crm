@@ -32,6 +32,7 @@ export default buildConfig({
         '@/components/navigation/NavDashboardLink#NavDashboardLink',
         '@/components/navigation/NavCollectionsLink#NavCollectionsLink',
         '@/components/navigation/NavApprovalsLink#NavApprovalsLink',
+        '@/components/navigation/NavPeriodCloseLink#NavPeriodCloseLink',
       ],
       // Notification bell in header actions (next to user profile button)
       actions: ['@/components/Notifications/NotificationAction#NotificationAction'],
@@ -66,6 +67,11 @@ export default buildConfig({
         systemStatus: {
           Component: '@/components/SystemStatusView/SystemStatusViewWithTemplate#SystemStatusViewWithTemplate',
           path: '/system-status',
+        },
+        // Period Close view (Epic 3)
+        periodClose: {
+          Component: '@/components/PeriodCloseView/PeriodCloseViewWithTemplate#PeriodCloseViewWithTemplate',
+          path: '/period-close',
         },
       },
     },

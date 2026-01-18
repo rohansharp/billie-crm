@@ -16,6 +16,16 @@ export type {
   RepaymentAllocation,
 } from './mutations/useRecordRepayment'
 
+// Period Close mutations (E3)
+export { usePeriodClosePreview } from './mutations/usePeriodClosePreview'
+export type {
+  PeriodClosePreview,
+  PeriodCloseAnomaly,
+  ECLBucketSummary,
+} from './mutations/usePeriodClosePreview'
+export { useAcknowledgeAnomaly } from './mutations/useAcknowledgeAnomaly'
+export { useFinalizePeriodClose } from './mutations/useFinalizePeriodClose'
+
 // Re-export types from canonical location
 export type {
   CustomerSearchResult,

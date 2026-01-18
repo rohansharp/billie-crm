@@ -189,8 +189,9 @@ describe('LedgerStatusIndicator', () => {
         expect(screen.getByText('Connected')).toBeInTheDocument()
       })
 
-      // Then check tooltip content
-      expect(screen.getByRole('tooltip')).toHaveTextContent('Ledger Connected')
+      // The tooltip is hidden by CSS but present in the DOM
+      // Use getByRole with hidden: true to include hidden elements
+      expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent('Ledger Connected')
     })
   })
 })

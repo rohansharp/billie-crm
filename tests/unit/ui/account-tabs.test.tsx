@@ -13,12 +13,14 @@ describe('AccountTabs', () => {
   }
 
   describe('Rendering', () => {
-    test('renders all four tabs', () => {
+    test('renders all six tabs', () => {
       render(<AccountTabs {...defaultProps} />)
 
       expect(screen.getByTestId('tab-overview')).toBeInTheDocument()
       expect(screen.getByTestId('tab-transactions')).toBeInTheDocument()
       expect(screen.getByTestId('tab-fees')).toBeInTheDocument()
+      expect(screen.getByTestId('tab-accruals')).toBeInTheDocument()
+      expect(screen.getByTestId('tab-ecl')).toBeInTheDocument()
       expect(screen.getByTestId('tab-actions')).toBeInTheDocument()
     })
 
@@ -28,6 +30,8 @@ describe('AccountTabs', () => {
       expect(screen.getByText('Overview')).toBeInTheDocument()
       expect(screen.getByText('Transactions')).toBeInTheDocument()
       expect(screen.getByText('Fees')).toBeInTheDocument()
+      expect(screen.getByText('Accruals')).toBeInTheDocument()
+      expect(screen.getByText('ECL')).toBeInTheDocument()
       expect(screen.getByText('Actions')).toBeInTheDocument()
     })
 
@@ -38,6 +42,8 @@ describe('AccountTabs', () => {
       expect(screen.getByText('2')).toBeInTheDocument()
       expect(screen.getByText('3')).toBeInTheDocument()
       expect(screen.getByText('4')).toBeInTheDocument()
+      expect(screen.getByText('5')).toBeInTheDocument()
+      expect(screen.getByText('6')).toBeInTheDocument()
     })
 
     test('does not show keyboard hints when showKeyboardHints is false', () => {
@@ -48,6 +54,8 @@ describe('AccountTabs', () => {
       expect(screen.queryByText('2')).not.toBeInTheDocument()
       expect(screen.queryByText('3')).not.toBeInTheDocument()
       expect(screen.queryByText('4')).not.toBeInTheDocument()
+      expect(screen.queryByText('5')).not.toBeInTheDocument()
+      expect(screen.queryByText('6')).not.toBeInTheDocument()
     })
   })
 
@@ -74,6 +82,20 @@ describe('AccountTabs', () => {
       expect(feesTab).toHaveAttribute('aria-selected', 'true')
     })
 
+    test('accruals tab can be active', () => {
+      render(<AccountTabs {...defaultProps} activeTab="accruals" />)
+
+      const accrualsTab = screen.getByTestId('tab-accruals')
+      expect(accrualsTab).toHaveAttribute('aria-selected', 'true')
+    })
+
+    test('ecl tab can be active', () => {
+      render(<AccountTabs {...defaultProps} activeTab="ecl" />)
+
+      const eclTab = screen.getByTestId('tab-ecl')
+      expect(eclTab).toHaveAttribute('aria-selected', 'true')
+    })
+
     test('actions tab can be active', () => {
       render(<AccountTabs {...defaultProps} activeTab="actions" />)
 
@@ -86,6 +108,8 @@ describe('AccountTabs', () => {
 
       expect(screen.getByTestId('tab-transactions')).toHaveAttribute('tabindex', '-1')
       expect(screen.getByTestId('tab-fees')).toHaveAttribute('tabindex', '-1')
+      expect(screen.getByTestId('tab-accruals')).toHaveAttribute('tabindex', '-1')
+      expect(screen.getByTestId('tab-ecl')).toHaveAttribute('tabindex', '-1')
       expect(screen.getByTestId('tab-actions')).toHaveAttribute('tabindex', '-1')
     })
   })
@@ -113,6 +137,22 @@ describe('AccountTabs', () => {
 
       fireEvent.click(screen.getByTestId('tab-fees'))
       expect(onTabChange).toHaveBeenCalledWith('fees')
+    })
+
+    test('clicking accruals tab calls onTabChange with accruals', () => {
+      const onTabChange = vi.fn()
+      render(<AccountTabs {...defaultProps} onTabChange={onTabChange} />)
+
+      fireEvent.click(screen.getByTestId('tab-accruals'))
+      expect(onTabChange).toHaveBeenCalledWith('accruals')
+    })
+
+    test('clicking ecl tab calls onTabChange with ecl', () => {
+      const onTabChange = vi.fn()
+      render(<AccountTabs {...defaultProps} onTabChange={onTabChange} />)
+
+      fireEvent.click(screen.getByTestId('tab-ecl'))
+      expect(onTabChange).toHaveBeenCalledWith('ecl')
     })
 
     test('clicking actions tab calls onTabChange with actions', () => {
@@ -214,7 +254,7 @@ describe('AccountTabs', () => {
       render(<AccountTabs {...defaultProps} />)
 
       const tabs = screen.getAllByRole('tab')
-      expect(tabs).toHaveLength(4)
+      expect(tabs).toHaveLength(6)
     })
 
     test('tabs have aria-controls attribute', () => {
@@ -223,6 +263,8 @@ describe('AccountTabs', () => {
       expect(screen.getByTestId('tab-overview')).toHaveAttribute('aria-controls', 'tabpanel-overview')
       expect(screen.getByTestId('tab-transactions')).toHaveAttribute('aria-controls', 'tabpanel-transactions')
       expect(screen.getByTestId('tab-fees')).toHaveAttribute('aria-controls', 'tabpanel-fees')
+      expect(screen.getByTestId('tab-accruals')).toHaveAttribute('aria-controls', 'tabpanel-accruals')
+      expect(screen.getByTestId('tab-ecl')).toHaveAttribute('aria-controls', 'tabpanel-ecl')
       expect(screen.getByTestId('tab-actions')).toHaveAttribute('aria-controls', 'tabpanel-actions')
     })
   })
