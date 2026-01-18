@@ -30,25 +30,50 @@ export async function GET(
       const error = grpcError as { code?: number; message?: string }
       // Handle NOT_FOUND - account has no ECL state yet
       if (error.code === 5 || error.message?.includes('NOT_FOUND')) {
+        console.warn(`No ECL allowance found for account ${accountId}. Returning default.`)
         return NextResponse.json(
           {
             accountId,
-            eclAmount: 0,
-            carryingAmount: 0,
+            eclAmount: '0.00',
+            eclChange: '0.00',
+            changeDirection: 'unchanged',
+            carryingAmount: '0.00',
             bucket: 'CURRENT',
-            calculationParams: null,
-            lastCalculatedAt: null,
+            pdRate: '0.00',
+            overlayMultiplier: '1.00',
+            lgdRate: '0.00',
+            calculatedAt: new Date().toISOString(),
             history: [],
-            _notFound: true,
           },
           { status: 200 },
         )
       }
-      if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {
-        console.warn('Ledger service unavailable for ECL')
+      // Handle UNAVAILABLE (14), UNIMPLEMENTED (12), or missing client method
+      if (
+        error.code === 14 ||
+        error.code === 12 ||
+        error.message?.includes('UNAVAILABLE') ||
+        error.message?.includes('not implemented') ||
+        error.message?.includes('call')
+      ) {
+        console.warn('Ledger service unavailable or method not implemented for ECL allowance')
         return NextResponse.json(
-          { error: 'Ledger service unavailable', _fallback: true },
-          { status: 503 },
+          {
+            accountId,
+            eclAmount: '0.00',
+            eclChange: '0.00',
+            changeDirection: 'unchanged',
+            carryingAmount: '0.00',
+            bucket: 'CURRENT',
+            pdRate: '0.00',
+            overlayMultiplier: '1.00',
+            lgdRate: '0.00',
+            calculatedAt: new Date().toISOString(),
+            history: [],
+            _fallback: true,
+            _message: 'ECL allowance service not available',
+          },
+          { status: 200 },
         )
       }
       throw grpcError

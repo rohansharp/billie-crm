@@ -1,4 +1,5 @@
 /* Export Center View Styles */
+/* Uses Payload theme variables for page content, explicit colors for modals */
 
 .container {
   padding: 1.5rem;
@@ -13,13 +14,13 @@
 .title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--theme-text, #fff);
   margin: 0 0 0.25rem;
 }
 
 .subtitle {
   font-size: 0.875rem;
-  color: var(--color-text-muted);
+  color: var(--theme-elevation-500, #888);
   margin: 0;
 }
 
@@ -31,7 +32,7 @@
 .sectionTitle {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--theme-text, #fff);
   margin: 0 0 1rem;
 }
 
@@ -47,8 +48,8 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 1.5rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--theme-elevation-100, #1a1a1a);
+  border: 1px solid var(--theme-elevation-200, #333);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -56,8 +57,8 @@
 }
 
 .exportCard:hover {
-  border-color: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
 }
 
@@ -69,13 +70,13 @@
 .cardTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--theme-text, #fff);
   margin: 0 0 0.5rem;
 }
 
 .cardDescription {
   font-size: 0.8125rem;
-  color: var(--color-text-muted);
+  color: var(--theme-elevation-500, #888);
   margin: 0;
   line-height: 1.5;
 }
@@ -85,8 +86,8 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--theme-elevation-100, #1a1a1a);
+  border: 1px solid var(--theme-elevation-200, #333);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -95,21 +96,21 @@
 .table td {
   padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--theme-elevation-200, #333);
 }
 
 .table th {
   font-weight: 500;
-  color: var(--color-text-muted);
-  background: var(--color-background);
+  color: var(--theme-elevation-500, #888);
+  background: var(--theme-elevation-50, #222);
 }
 
 .table td {
-  color: var(--color-text);
+  color: var(--theme-text, #fff);
 }
 
 .table tbody tr:hover {
-  background: var(--color-surface-hover);
+  background: var(--theme-elevation-150, #2a2a2a);
 }
 
 .table tbody tr:last-child td {
@@ -136,27 +137,28 @@
 }
 
 .statusPending {
-  color: var(--color-info);
-  background: var(--color-info-bg);
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.2);
 }
 
 .statusProcessing {
-  color: var(--color-warning);
-  background: var(--color-warning-bg);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.2);
 }
 
 .statusReady {
-  color: var(--color-success);
-  background: var(--color-success-bg);
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.2);
 }
 
 .statusFailed {
-  color: var(--color-error);
-  background: var(--color-error-bg);
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.2);
 }
 
 .typeBadge {
   font-weight: 500;
+  color: var(--theme-text, #fff);
 }
 
 /* Buttons */
@@ -201,8 +203,8 @@
   display: inline-block;
   width: 18px;
   height: 18px;
-  border: 2px solid var(--color-border);
-  border-top-color: var(--color-primary);
+  border: 2px solid var(--theme-elevation-200, #333);
+  border-top-color: #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -217,13 +219,16 @@
 .emptyState {
   text-align: center;
   padding: 3rem;
-  color: var(--color-text-muted);
-  background: var(--color-background);
-  border: 1px dashed var(--color-border);
+  color: var(--theme-elevation-500, #888);
+  background: var(--theme-elevation-50, #222);
+  border: 1px dashed var(--theme-elevation-200, #333);
   border-radius: 8px;
 }
 
-/* Modal */
+/* ============================================
+   MODAL STYLES - Explicit light theme colors
+   ============================================ */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -239,8 +244,8 @@
   width: calc(100% - 2rem);
   max-width: 500px;
   max-height: calc(100vh - 2rem);
-  background: white;
-  border: 1px solid var(--theme-elevation-150, #e0e0e0);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
   z-index: 1000;
@@ -256,6 +261,7 @@
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #e5e7eb;
   background: #ffffff;
+  flex-shrink: 0;
 }
 
 .modalTitle {
@@ -292,27 +298,28 @@
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   background: #f5f5f5;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid #e5e7eb;
   flex-shrink: 0;
 }
 
-/* Wizard */
+/* Wizard Content */
 .wizardSubtitle {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: #1f2937;
   margin: 0 0 1rem;
 }
 
 .wizardDescription {
   margin: 0 0 1rem;
-  color: var(--color-text-muted);
+  color: #6b7280;
+  font-size: 0.875rem;
 }
 
 .methodologyList {
   margin: 0 0 1.5rem 1.5rem;
   padding: 0;
-  color: var(--color-text-muted);
+  color: #6b7280;
 }
 
 .methodologyList li {
@@ -377,6 +384,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
+  color: #374151;
   cursor: pointer;
 }
 
@@ -385,12 +393,13 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
+  color: #374151;
   cursor: pointer;
 }
 
 /* Confirm Summary */
 .confirmSummary {
-  background: var(--color-background);
+  background: #f9fafb;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -403,20 +412,21 @@
 }
 
 .summaryRow:not(:last-child) {
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .summaryLabel {
-  color: var(--color-text-muted);
+  color: #6b7280;
 }
 
 .summaryValue {
   font-weight: 500;
+  color: #1f2937;
 }
 
 .confirmNote {
   font-size: 0.8125rem;
-  color: var(--color-text-muted);
+  color: #6b7280;
   margin: 0;
 }
 

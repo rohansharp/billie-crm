@@ -77,9 +77,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response)
     } catch (grpcError: unknown) {
       const error = grpcError as { code?: number; message?: string }
-      if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {
-        console.warn('Ledger service unavailable for export jobs')
-        return NextResponse.json({ success: false, jobs: [], _fallback: true }, { status: 200 })
+      // Handle UNAVAILABLE (14), UNIMPLEMENTED (12), or missing client method
+      if (
+        error.code === 14 ||
+        error.code === 12 ||
+        error.message?.includes('UNAVAILABLE') ||
+        error.message?.includes('not implemented') ||
+        error.message?.includes('call')
+      ) {
+        console.warn('Ledger service unavailable or method not implemented for export jobs')
+        return NextResponse.json(
+          {
+            jobs: [],
+            totalCount: 0,
+            _fallback: true,
+            _message: 'Export jobs service not available',
+          },
+          { status: 200 },
+        )
       }
       throw grpcError
     }

@@ -46,6 +46,7 @@ export interface ExportJobsResponse {
 }
 
 export interface UseExportJobsOptions {
+  userId?: string
   enabled?: boolean
   refetchInterval?: number | false
 }
@@ -61,17 +62,18 @@ export const exportJobsQueryKey = ['export-jobs'] as const
  *
  * @example
  * ```tsx
- * const { data, isLoading } = useExportJobs()
+ * const { data, isLoading } = useExportJobs({ userId: 'user-123' })
  * // data?.jobs - array of export jobs
  * ```
  */
 export function useExportJobs(options: UseExportJobsOptions = {}) {
-  const { enabled = true, refetchInterval = false } = options
+  const { userId = 'unknown', enabled = true, refetchInterval = false } = options
 
   return useQuery<ExportJobsResponse>({
-    queryKey: exportJobsQueryKey,
+    queryKey: [...exportJobsQueryKey, userId],
     queryFn: async () => {
-      const res = await fetch('/api/export/jobs')
+      const params = new URLSearchParams({ userId })
+      const res = await fetch(`/api/export/jobs?${params}`)
       if (!res.ok) {
         throw new Error('Failed to fetch export jobs')
       }
