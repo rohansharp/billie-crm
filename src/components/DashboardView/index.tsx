@@ -97,7 +97,6 @@ function getPaymentStatusClass(status: UpcomingPayment['status']): string {
  * Story 6.2: Dashboard Home Page
  */
 export function DashboardView() {
-  const router = useRouter()
   const { data, isLoading, error } = useDashboard()
   const recentCustomers = useRecentCustomersStore((s) => s.customers)
   const failedActionsCount = useFailedActionsStore((s) => s.getActiveCount())
