@@ -28,6 +28,20 @@ export async function GET(
       return NextResponse.json(response)
     } catch (grpcError: unknown) {
       const error = grpcError as { code?: number; message?: string }
+      // Handle NOT_FOUND - account has no aging state yet
+      if (error.code === 5 || error.message?.includes('NOT_FOUND')) {
+        return NextResponse.json(
+          {
+            accountId,
+            dpd: 0,
+            bucket: 'CURRENT',
+            bucketEntryDate: null,
+            history: [],
+            _notFound: true,
+          },
+          { status: 200 },
+        )
+      }
       if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {
         console.warn('Ledger service unavailable for aging')
         return NextResponse.json(

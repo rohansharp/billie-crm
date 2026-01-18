@@ -28,6 +28,22 @@ export async function GET(
       return NextResponse.json(response)
     } catch (grpcError: unknown) {
       const error = grpcError as { code?: number; message?: string }
+      // Handle NOT_FOUND - account has no accrual state yet
+      if (error.code === 5 || error.message?.includes('NOT_FOUND')) {
+        return NextResponse.json(
+          {
+            accountId,
+            accruedAmount: 0,
+            feeAmount: 0,
+            termDays: 1,
+            daysElapsed: 0,
+            progress: 0,
+            calculationBreakdown: null,
+            _notFound: true,
+          },
+          { status: 200 },
+        )
+      }
       if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {
         console.warn('Ledger service unavailable for accrual')
         return NextResponse.json(
