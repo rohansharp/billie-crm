@@ -163,30 +163,32 @@
 .downloadBtn {
   padding: 0.375rem 0.75rem;
   font-size: 0.8125rem;
-  color: white;
-  background: var(--color-success);
+  color: #ffffff;
+  background: #22c55e;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .downloadBtn:hover {
-  background: var(--color-success-hover);
+  background: #16a34a;
 }
 
 .retryBtn {
   padding: 0.375rem 0.75rem;
   font-size: 0.8125rem;
-  color: var(--color-warning);
+  color: #f59e0b;
   background: transparent;
-  border: 1px solid var(--color-warning);
+  border: 1px solid #f59e0b;
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .retryBtn:hover:not(:disabled) {
-  background: var(--color-warning);
-  color: white;
+  background: #f59e0b;
+  color: #ffffff;
 }
 
 .retryBtn:disabled {
@@ -234,14 +236,17 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 90%;
+  width: calc(100% - 2rem);
   max-width: 500px;
-  background-color: #ffffff;
-  background-color: var(--theme-elevation-500, #ffffff);
+  max-height: calc(100vh - 2rem);
+  background: white;
+  border: 1px solid var(--theme-elevation-150, #e0e0e0);
   border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
   z-index: 1000;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .modalHeader {
@@ -249,12 +254,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
 }
 
 .modalTitle {
   font-size: 1.125rem;
   font-weight: 600;
+  color: #1f2937;
   margin: 0;
 }
 
@@ -262,20 +269,21 @@
   padding: 0.25rem;
   font-size: 1.5rem;
   line-height: 1;
-  color: var(--color-text-muted);
+  color: #6b7280;
   background: none;
   border: none;
   cursor: pointer;
 }
 
 .closeBtn:hover {
-  color: var(--color-text);
+  color: #1f2937;
 }
 
 .modalBody {
   padding: 1.5rem;
-  max-height: 60vh;
   overflow-y: auto;
+  flex: 1;
+  background: #ffffff;
 }
 
 .modalFooter {
@@ -283,8 +291,9 @@
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  background: var(--color-background);
-  border-top: 1px solid var(--color-border);
+  background: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+  flex-shrink: 0;
 }
 
 /* Wizard */
@@ -319,13 +328,13 @@
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-text);
+  color: #374151;
   margin-bottom: 0.5rem;
 }
 
 .fieldHint {
   font-size: 0.75rem;
-  color: var(--color-text-muted);
+  color: #6b7280;
   margin: 0.25rem 0 0;
 }
 
@@ -334,17 +343,22 @@
   width: 100%;
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  color: var(--color-text);
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
+  color: #1f2937;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
 }
 
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-alpha);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.select::placeholder,
+.textarea::placeholder {
+  color: #9ca3af;
 }
 
 .textarea {
@@ -411,16 +425,17 @@
 .backBtn {
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  color: #374151;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .cancelBtn:hover,
 .backBtn:hover {
-  background: var(--color-surface-hover);
+  background: #f3f4f6;
 }
 
 .nextBtn,
@@ -428,20 +443,22 @@
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: white;
-  background: var(--color-primary);
+  color: #ffffff;
+  background: #3b82f6;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .nextBtn:hover:not(:disabled),
 .createBtn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  background: #2563eb;
 }
 
 .nextBtn:disabled,
 .createBtn:disabled {
-  opacity: 0.6;
+  background: #93c5fd;
+  color: #ffffff;
   cursor: not-allowed;
 }
