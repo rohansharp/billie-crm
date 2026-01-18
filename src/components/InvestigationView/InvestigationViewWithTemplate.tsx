@@ -1,34 +1,40 @@
-'use client'
+import type { AdminViewServerProps } from 'payload'
 
-import React from 'react'
-import { useAuth } from '@payloadcms/ui'
 import { DefaultTemplate } from '@payloadcms/next/templates'
-import type { AdminViewProps } from 'payload'
+import { redirect } from 'next/navigation'
+import React from 'react'
 import { InvestigationView } from './InvestigationView'
 
 /**
  * Investigation View wrapped in Payload admin template.
  * Registered as a custom view in payload.config.ts.
+ *
+ * This is a server component that receives AdminViewServerProps from Payload's RootPage.
  */
-export const InvestigationViewWithTemplate: React.FC<AdminViewProps> = ({
+export async function InvestigationViewWithTemplate({
   initPageResult,
-  params: _params,
-  searchParams: _searchParams,
-}) => {
-  const { user } = useAuth()
+  params,
+  searchParams,
+}: AdminViewServerProps) {
+  // Guard: redirect to login if not authenticated
+  if (!initPageResult?.req?.user) {
+    redirect('/admin/login')
+  }
+
+  const userId = initPageResult.req.user?.id?.toString()
 
   return (
     <DefaultTemplate
       i18n={initPageResult.req.i18n}
       locale={initPageResult.locale}
-      params={initPageResult.params}
+      params={params}
       payload={initPageResult.req.payload}
       permissions={initPageResult.permissions}
-      searchParams={initPageResult.searchParams}
-      user={initPageResult.req.user || undefined}
+      searchParams={searchParams}
+      user={initPageResult.req.user}
       visibleEntities={initPageResult.visibleEntities}
     >
-      <InvestigationView userId={user?.id?.toString()} />
+      <InvestigationView userId={userId} />
     </DefaultTemplate>
   )
 }
