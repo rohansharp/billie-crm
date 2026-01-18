@@ -34,6 +34,8 @@ export default buildConfig({
         '@/components/navigation/NavApprovalsLink#NavApprovalsLink',
         '@/components/navigation/NavPeriodCloseLink#NavPeriodCloseLink',
         '@/components/navigation/NavECLConfigLink#NavECLConfigLink',
+        '@/components/navigation/NavExportsLink#NavExportsLink',
+        '@/components/navigation/NavInvestigationLink#NavInvestigationLink',
       ],
       // Notification bell in header actions (next to user profile button)
       actions: ['@/components/Notifications/NotificationAction#NotificationAction'],
@@ -78,6 +80,16 @@ export default buildConfig({
         eclConfig: {
           Component: '@/components/ECLConfigView/ECLConfigViewWithTemplate#ECLConfigViewWithTemplate',
           path: '/ecl-config',
+        },
+        // Export Center view (Epic 5)
+        exports: {
+          Component: '@/components/ExportCenterView/ExportCenterViewWithTemplate#ExportCenterViewWithTemplate',
+          path: '/exports',
+        },
+        // Investigation view (Epic 6)
+        investigation: {
+          Component: '@/components/InvestigationView/InvestigationViewWithTemplate#InvestigationViewWithTemplate',
+          path: '/investigation',
         },
       },
     },

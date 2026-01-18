@@ -1,0 +1,48 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { exportJobsQueryKey } from '@/hooks/queries/useExportJobs'
+
+export interface RetryExportResponse {
+  success: boolean
+  jobId: string
+  status: 'pending' | 'processing'
+}
+
+/**
+ * Mutation hook to retry a failed export job.
+ *
+ * @example
+ * ```tsx
+ * const { retryExport, isPending } = useRetryExport()
+ *
+ * const handleRetry = async () => {
+ *   await retryExport('job-123')
+ * }
+ * ```
+ */
+export function useRetryExport() {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation<RetryExportResponse, Error, string>({
+    mutationFn: async (jobId) => {
+      const res = await fetch(`/api/export/jobs/${jobId}/retry`, {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}))
+        throw new Error(error.message || 'Failed to retry export')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: exportJobsQueryKey })
+    },
+  })
+
+  return {
+    retryExport: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error,
+  }
+}
+
+export default useRetryExport

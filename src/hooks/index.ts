@@ -33,6 +33,17 @@ export { useScheduleConfigChange } from './mutations/useScheduleConfigChange'
 export { useCancelConfigChange } from './mutations/useCancelConfigChange'
 export { useTriggerPortfolioRecalc } from './mutations/useTriggerPortfolioRecalc'
 
+// Export Center mutations (E5)
+export { useCreateExportJob } from './mutations/useCreateExportJob'
+export type { CreateExportJobRequest, CreateExportJobResponse } from './mutations/useCreateExportJob'
+export { useRetryExport } from './mutations/useRetryExport'
+
+// Investigation mutations (E6)
+export { useBatchQuery } from './mutations/useBatchQuery'
+export type { BatchQueryRequest, BatchQueryAccountResult, BatchQueryResponse } from './mutations/useBatchQuery'
+export { useRandomSample } from './mutations/useRandomSample'
+export type { RandomSampleRequest, RandomSampleResponse } from './mutations/useRandomSample'
+
 // Re-export types from canonical location
 export type {
   CustomerSearchResult,

@@ -84,6 +84,18 @@ export type { ECLConfigHistoryEntry, ECLConfigHistoryResponse, UseECLConfigHisto
 export { usePendingConfigChanges, pendingConfigChangesQueryKey } from './usePendingConfigChanges'
 export type { PendingConfigChange, PendingConfigChangesResponse } from './usePendingConfigChanges'
 
+// Export Center hooks (E5)
+export { useExportJobs, exportJobsQueryKey } from './useExportJobs'
+export type { ExportJob, ExportJobStatus, ExportJobType, ExportFormat, ExportJobsResponse, UseExportJobsOptions } from './useExportJobs'
+
+// Investigation hooks (E6)
+export { useEventHistory, eventHistoryQueryKey } from './useEventHistory'
+export type { AccountEvent, EventHistoryResponse, UseEventHistoryOptions } from './useEventHistory'
+export { useTraceECL, traceECLQueryKey } from './useTraceECL'
+export type { ECLTraceResult, ECLSourceEvent } from './useTraceECL'
+export { useTraceAccrual, traceAccrualQueryKey } from './useTraceAccrual'
+export type { AccrualTraceResult, AccrualSourceEvent } from './useTraceAccrual'
+
 // Re-export types from canonical location
 export type {
   CustomerSearchResult,

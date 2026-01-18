@@ -1,0 +1,83 @@
+import { useMutation } from '@tanstack/react-query'
+
+export interface BatchQueryRequest {
+  accountIds: string[]
+  includeBalance?: boolean
+  includeECL?: boolean
+  includeAccrual?: boolean
+  includeAging?: boolean
+}
+
+export interface BatchQueryAccountResult {
+  accountId: string
+  found: boolean
+  balance?: {
+    principal: number
+    fees: number
+    total: number
+  }
+  ecl?: {
+    amount: number
+    bucket: string
+    pdRate: number
+  }
+  accrual?: {
+    accruedAmount: number
+    daysElapsed: number
+    progress: number
+  }
+  aging?: {
+    dpd: number
+    bucket: string
+  }
+}
+
+export interface BatchQueryResponse {
+  results: BatchQueryAccountResult[]
+  foundCount: number
+  notFoundCount: number
+}
+
+/**
+ * Mutation hook to query multiple accounts at once.
+ *
+ * @example
+ * ```tsx
+ * const { batchQuery, isPending, data } = useBatchQuery()
+ *
+ * const handleQuery = async () => {
+ *   const results = await batchQuery({
+ *     accountIds: ['acc-1', 'acc-2', 'acc-3'],
+ *     includeBalance: true,
+ *     includeECL: true
+ *   })
+ *   // results.results - array of account data
+ * }
+ * ```
+ */
+export function useBatchQuery() {
+  const mutation = useMutation<BatchQueryResponse, Error, BatchQueryRequest>({
+    mutationFn: async (request) => {
+      const res = await fetch('/api/investigation/batch-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      })
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}))
+        throw new Error(error.message || 'Failed to execute batch query')
+      }
+      return res.json()
+    },
+  })
+
+  return {
+    batchQuery: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error,
+    data: mutation.data,
+    reset: mutation.reset,
+  }
+}
+
+export default useBatchQuery
