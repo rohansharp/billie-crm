@@ -56,6 +56,22 @@ export type {
   UseECLAllowanceOptions,
 } from './useECLAllowance'
 
+// Schedule with status hook (E2-S7)
+export { useScheduleWithStatus, scheduleWithStatusQueryKey } from './useScheduleWithStatus'
+export type {
+  InstalmentWithStatus,
+  ScheduleSummary,
+  ScheduleWithStatusResponse,
+  UseScheduleWithStatusOptions,
+} from './useScheduleWithStatus'
+
+// Carrying amount breakdown hook (E2-S9)
+export { useCarryingAmountBreakdown, carryingAmountBreakdownQueryKey } from './useCarryingAmountBreakdown'
+export type {
+  CarryingAmountBreakdownResponse,
+  UseCarryingAmountBreakdownOptions,
+} from './useCarryingAmountBreakdown'
+
 // Re-export types from canonical location
 export type {
   CustomerSearchResult,

@@ -113,6 +113,25 @@
   color: #16a34a;
 }
 
+/* View Breakdown Link - E2-S10 */
+.viewBreakdownLink {
+  margin-top: 8px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2563eb;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s;
+}
+
+.viewBreakdownLink:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
 /* Section */
 .section {
   display: flex;

@@ -1,7 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useECLAllowance } from '@/hooks/queries/useECLAllowance'
+import { CarryingAmountModal } from './CarryingAmountModal'
 import styles from './ecl-tab.module.css'
 
 export interface ECLTabProps {
@@ -77,6 +78,8 @@ function getBucketDisplay(bucket: string): string {
  * Story E2-S6: Implement ECL Tab Component
  */
 export const ECLTab: React.FC<ECLTabProps> = ({ loanAccountId }) => {
+  const [showCarryingAmountModal, setShowCarryingAmountModal] = useState(false)
+
   const {
     eclAmount,
     eclChange,
@@ -156,8 +159,22 @@ export const ECLTab: React.FC<ECLTabProps> = ({ loanAccountId }) => {
           <span className={styles.summaryLabel}>Carrying Amount</span>
           <span className={styles.summaryValue}>{formatCurrency(carryingAmount)}</span>
           <span className={styles.summaryMeta}>Principal + Accrued Yield</span>
+          <button
+            type="button"
+            className={styles.viewBreakdownLink}
+            onClick={() => setShowCarryingAmountModal(true)}
+          >
+            View Breakdown →
+          </button>
         </div>
       </div>
+
+      {/* Carrying Amount Modal - E2-S10 */}
+      <CarryingAmountModal
+        accountId={loanAccountId}
+        isOpen={showCarryingAmountModal}
+        onClose={() => setShowCarryingAmountModal(false)}
+      />
 
       {/* ECL Calculation */}
       <div className={styles.section}>
