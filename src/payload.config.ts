@@ -33,6 +33,7 @@ export default buildConfig({
         '@/components/navigation/NavCollectionsLink#NavCollectionsLink',
         '@/components/navigation/NavApprovalsLink#NavApprovalsLink',
         '@/components/navigation/NavPeriodCloseLink#NavPeriodCloseLink',
+        '@/components/navigation/NavECLConfigLink#NavECLConfigLink',
       ],
       // Notification bell in header actions (next to user profile button)
       actions: ['@/components/Notifications/NotificationAction#NotificationAction'],
@@ -72,6 +73,11 @@ export default buildConfig({
         periodClose: {
           Component: '@/components/PeriodCloseView/PeriodCloseViewWithTemplate#PeriodCloseViewWithTemplate',
           path: '/period-close',
+        },
+        // ECL Configuration view (Epic 4)
+        eclConfig: {
+          Component: '@/components/ECLConfigView/ECLConfigViewWithTemplate#ECLConfigViewWithTemplate',
+          path: '/ecl-config',
         },
       },
     },

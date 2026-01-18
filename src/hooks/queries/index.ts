@@ -76,6 +76,14 @@ export type {
 export { useClosedPeriods } from './useClosedPeriods'
 export type { ClosedPeriod } from './useClosedPeriods'
 
+// ECL Config hooks (E4)
+export { useECLConfig, eclConfigQueryKey } from './useECLConfig'
+export type { ECLConfig, PDRateConfig } from './useECLConfig'
+export { useECLConfigHistory, eclConfigHistoryQueryKey } from './useECLConfigHistory'
+export type { ECLConfigHistoryEntry, ECLConfigHistoryResponse, UseECLConfigHistoryOptions } from './useECLConfigHistory'
+export { usePendingConfigChanges, pendingConfigChangesQueryKey } from './usePendingConfigChanges'
+export type { PendingConfigChange, PendingConfigChangesResponse } from './usePendingConfigChanges'
+
 // Re-export types from canonical location
 export type {
   CustomerSearchResult,

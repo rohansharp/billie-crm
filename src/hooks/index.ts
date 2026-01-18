@@ -26,6 +26,13 @@ export type {
 export { useAcknowledgeAnomaly } from './mutations/useAcknowledgeAnomaly'
 export { useFinalizePeriodClose } from './mutations/useFinalizePeriodClose'
 
+// ECL Config mutations (E4)
+export { useUpdateOverlay } from './mutations/useUpdateOverlay'
+export { useUpdatePDRate } from './mutations/useUpdatePDRate'
+export { useScheduleConfigChange } from './mutations/useScheduleConfigChange'
+export { useCancelConfigChange } from './mutations/useCancelConfigChange'
+export { useTriggerPortfolioRecalc } from './mutations/useTriggerPortfolioRecalc'
+
 // Re-export types from canonical location
 export type {
   CustomerSearchResult,
