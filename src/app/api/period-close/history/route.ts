@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
         console.warn('Ledger service unavailable or method not implemented for closed periods')
         return NextResponse.json(
           {
-            periodDates: [],
-            totalCount: 0,
+            periods: [],
+            lastClosedPeriod: null,
             _fallback: true,
             _message: 'Period close history not available',
           },

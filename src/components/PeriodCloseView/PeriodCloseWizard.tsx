@@ -120,7 +120,7 @@ export const PeriodCloseWizard: React.FC<PeriodCloseWizardProps> = ({
       }
 
       // Must not already be closed
-      if (closedPeriodsData?.periods.some((p) => p.periodDate === date)) {
+      if (closedPeriodsData?.periods?.some((p) => p.periodDate === date)) {
         return 'This period is already closed'
       }
 
@@ -140,7 +140,7 @@ export const PeriodCloseWizard: React.FC<PeriodCloseWizardProps> = ({
       const d = new Date(now.getFullYear(), now.getMonth() - i, 0)
       const value = d.toISOString().split('T')[0]
       const label = d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
-      const isClosed = closedPeriodsData?.periods.some((p) => p.periodDate === value)
+      const isClosed = closedPeriodsData?.periods?.some((p) => p.periodDate === value)
 
       options.push({ value, label, disabled: isClosed })
     }
