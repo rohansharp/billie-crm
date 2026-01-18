@@ -25,10 +25,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response)
     } catch (grpcError: unknown) {
       const error = grpcError as { code?: number; message?: string }
-      if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {
-        console.warn('Ledger service unavailable for closed periods')
+      // Handle UNAVAILABLE (14), UNIMPLEMENTED (12), or missing client method
+      if (
+        error.code === 14 ||
+        error.code === 12 ||
+        error.message?.includes('UNAVAILABLE') ||
+        error.message?.includes('not implemented') ||
+        error.message?.includes('call')
+      ) {
+        console.warn('Ledger service unavailable or method not implemented for closed periods')
         return NextResponse.json(
-          { periodDates: [], totalCount: 0, _fallback: true },
+          {
+            periodDates: [],
+            totalCount: 0,
+            _fallback: true,
+            _message: 'Period close history not available',
+          },
           { status: 200 },
         )
       }

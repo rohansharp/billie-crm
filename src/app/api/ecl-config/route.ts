@@ -4,10 +4,10 @@
  * Get current ECL configuration (overlay multiplier, PD rates).
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getLedgerClient } from '@/server/grpc-client'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const client = getLedgerClient()
 
@@ -17,11 +17,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response)
     } catch (grpcError: unknown) {
       const error = grpcError as { code?: number; message?: string }
-      if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {
-        console.warn('Ledger service unavailable for ECL config')
+      // Handle UNAVAILABLE (14), UNIMPLEMENTED (12), or missing client method
+      if (
+        error.code === 14 ||
+        error.code === 12 ||
+        error.message?.includes('UNAVAILABLE') ||
+        error.message?.includes('not implemented') ||
+        error.message?.includes('call')
+      ) {
+        console.warn('Ledger service unavailable or method not implemented for ECL config')
         return NextResponse.json(
-          { error: 'Ledger service unavailable', _fallback: true },
-          { status: 503 },
+          {
+            overlayMultiplier: '1.00',
+            pdRates: {
+              CURRENT: '0.01',
+              DAYS_1_30: '0.05',
+              DAYS_31_60: '0.15',
+              DAYS_61_90: '0.30',
+              DAYS_90_PLUS: '0.50',
+            },
+            lgdRate: '0.50',
+            effectiveDate: new Date().toISOString().split('T')[0],
+            lastUpdatedBy: null,
+            lastUpdatedAt: null,
+            _fallback: true,
+            _message: 'Using default ECL configuration',
+          },
+          { status: 200 },
         )
       }
       throw grpcError
