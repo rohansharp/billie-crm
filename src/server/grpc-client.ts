@@ -1110,9 +1110,18 @@ export class LedgerClient {
   // ===========================================================================
 
   async getECLAllowance(request: GetECLAllowanceRequest): Promise<ECLAllowanceResponse> {
-    return this.promisify<GetECLAllowanceRequest, ECLAllowanceResponse>(
-      this.client.getECLAllowance,
-    )(request)
+    // The proto loader converts GetECLAllowance to getEclAllowance (camelCase, not getECLAllowance)
+    // It converts "ECL" to "Ecl" in camelCase
+    const method = this.client.getEclAllowance || (this.client as any).GetECLAllowance
+    
+    if (!method) {
+      throw new Error(
+        'getEclAllowance method not found on gRPC client. ' +
+        'The proto loader may have generated a different method name.'
+      )
+    }
+    
+    return this.promisify<GetECLAllowanceRequest, ECLAllowanceResponse>(method)(request)
   }
 
   async getPortfolioECL(request: GetPortfolioECLRequest): Promise<PortfolioECLResponse> {

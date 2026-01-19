@@ -23,6 +23,8 @@ export interface ECLConfig {
   lgd: number
   lgdUpdatedAt?: string
   lgdUpdatedBy?: string
+  _fallback?: boolean
+  _message?: string
 }
 
 export const eclConfigQueryKey = ['ecl-config'] as const
@@ -34,13 +36,14 @@ export const eclConfigQueryKey = ['ecl-config'] as const
  *
  * @example
  * ```tsx
- * const { data, isLoading } = useECLConfig()
+ * const { data, isLoading, isFallback } = useECLConfig()
  * // data?.overlayMultiplier - 1.2
  * // data?.pdRates - array of bucket configs
+ * // isFallback - true if service unavailable
  * ```
  */
 export function useECLConfig() {
-  return useQuery<ECLConfig>({
+  const query = useQuery<ECLConfig>({
     queryKey: eclConfigQueryKey,
     queryFn: async () => {
       const res = await fetch('/api/ecl-config')
@@ -51,6 +54,14 @@ export function useECLConfig() {
     },
     staleTime: 60_000, // 1 minute
   })
+
+  return {
+    ...query,
+    /** Whether data is from fallback (service unavailable) */
+    isFallback: query.data?._fallback ?? false,
+    /** Fallback message if service unavailable */
+    fallbackMessage: query.data?._message,
+  }
 }
 
 export default useECLConfig

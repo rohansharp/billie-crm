@@ -29,6 +29,8 @@ export interface EventProcessingStatusResponse {
   streams: StreamProcessingStatus[]
   queriedAt: string
   warning: string
+  _fallback?: boolean
+  _message?: string
 }
 
 /**
@@ -112,6 +114,10 @@ export function useEventProcessingStatus(options: UseEventProcessingStatusOption
     queriedAt: query.data?.queriedAt,
     /** Warning message (if any) */
     warning: query.data?.warning,
+    /** Whether data is from fallback (service unavailable) */
+    isFallback: query.data?._fallback ?? false,
+    /** Fallback message if service unavailable */
+    fallbackMessage: query.data?._message,
     /** Whether the query succeeded */
     success: query.data?.success ?? false,
     /** Error message from API */

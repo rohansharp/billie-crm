@@ -5,6 +5,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCustomer, type LoanAccountData } from '@/hooks/queries/useCustomer'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
 import { useFeesCount } from '@/hooks/queries/useFeesCount'
+import { accruedYieldQueryKey, accrualHistoryQueryKey } from '@/hooks/queries/useAccruedYield'
+import { eclAllowanceQueryKey } from '@/hooks/queries/useECLAllowance'
 import { CustomerHeader } from './CustomerHeader'
 import { CustomerHeaderSkeleton } from './CustomerHeaderSkeleton'
 import { LoanAccountsSkeleton } from './LoanAccountsSkeleton'
@@ -255,6 +257,24 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
         // Refresh transactions (fees are derived from transactions)
         await queryClient.invalidateQueries({
           queryKey: transactionsQueryKey(selectedAccountId, {}),
+          exact: false,
+        })
+      } else if (activeTab === 'accruals') {
+        // Refresh accruals data (accrued yield and history)
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: accruedYieldQueryKey(selectedAccountId),
+            exact: false,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: accrualHistoryQueryKey(selectedAccountId),
+            exact: false,
+          }),
+        ])
+      } else if (activeTab === 'ecl') {
+        // Refresh ECL allowance data
+        await queryClient.invalidateQueries({
+          queryKey: eclAllowanceQueryKey(selectedAccountId),
           exact: false,
         })
       }

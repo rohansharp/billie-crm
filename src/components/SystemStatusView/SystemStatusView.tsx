@@ -153,6 +153,8 @@ export function SystemStatusView() {
     streams,
     queriedAt,
     warning,
+    isFallback,
+    fallbackMessage,
     success,
     errorMessage,
     isLoading,
@@ -198,8 +200,18 @@ export function SystemStatusView() {
         </button>
       </div>
 
-      {/* Warning Banner */}
-      {warning && (
+      {/* Service Unavailable Warning */}
+      {isFallback && (
+        <div className={styles.warningBanner}>
+          <span className={styles.warningIcon}>⚠️</span>
+          <span className={styles.warningText}>
+            <strong>Ledger Service Unavailable:</strong> {fallbackMessage || 'The Accounting Ledger Service is currently unavailable. Status information is not available.'}
+          </span>
+        </div>
+      )}
+
+      {/* Other Warning Banner */}
+      {!isFallback && warning && (
         <div className={styles.warningBanner}>
           <span className={styles.warningIcon}>⚠️</span>
           <span className={styles.warningText}>{warning}</span>

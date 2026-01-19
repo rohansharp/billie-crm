@@ -67,6 +67,8 @@ export function useLedgerHealth(options: UseLedgerHealthOptions = {}) {
     refetchInterval: enabled ? pollingInterval : false,
     staleTime: pollingInterval / 2, // Consider stale halfway through interval
     retry: false, // Don't retry - we want fast offline detection
+    // Refetch on window focus to catch recovery quickly
+    refetchOnWindowFocus: true,
   })
 
   return {

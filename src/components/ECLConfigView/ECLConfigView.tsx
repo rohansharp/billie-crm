@@ -43,7 +43,7 @@ export const ECLConfigView: React.FC<ECLConfigViewProps> = ({
   const [recalcProgress, setRecalcProgress] = useState<'idle' | 'running' | 'complete' | 'error'>('idle')
 
   // Data hooks
-  const { data: config, isLoading: isLoadingConfig } = useECLConfig()
+  const { data: config, isLoading: isLoadingConfig, isFallback, fallbackMessage } = useECLConfig()
   const { data: pendingChanges, isLoading: isLoadingPending } = usePendingConfigChanges()
   const { data: history, isLoading: isLoadingHistory } = useECLConfigHistory({
     limit: 50,
@@ -172,6 +172,14 @@ export const ECLConfigView: React.FC<ECLConfigViewProps> = ({
   return (
     <div className={styles.container} data-testid="ecl-config-view">
       <Breadcrumb items={[{ label: 'Finance', href: '/admin' }, { label: 'ECL Configuration' }]} />
+
+      {/* Service Unavailable Warning */}
+      {isFallback && (
+        <div className={styles.warningBox}>
+          <strong>⚠️ Ledger Service Unavailable</strong>
+          <p>{fallbackMessage || 'The Accounting Ledger Service is currently unavailable. Displaying default configuration values.'}</p>
+        </div>
+      )}
 
       {/* Header */}
       <div className={styles.header}>

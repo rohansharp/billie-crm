@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useAccruedYield, useAccrualHistory } from '@/hooks/queries/useAccruedYield'
+import { useCarryingAmountBreakdown } from '@/hooks/queries/useCarryingAmountBreakdown'
 import styles from './accruals-tab.module.css'
 
 export interface AccrualsTabProps {
@@ -12,8 +13,14 @@ export interface AccrualsTabProps {
 /**
  * Format currency for display
  */
-function formatCurrency(amount: string): string {
+function formatCurrency(amount: string | undefined | null): string {
+  if (amount === undefined || amount === null || amount === '') {
+    return '—'
+  }
   const num = parseFloat(amount)
+  if (isNaN(num)) {
+    return '—'
+  }
   return new Intl.NumberFormat('en-AU', {
     style: 'currency',
     currency: 'AUD',
@@ -65,6 +72,25 @@ export const AccrualsTab: React.FC<AccrualsTabProps> = ({ loanAccountId }) => {
     isLoading: historyLoading,
   } = useAccrualHistory({ accountId: loanAccountId, limit: 5 })
 
+  const {
+    breakdown: carryingAmountBreakdown,
+  } = useCarryingAmountBreakdown(loanAccountId)
+
+  // Use the latest event from history as fallback if main endpoint returns 0
+  // This ensures we show the correct cumulative amount and days accrued
+  const latestEvent = events.length > 0 ? events[events.length - 1] : null
+  const effectiveAccruedAmount = 
+    (accruedAmount === '0' || accruedAmount === '0.00') && latestEvent?.cumulativeAmount
+      ? latestEvent.cumulativeAmount
+      : accruedAmount
+  const effectiveDaysAccrued = 
+    daysAccrued === 0 && latestEvent?.dayNumber
+      ? latestEvent.dayNumber
+      : daysAccrued
+  const effectiveProgress = termDays > 0 
+    ? Math.min((effectiveDaysAccrued / termDays) * 100, 100)
+    : 0
+
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -108,17 +134,17 @@ export const AccrualsTab: React.FC<AccrualsTabProps> = ({ loanAccountId }) => {
       <div className={styles.summaryGrid}>
         <div className={styles.summaryCard}>
           <span className={styles.summaryLabel}>Cumulative Accrued</span>
-          <span className={styles.summaryValue}>{formatCurrency(accruedAmount)}</span>
+          <span className={styles.summaryValue}>{formatCurrency(effectiveAccruedAmount)}</span>
           <span className={styles.summaryMeta}>of {formatCurrency(totalFeeAmount)} total fee</span>
         </div>
 
         <div className={styles.summaryCard}>
           <span className={styles.summaryLabel}>Accrual Progress</span>
           <span className={styles.summaryValue}>
-            Day {daysAccrued} of {termDays}
+            Day {effectiveDaysAccrued} of {termDays}
           </span>
           <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+            <div className={styles.progressFill} style={{ width: `${effectiveProgress}%` }} />
           </div>
           <span className={styles.summaryMeta}>
             Est. completion: {formatDate(accrualEndDate)}
@@ -144,7 +170,11 @@ export const AccrualsTab: React.FC<AccrualsTabProps> = ({ loanAccountId }) => {
           </div>
           <div className={styles.breakdownItem}>
             <span className={styles.breakdownLabel}>Disbursement</span>
-            <span className={styles.breakdownValue}>{formatDate(accrualStartDate)}</span>
+            <span className={styles.breakdownValue}>
+              {carryingAmountBreakdown?.disbursedPrincipal
+                ? formatCurrency(carryingAmountBreakdown.disbursedPrincipal)
+                : '—'}
+            </span>
           </div>
         </div>
         <div className={styles.formula}>
@@ -180,7 +210,7 @@ export const AccrualsTab: React.FC<AccrualsTabProps> = ({ loanAccountId }) => {
             <tbody>
               {events.map((event) => (
                 <tr key={event.eventId}>
-                  <td>{formatDate(event.timestamp)}</td>
+                  <td>{formatDate(event.accrualDate || event.timestamp)}</td>
                   <td className={styles.amountCell}>{formatCurrency(event.amount)}</td>
                   <td className={styles.amountCell}>{formatCurrency(event.cumulativeAmount)}</td>
                 </tr>

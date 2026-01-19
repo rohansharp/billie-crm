@@ -22,6 +22,8 @@ export interface ClosedPeriod {
 interface ClosedPeriodsResponse {
   periods: ClosedPeriod[]
   lastClosedPeriod?: string // ISO date
+  _fallback?: boolean
+  _message?: string
 }
 
 /**
@@ -31,13 +33,14 @@ interface ClosedPeriodsResponse {
  *
  * @example
  * ```tsx
- * const { data, isLoading } = useClosedPeriods()
+ * const { data, isLoading, isFallback } = useClosedPeriods()
  * // data?.periods - array of closed periods
  * // data?.lastClosedPeriod - "2025-12-31"
+ * // isFallback - true if service unavailable
  * ```
  */
 export function useClosedPeriods() {
-  return useQuery<ClosedPeriodsResponse>({
+  const query = useQuery<ClosedPeriodsResponse>({
     queryKey: ['period-close', 'history'],
     queryFn: async () => {
       const res = await fetch('/api/period-close/history')
@@ -48,6 +51,14 @@ export function useClosedPeriods() {
     },
     staleTime: 60_000, // 1 minute
   })
+
+  return {
+    ...query,
+    /** Whether data is from fallback (service unavailable) */
+    isFallback: query.data?._fallback ?? false,
+    /** Fallback message if service unavailable */
+    fallbackMessage: query.data?._message,
+  }
 }
 
 export default useClosedPeriods

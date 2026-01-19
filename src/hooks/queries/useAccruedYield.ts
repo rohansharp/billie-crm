@@ -48,6 +48,7 @@ export interface AccrualEvent {
   eventId: string
   eventType: string
   timestamp: string
+  accrualDate: string // Date of the accrual (YYYY-MM-DD format)
   amount: string
   cumulativeAmount: string
   dayNumber: number

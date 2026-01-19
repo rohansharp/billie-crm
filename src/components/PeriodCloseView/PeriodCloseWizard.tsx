@@ -55,7 +55,7 @@ export const PeriodCloseWizard: React.FC<PeriodCloseWizardProps> = ({
   } | null>(null)
 
   // Hooks
-  const { data: closedPeriodsData, isLoading: isLoadingHistory } = useClosedPeriods()
+  const { data: closedPeriodsData, isLoading: isLoadingHistory, isFallback, fallbackMessage } = useClosedPeriods()
   const { generatePreview, isPending: isGenerating, error: previewError, reset: resetPreview } = usePeriodClosePreview()
   const { acknowledgeAnomaly, isPending: isAcknowledging } = useAcknowledgeAnomaly()
   const { finalizePeriodClose, isPending: isFinalizing, error: finalizeError } = useFinalizePeriodClose()
@@ -725,6 +725,14 @@ export const PeriodCloseWizard: React.FC<PeriodCloseWizardProps> = ({
 
   return (
     <div className={styles.wizard} data-testid="period-close-wizard">
+      {/* Service Unavailable Warning */}
+      {isFallback && (
+        <div className={styles.warningBox}>
+          <strong>⚠️ Ledger Service Unavailable</strong>
+          <p>{fallbackMessage || 'The Accounting Ledger Service is currently unavailable. Period close history is not available.'}</p>
+        </div>
+      )}
+
       {/* Progress Indicator */}
       {currentStep !== 'success' && (
         <div className={styles.progressBar}>

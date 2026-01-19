@@ -25,9 +25,88 @@ export async function GET(
         accountId,
       })
 
-      return NextResponse.json(response)
+      // Transform the gRPC response to match the expected frontend interface
+      // Handle both camelCase (from proto loader) and snake_case field names
+      const grpcResponse = response as any
+      
+      const eclAmount = grpcResponse.eclAmount ?? grpcResponse.ecl_amount ?? '0'
+      const carryingAmount = grpcResponse.carryingAmount ?? grpcResponse.carrying_amount ?? '0'
+      const agingBucket = grpcResponse.agingBucket ?? grpcResponse.aging_bucket ?? 'current'
+      const pdRate = grpcResponse.pdRate ?? grpcResponse.pd_rate ?? '0'
+      const overlayMultiplier = grpcResponse.overlayMultiplier ?? grpcResponse.overlay_multiplier ?? '1.0'
+      const lastCalculated = grpcResponse.lastCalculated ?? grpcResponse.last_calculated ?? new Date().toISOString()
+      const previousEclAmount = grpcResponse.previousEclAmount ?? grpcResponse.previous_ecl_amount
+      const eclDelta = grpcResponse.eclDelta ?? grpcResponse.ecl_delta
+      const triggeredByEventId = grpcResponse.triggeredByEventId ?? grpcResponse.triggered_by_event_id
+      const responseAccountId = grpcResponse.accountId ?? grpcResponse.account_id ?? accountId
+
+      // Calculate change direction
+      let eclChange: string | undefined
+      let changeDirection: 'increase' | 'decrease' | 'unchanged' = 'unchanged'
+      if (eclDelta) {
+        const deltaNum = parseFloat(eclDelta)
+        eclChange = Math.abs(deltaNum).toFixed(2)
+        changeDirection = deltaNum > 0 ? 'increase' : deltaNum < 0 ? 'decrease' : 'unchanged'
+      } else if (previousEclAmount) {
+        const current = parseFloat(eclAmount)
+        const previous = parseFloat(previousEclAmount)
+        const delta = current - previous
+        eclChange = Math.abs(delta).toFixed(2)
+        changeDirection = delta > 0 ? 'increase' : delta < 0 ? 'decrease' : 'unchanged'
+      }
+
+      // Default LGD rate (not in gRPC response, using standard 100% for now)
+      const lgdRate = '1.0'
+
+      // Transform bucket name (gRPC uses "bucket_1", frontend expects "bucket_1" or "current")
+      const bucket = agingBucket.toLowerCase()
+
+      // Build triggeredBy object if event ID exists
+      const triggeredBy = triggeredByEventId
+        ? {
+            eventId: triggeredByEventId,
+            eventType: 'ECL_CALCULATION',
+            timestamp: lastCalculated,
+            description: `ECL calculation triggered by ${triggeredByEventId}`,
+          }
+        : undefined
+
+      const transformedResponse = {
+        accountId: responseAccountId,
+        eclAmount,
+        priorEclAmount: previousEclAmount,
+        eclChange,
+        changeDirection,
+        carryingAmount,
+        bucket,
+        pdRate,
+        overlayMultiplier,
+        lgdRate,
+        calculatedAt: lastCalculated,
+        triggeredBy,
+        history: [], // ECL history not in current gRPC response
+        updatedAt: lastCalculated,
+        _fallback: false,
+      }
+
+      console.log(`[ECL API] Transformed response for account ${accountId}:`, {
+        eclAmount: transformedResponse.eclAmount,
+        bucket: transformedResponse.bucket,
+        pdRate: transformedResponse.pdRate,
+      })
+
+      return NextResponse.json(transformedResponse)
     } catch (grpcError: unknown) {
-      const error = grpcError as { code?: number; message?: string }
+      const error = grpcError as { code?: number; message?: string; details?: string }
+      
+      // Log the full error for debugging
+      console.error(`[ECL API] Error for account ${accountId}:`, {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        error: grpcError,
+      })
+
       // Handle NOT_FOUND - account has no ECL state yet
       if (error.code === 5 || error.message?.includes('NOT_FOUND')) {
         console.warn(`No ECL allowance found for account ${accountId}. Returning default.`)
@@ -53,10 +132,12 @@ export async function GET(
         error.code === 14 ||
         error.code === 12 ||
         error.message?.includes('UNAVAILABLE') ||
+        error.message?.includes('UNIMPLEMENTED') ||
         error.message?.includes('not implemented') ||
-        error.message?.includes('call')
+        error.message?.includes('call') ||
+        error.details?.includes('not implemented')
       ) {
-        console.warn('Ledger service unavailable or method not implemented for ECL allowance')
+        console.warn(`Ledger service unavailable or method not implemented for ECL allowance (code: ${error.code}, message: ${error.message})`)
         return NextResponse.json(
           {
             accountId,
