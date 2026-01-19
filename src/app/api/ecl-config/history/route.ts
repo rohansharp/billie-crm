@@ -9,27 +9,163 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getLedgerClient } from '@/server/grpc-client'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : undefined
+    const parameter = searchParams.get('parameter') || undefined
 
     const client = getLedgerClient()
 
     try {
+      console.log('[ECL Config History] Calling gRPC with limit:', limit)
+      
       const response = await client.getECLConfigHistory({
-        limit,
+        limit: limit || 100,
       })
 
-      return NextResponse.json(response)
+      console.log('[ECL Config History] Raw gRPC response:', JSON.stringify(response, null, 2))
+
+      // Transform the gRPC response to match the expected frontend interface
+      // Handle both camelCase (from proto loader) and snake_case field names
+      const grpcResponse = response as any
+      
+      // The gRPC response has 'events' array (proto: repeated ECLConfigChangeEvent events)
+      const events = grpcResponse.events ?? []
+      const totalCount = grpcResponse.totalCount ?? grpcResponse.total_count ?? events.length
+
+      // Transform each event to match the frontend interface
+      // Proto fields: timestamp, field_name, old_value, new_value, changed_by
+      const transformedEntries = events.map((event: any, index: number) => {
+        const timestamp = event.timestamp ?? new Date().toISOString()
+        const fieldName = event.fieldName ?? event.field_name ?? 'unknown'
+        const oldValueStr = event.oldValue ?? event.old_value ?? '0'
+        const newValueStr = event.newValue ?? event.new_value ?? '0'
+        const changedBy = event.changedBy ?? event.changed_by ?? 'system'
+        
+        // Parse values as numbers
+        const oldValue = parseFloat(oldValueStr)
+        const newValue = parseFloat(newValueStr)
+        
+        // Extract bucket from field_name if it's a PD rate (e.g., "pd_rate_bucket_1" or "pd_rate_current")
+        let bucket: string | undefined
+        let parameter: 'overlay_multiplier' | 'pd_rate' | 'lgd' = 'overlay_multiplier'
+        
+        if (fieldName.startsWith('pd_rate')) {
+          parameter = 'pd_rate'
+          // Extract bucket from field name (e.g., "pd_rate_bucket_1" -> "bucket_1", "pd_rate_current" -> "current")
+          const bucketMatch = fieldName.match(/pd_rate[_-](.+)$/i)
+          if (bucketMatch) {
+            bucket = bucketMatch[1].toLowerCase()
+            // Map old bucket names to new ones
+            if (bucket === 'current') bucket = 'current'
+            else if (bucket === 'bucket_1' || bucket === 'days_1_30') bucket = 'early_arrears'
+            else if (bucket === 'bucket_2' || bucket === 'bucket_3' || bucket === 'days_31_60' || bucket === 'days_61_90') bucket = 'late_arrears'
+            else if (bucket === 'bucket_4' || bucket === 'days_90_plus') bucket = 'default'
+          }
+        } else if (fieldName.includes('overlay')) {
+          parameter = 'overlay_multiplier'
+        } else if (fieldName.includes('lgd')) {
+          parameter = 'lgd'
+        }
+
+        return {
+          id: `history-${timestamp}-${index}`,
+          timestamp,
+          parameter,
+          bucket,
+          oldValue,
+          newValue,
+          changedBy,
+          changedByName: changedBy === 'system' ? 'System Default' : undefined,
+          reason: undefined, // Not in proto response
+        }
+      })
+
+      // Filter by parameter if specified
+      let filteredEntries = transformedEntries
+      if (parameter) {
+        filteredEntries = transformedEntries.filter((entry) => entry.parameter === parameter)
+      }
+
+      // Enrich changedBy GUIDs with user names from Payload
+      const payload = await getPayload({ config: configPromise })
+      
+      // Collect unique user IDs
+      const userIds = [...new Set(filteredEntries.map((e) => e.changedBy).filter((id) => id && id !== 'system'))]
+      
+      // Fetch users in batch
+      const userMap = new Map<string, string>()
+      if (userIds.length > 0) {
+        try {
+          const usersResult = await payload.find({
+            collection: 'users',
+            where: {
+              id: { in: userIds },
+            },
+            limit: userIds.length,
+          })
+
+          // Map user ID to display name
+          usersResult.docs.forEach((user) => {
+            const displayName = user.firstName && user.lastName
+              ? `${user.firstName} ${user.lastName}`
+              : user.email || user.id
+            userMap.set(user.id, displayName)
+          })
+        } catch (userError) {
+          console.warn('[ECL Config History] Error fetching users:', userError)
+          // Continue without user names if lookup fails
+        }
+      }
+
+      // Add changedByName to entries
+      const enrichedEntries = filteredEntries.map((entry) => ({
+        ...entry,
+        changedByName: entry.changedBy === 'system'
+          ? 'System Default'
+          : userMap.get(entry.changedBy) || entry.changedBy,
+      }))
+
+      const transformedResponse = {
+        entries: enrichedEntries,
+        totalCount: enrichedEntries.length,
+      }
+
+      console.log('[ECL Config History] Transformed response:', JSON.stringify(transformedResponse, null, 2))
+
+      return NextResponse.json(transformedResponse)
     } catch (grpcError: unknown) {
-      const error = grpcError as { code?: number; message?: string }
-      if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {
-        console.warn('Ledger service unavailable for ECL config history')
+      const error = grpcError as { code?: number; message?: string; details?: string }
+      
+      console.error('[ECL Config History] gRPC error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        error: grpcError,
+      })
+      
+      // Handle UNAVAILABLE (14), UNIMPLEMENTED (12), or missing client method
+      if (
+        error.code === 14 ||
+        error.code === 12 ||
+        error.message?.includes('UNAVAILABLE') ||
+        error.message?.includes('not implemented') ||
+        error.message?.includes('call') ||
+        error.message?.includes('undefined')
+      ) {
+        console.warn('Ledger service unavailable or method not implemented for ECL config history')
         return NextResponse.json(
-          { error: 'Ledger service unavailable', _fallback: true },
-          { status: 503 },
+          {
+            entries: [],
+            totalCount: 0,
+            _fallback: true,
+            _message: 'ECL config history service not available',
+          },
+          { status: 200 },
         )
       }
       throw grpcError

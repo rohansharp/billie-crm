@@ -27,21 +27,52 @@ export async function POST(request: NextRequest) {
     const client = getLedgerClient()
 
     try {
+      console.log('[Portfolio Recalc] Calling gRPC with:', {
+        triggeredBy: body.triggeredBy,
+        batchSize: body.batchSize,
+      })
+
       const response = await client.triggerPortfolioECLRecalculation({
         triggeredBy: body.triggeredBy,
         batchSize: body.batchSize,
       })
 
-      return NextResponse.json(response)
+      console.log('[Portfolio Recalc] gRPC response:', JSON.stringify(response, null, 2))
+
+      // Transform the gRPC response to match expected format
+      const grpcResponse = response as any
+      const transformedResponse = {
+        success: true,
+        jobId: `portfolio-recalc-${Date.now()}`, // Generate a job ID if not provided
+        accountCount: grpcResponse.totalAccounts ?? grpcResponse.total_accounts ?? 0,
+        status: 'queued' as const,
+        startedAt: grpcResponse.startedAt ?? grpcResponse.started_at,
+        completedAt: grpcResponse.completedAt ?? grpcResponse.completed_at,
+        processed: grpcResponse.processed ?? 0,
+        skipped: grpcResponse.skipped ?? 0,
+        failed: grpcResponse.failed ?? 0,
+        triggeredBy: grpcResponse.triggeredBy ?? grpcResponse.triggered_by ?? body.triggeredBy,
+      }
+
+      return NextResponse.json(transformedResponse)
     } catch (grpcError: unknown) {
-      const error = grpcError as { code?: number; message?: string }
+      const error = grpcError as { code?: number; message?: string; details?: string }
+      
+      console.error('[Portfolio Recalc] gRPC error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        error: grpcError,
+      })
+      
       // Handle UNAVAILABLE (14), UNIMPLEMENTED (12), or missing client method
       if (
         error.code === 14 ||
         error.code === 12 ||
         error.message?.includes('UNAVAILABLE') ||
         error.message?.includes('not implemented') ||
-        error.message?.includes('call')
+        error.message?.includes('call') ||
+        error.message?.includes('undefined')
       ) {
         console.warn('Ledger service unavailable or method not implemented for portfolio recalc')
         return NextResponse.json(

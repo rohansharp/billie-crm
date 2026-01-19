@@ -53,7 +53,7 @@ export const ECLConfigView: React.FC<ECLConfigViewProps> = ({
 
   // Mutation hooks
   const { updateOverlay, isPending: isUpdatingOverlay } = useUpdateOverlay()
-  const { updatePDRate, isPending: isUpdatingPDRate } = useUpdatePDRate()
+  const { updatePDRate, isPending: isUpdatingPDRate, error: pdRateError } = useUpdatePDRate()
   const { scheduleChange, isPending: isScheduling } = useScheduleConfigChange()
   const { cancelChange, isPending: isCancelling } = useCancelConfigChange()
   const { triggerRecalc, isPending: isRecalculating } = useTriggerPortfolioRecalc()
@@ -93,16 +93,24 @@ export const ECLConfigView: React.FC<ECLConfigViewProps> = ({
           reason: editReason || undefined,
         })
       } else if (editModal === 'pd_rate' && editBucket) {
+        console.log('[ECL Config] Updating PD rate:', {
+          bucket: editBucket,
+          rate: parseFloat(editValue) / 100,
+          updatedBy: userId,
+        })
         await updatePDRate({
           bucket: editBucket,
           rate: parseFloat(editValue) / 100,
           updatedBy: userId,
           reason: editReason || undefined,
         })
+        console.log('[ECL Config] PD rate update completed')
       }
       closeEditModal()
-    } catch {
-      // Error handled by mutation
+    } catch (error) {
+      // Log error for debugging
+      console.error('[ECL Config] Error applying change:', error)
+      // Error handled by mutation - it will be available in mutation.error
     }
   }, [editModal, editValue, editBucket, editReason, userId, updateOverlay, updatePDRate, closeEditModal])
 
@@ -273,24 +281,42 @@ export const ECLConfigView: React.FC<ECLConfigViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {config?.pdRates.map((rate: PDRateConfig) => (
-                <tr key={rate.bucket}>
-                  <td>{rate.bucket}</td>
-                  <td className={styles.numericCol}>{(rate.rate * 100).toFixed(2)}%</td>
-                  <td>{rate.updatedAt ? new Date(rate.updatedAt).toLocaleDateString() : '-'}</td>
-                  <td>{rate.updatedByName || rate.updatedBy || '-'}</td>
-                  <td className={styles.actionCol}>
-                    <button
-                      type="button"
-                      className={styles.editBtnSmall}
-                      onClick={() => openEditModal('pd_rate', rate.bucket)}
-                      data-testid={`edit-pd-${rate.bucket}`}
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {config?.pdRates.map((rate: PDRateConfig) => {
+                // Get display name for bucket
+                const getBucketDisplayName = (bucket: string): string => {
+                  switch (bucket) {
+                    case 'current':
+                      return 'Current (0 DPD, Stage 1, 3% rate)'
+                    case 'early_arrears':
+                      return 'Early Arrears (1-14 DPD, Stage 1, 25% rate)'
+                    case 'late_arrears':
+                      return 'Late Arrears (15-61 DPD, Stage 2 / SICR, 55% rate)'
+                    case 'default':
+                      return 'Default (62+ DPD, Stage 3 / Credit-Impaired, 100% rate)'
+                    default:
+                      return bucket
+                  }
+                }
+
+                return (
+                  <tr key={rate.bucket}>
+                    <td>{getBucketDisplayName(rate.bucket)}</td>
+                    <td className={styles.numericCol}>{(rate.rate * 100).toFixed(2)}%</td>
+                    <td>{rate.updatedAt ? new Date(rate.updatedAt).toLocaleDateString() : '-'}</td>
+                    <td>{rate.updatedByName || rate.updatedBy || '-'}</td>
+                    <td className={styles.actionCol}>
+                      <button
+                        type="button"
+                        className={styles.editBtnSmall}
+                        onClick={() => openEditModal('pd_rate', rate.bucket)}
+                        data-testid={`edit-pd-${rate.bucket}`}
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 interface TriggerRecalcRequest {
   triggeredBy: string
@@ -46,13 +47,26 @@ export function useTriggerPortfolioRecalc() {
       })
       if (!res.ok) {
         const error = await res.json().catch(() => ({}))
-        throw new Error(error.message || 'Failed to trigger recalculation')
+        const errorMessage = error.error || error.message || error.details || `HTTP ${res.status}: Failed to trigger recalculation`
+        throw new Error(errorMessage)
       }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalidate portfolio ECL data after recalc starts
       queryClient.invalidateQueries({ queryKey: ['portfolio-ecl'] })
+      
+      // Show success toast
+      toast.success('ECL recalculation started', {
+        description: `Processing ${data.accountCount} accounts`,
+      })
+    },
+    onError: (error) => {
+      // Show error toast
+      const errorMessage = error instanceof Error ? error.message : 'Failed to trigger recalculation'
+      toast.error('Failed to trigger recalculation', {
+        description: errorMessage,
+      })
     },
   })
 

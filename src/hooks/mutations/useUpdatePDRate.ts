@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { eclConfigQueryKey } from '@/hooks/queries/useECLConfig'
 
 interface UpdatePDRateRequest {
@@ -49,10 +50,22 @@ export function useUpdatePDRate() {
       }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalidate ECL config to refresh data
       queryClient.invalidateQueries({ queryKey: eclConfigQueryKey })
       queryClient.invalidateQueries({ queryKey: ['ecl-config', 'history'] })
+      
+      // Show success toast
+      toast.success('PD rate updated', {
+        description: `Bucket "${data.bucket}" rate updated to ${(data.newRate * 100).toFixed(2)}%`,
+      })
+    },
+    onError: (error) => {
+      // Show error toast
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update PD rate'
+      toast.error('Failed to update PD rate', {
+        description: errorMessage,
+      })
     },
   })
 

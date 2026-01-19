@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { eclConfigQueryKey } from '@/hooks/queries/useECLConfig'
 
 interface UpdateOverlayRequest {
@@ -42,14 +43,27 @@ export function useUpdateOverlay() {
       })
       if (!res.ok) {
         const error = await res.json().catch(() => ({}))
-        throw new Error(error.message || 'Failed to update overlay multiplier')
+        const errorMessage = error.error || error.message || error.details || `HTTP ${res.status}: Failed to update overlay multiplier`
+        throw new Error(errorMessage)
       }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalidate ECL config to refresh data
       queryClient.invalidateQueries({ queryKey: eclConfigQueryKey })
       queryClient.invalidateQueries({ queryKey: ['ecl-config', 'history'] })
+      
+      // Show success toast
+      toast.success('Overlay multiplier updated', {
+        description: `Overlay multiplier updated to ${data.newValue.toFixed(2)}x`,
+      })
+    },
+    onError: (error) => {
+      // Show error toast
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update overlay multiplier'
+      toast.error('Failed to update overlay multiplier', {
+        description: errorMessage,
+      })
     },
   })
 

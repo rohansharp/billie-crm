@@ -39,15 +39,47 @@ export async function PUT(request: NextRequest) {
     const client = getLedgerClient()
 
     try {
+      console.log('[PD Rate Update] Calling gRPC with:', {
+        bucket: body.bucket,
+        rate: body.rate,
+        updatedBy: body.updatedBy,
+      })
+
       const response = await client.updatePDRate({
         bucket: body.bucket,
         pdRate: body.rate.toString(),
         updatedBy: body.updatedBy,
       })
 
-      return NextResponse.json(response)
+      console.log('[PD Rate Update] gRPC response:', JSON.stringify(response, null, 2))
+
+      // Transform the gRPC response to match expected format
+      const grpcResponse = response as any
+      const overlayMultiplier = parseFloat(grpcResponse.overlayMultiplier ?? grpcResponse.overlay_multiplier ?? '1.0')
+      const pdRatesMap = grpcResponse.pdRates ?? grpcResponse.pd_rates ?? {}
+      const lastUpdated = grpcResponse.lastUpdated ?? grpcResponse.last_updated ?? new Date().toISOString()
+      const updatedBy = grpcResponse.updatedBy ?? grpcResponse.updated_by ?? body.updatedBy
+
+      // Find the updated bucket's previous rate (if available)
+      const previousRate = pdRatesMap[body.bucket] ? parseFloat(pdRatesMap[body.bucket] as string) : body.rate
+
+      return NextResponse.json({
+        success: true,
+        bucket: body.bucket,
+        newRate: body.rate,
+        previousRate: previousRate,
+        updatedAt: lastUpdated,
+      })
     } catch (grpcError: unknown) {
-      const error = grpcError as { code?: number; message?: string }
+      const error = grpcError as { code?: number; message?: string; details?: string }
+      
+      console.error('[PD Rate Update] gRPC error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        error: grpcError,
+      })
+
       // Handle UNAVAILABLE (14), UNIMPLEMENTED (12), or missing client method
       if (
         error.code === 14 ||
@@ -72,8 +104,6 @@ export async function PUT(request: NextRequest) {
       }
       throw grpcError
     }
-
-    return NextResponse.json(response)
   } catch (error) {
     console.error('Error updating PD rate:', error)
     return NextResponse.json(

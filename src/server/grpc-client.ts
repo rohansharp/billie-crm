@@ -1133,9 +1133,28 @@ export class LedgerClient {
   async triggerPortfolioECLRecalculation(
     request: TriggerPortfolioECLRecalculationRequest,
   ): Promise<PortfolioECLRecalculationResponse> {
-    return this.promisify<TriggerPortfolioECLRecalculationRequest, PortfolioECLRecalculationResponse>(
-      this.client.triggerPortfolioECLRecalculation,
-    )(request)
+    // Proto loader with keepCase: false converts TriggerPortfolioECLRecalculation to triggerPortfolioECLRecalculation
+    // But might also convert to triggerPortfolioEclRecalculation (camelCase "Ecl")
+    // Try both method names for robustness
+    const method = this.client.triggerPortfolioECLRecalculation || 
+                   this.client.triggerPortfolioEclRecalculation ||
+                   (this.client as any).TriggerPortfolioECLRecalculation ||
+                   this.client.triggerPortfolioECLRecalculation
+    
+    if (!method) {
+      // Debug: log available methods to help diagnose
+      const availableMethods = Object.keys(this.client).filter(k => 
+        k.toLowerCase().includes('trigger') || k.toLowerCase().includes('portfolio') || k.toLowerCase().includes('recalc')
+      )
+      console.error('[gRPC Client] triggerPortfolioECLRecalculation method not found. Available trigger/portfolio/recalc methods:', availableMethods)
+      throw new Error(
+        'triggerPortfolioECLRecalculation method not found on gRPC client. ' +
+        'The proto loader may have generated a different method name. ' +
+        `Available methods: ${availableMethods.join(', ')}`
+      )
+    }
+    
+    return this.promisify<TriggerPortfolioECLRecalculationRequest, PortfolioECLRecalculationResponse>(method)(request)
   }
 
   async triggerBulkECLRecalculation(
@@ -1159,27 +1178,65 @@ export class LedgerClient {
   // ===========================================================================
 
   async getECLConfig(request: GetECLConfigRequest): Promise<ECLConfigResponse> {
-    return this.promisify<GetECLConfigRequest, ECLConfigResponse>(this.client.getECLConfig)(request)
+    // Proto loader with keepCase: false converts GetECLConfig to getEclConfig (camelCase "Ecl")
+    // Try both method names for robustness
+    const method = this.client.getEclConfig || (this.client as any).GetECLConfig || this.client.getECLConfig
+    return this.promisify<GetECLConfigRequest, ECLConfigResponse>(method)(request)
   }
 
   async updateOverlayMultiplier(
     request: UpdateOverlayMultiplierRequest,
   ): Promise<ECLConfigResponse> {
-    return this.promisify<UpdateOverlayMultiplierRequest, ECLConfigResponse>(
-      this.client.updateOverlayMultiplier,
-    )(request)
+    // Proto loader with keepCase: false converts UpdateOverlayMultiplier to updateOverlayMultiplier
+    // Try both method names for robustness
+    const method = this.client.updateOverlayMultiplier || (this.client as any).UpdateOverlayMultiplier || this.client.updateOverlayMultiplier
+    
+    if (!method) {
+      throw new Error(
+        'updateOverlayMultiplier method not found on gRPC client. ' +
+        'The proto loader may have generated a different method name.'
+      )
+    }
+    
+    return this.promisify<UpdateOverlayMultiplierRequest, ECLConfigResponse>(method)(request)
   }
 
   async updatePDRate(request: UpdatePDRateRequest): Promise<ECLConfigResponse> {
-    return this.promisify<UpdatePDRateRequest, ECLConfigResponse>(this.client.updatePDRate)(request)
+    // Proto loader with keepCase: false converts UpdatePDRate to updatePdRate (camelCase "Pd")
+    // Try both method names for robustness
+    const method = this.client.updatePdRate || (this.client as any).UpdatePDRate || this.client.updatePDRate
+    
+    if (!method) {
+      throw new Error(
+        'updatePdRate method not found on gRPC client. ' +
+        'The proto loader may have generated a different method name.'
+      )
+    }
+    
+    return this.promisify<UpdatePDRateRequest, ECLConfigResponse>(method)(request)
   }
 
   async getECLConfigHistory(
     request: GetECLConfigHistoryRequest,
   ): Promise<ECLConfigHistoryResponse> {
-    return this.promisify<GetECLConfigHistoryRequest, ECLConfigHistoryResponse>(
-      this.client.getECLConfigHistory,
-    )(request)
+    // Proto loader with keepCase: false converts GetECLConfigHistory to getEclConfigHistory (camelCase "Ecl")
+    // Try both method names for robustness
+    const method = this.client.getEclConfigHistory || (this.client as any).GetECLConfigHistory || this.client.getECLConfigHistory
+    
+    if (!method) {
+      // Debug: log available methods to help diagnose
+      const availableMethods = Object.keys(this.client).filter(k => 
+        k.toLowerCase().includes('ecl') || k.toLowerCase().includes('config') || k.toLowerCase().includes('history')
+      )
+      console.error('[gRPC Client] getECLConfigHistory method not found. Available ECL/config/history methods:', availableMethods)
+      throw new Error(
+        'getEclConfigHistory method not found on gRPC client. ' +
+        'The proto loader may have generated a different method name. ' +
+        `Available methods: ${availableMethods.join(', ')}`
+      )
+    }
+    
+    return this.promisify<GetECLConfigHistoryRequest, ECLConfigHistoryResponse>(method)(request)
   }
 
   async scheduleECLConfigChange(
