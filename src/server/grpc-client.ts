@@ -1242,9 +1242,22 @@ export class LedgerClient {
   async scheduleECLConfigChange(
     request: ScheduleConfigChangeRequest,
   ): Promise<ScheduleConfigChangeResponse> {
-    return this.promisify<ScheduleConfigChangeRequest, ScheduleConfigChangeResponse>(
-      this.client.scheduleECLConfigChange,
-    )(request)
+    // Proto loader with keepCase: false converts ScheduleECLConfigChange to scheduleECLConfigChange
+    // But might also convert to scheduleEclConfigChange (camelCase "Ecl")
+    // Try both method names for robustness
+    const method = this.client.scheduleECLConfigChange || 
+                   this.client.scheduleEclConfigChange ||
+                   (this.client as any).ScheduleECLConfigChange ||
+                   this.client.scheduleECLConfigChange
+    
+    if (!method) {
+      throw new Error(
+        'scheduleECLConfigChange method not found on gRPC client. ' +
+        'The proto loader may have generated a different method name.'
+      )
+    }
+    
+    return this.promisify<ScheduleConfigChangeRequest, ScheduleConfigChangeResponse>(method)(request)
   }
 
   async getPendingConfigChanges(

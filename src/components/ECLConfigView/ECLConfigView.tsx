@@ -246,10 +246,10 @@ export const ECLConfigView: React.FC<ECLConfigViewProps> = ({
               />
             </div>
             <span className={styles.sliderLabels}>
-              <span>0.5x</span>
-              <span>1.0x</span>
-              <span>1.5x</span>
-              <span>2.0x</span>
+              <span key="0.5x">0.5x</span>
+              <span key="1.0x">1.0x</span>
+              <span key="1.5x">1.5x</span>
+              <span key="2.0x">2.0x</span>
             </span>
           </div>
           {config?.overlayUpdatedAt && (

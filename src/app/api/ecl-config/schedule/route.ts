@@ -12,35 +12,166 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getLedgerClient } from '@/server/grpc-client'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 interface ScheduleChangeBody {
-  fieldName: string
-  newValue: string
+  parameter?: string  // Frontend sends 'parameter' (overlay_multiplier, pd_rate, lgd)
+  fieldName?: string  // Or 'fieldName' directly
+  bucket?: string     // For PD rate changes
+  newValue: number | string  // Frontend sends number, API converts to string
   effectiveDate: string
   createdBy: string
+  reason?: string
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: ScheduleChangeBody = await request.json()
 
-    if (!body.fieldName || !body.newValue || !body.effectiveDate || !body.createdBy) {
+    // Handle both 'parameter' (from frontend) and 'fieldName' (direct API call)
+    let fieldName: string
+    if (body.fieldName) {
+      fieldName = body.fieldName
+    } else if (body.parameter) {
+      // Map parameter + bucket to fieldName
+      if (body.parameter === 'pd_rate') {
+        if (!body.bucket) {
+          return NextResponse.json(
+            { error: 'bucket is required for pd_rate parameter' },
+            { status: 400 },
+          )
+        }
+        // Map new bucket names to field name format
+        fieldName = `pd_rate_${body.bucket}`
+      } else if (body.parameter === 'overlay_multiplier') {
+        fieldName = 'overlay_multiplier'
+      } else if (body.parameter === 'lgd') {
+        fieldName = 'lgd'
+      } else {
+        return NextResponse.json(
+          { error: `Unknown parameter: ${body.parameter}` },
+          { status: 400 },
+        )
+      }
+    } else {
       return NextResponse.json(
-        { error: 'fieldName, newValue, effectiveDate, and createdBy are required' },
+        { error: 'fieldName or parameter is required' },
         { status: 400 },
       )
     }
 
+    if (body.newValue === undefined || body.newValue === null) {
+      return NextResponse.json(
+        { error: 'newValue is required' },
+        { status: 400 },
+      )
+    }
+
+    if (!body.effectiveDate) {
+      return NextResponse.json(
+        { error: 'effectiveDate is required' },
+        { status: 400 },
+      )
+    }
+
+    if (!body.createdBy) {
+      return NextResponse.json(
+        { error: 'createdBy is required' },
+        { status: 400 },
+      )
+    }
+
+    // Convert newValue to string (gRPC expects Decimal as string)
+    const newValueStr = typeof body.newValue === 'number' 
+      ? body.newValue.toString() 
+      : body.newValue
+
+    // Look up username from user GUID
+    let createdByName = body.createdBy
+    if (body.createdBy && body.createdBy.length === 24) {
+      // Looks like a MongoDB ObjectId (user GUID), try to look up the username
+      try {
+        const payload = await getPayload({ config: configPromise })
+        const userResult = await payload.findByID({
+          collection: 'users',
+          id: body.createdBy,
+        })
+        
+        if (userResult) {
+          createdByName = userResult.firstName && userResult.lastName
+            ? `${userResult.firstName} ${userResult.lastName}`
+            : userResult.email || body.createdBy
+        }
+      } catch (userError) {
+        console.warn('[Schedule Config] Could not look up user, using GUID:', userError)
+        // Continue with GUID if lookup fails
+      }
+    }
+
     const client = getLedgerClient()
 
-    const response = await client.scheduleECLConfigChange({
-      fieldName: body.fieldName,
-      newValue: body.newValue,
-      effectiveDate: body.effectiveDate,
-      createdBy: body.createdBy,
-    })
+    try {
+      console.log('[Schedule Config] Calling gRPC with:', {
+        fieldName,
+        newValue: newValueStr,
+        effectiveDate: body.effectiveDate,
+        createdBy: createdByName,
+        originalUserId: body.createdBy,
+      })
 
-    return NextResponse.json(response)
+      const response = await client.scheduleECLConfigChange({
+        fieldName,
+        newValue: newValueStr,
+        effectiveDate: body.effectiveDate,
+        createdBy: createdByName, // Send username instead of GUID
+      })
+
+      console.log('[Schedule Config] gRPC response:', JSON.stringify(response, null, 2))
+
+      // Transform the gRPC response
+      const grpcResponse = response as any
+      const transformedResponse = {
+        success: true,
+        changeId: grpcResponse.changeId ?? grpcResponse.change_id ?? '',
+        fieldName: grpcResponse.fieldName ?? grpcResponse.field_name ?? fieldName,
+        newValue: grpcResponse.newValue ?? grpcResponse.new_value ?? newValueStr,
+        effectiveDate: grpcResponse.effectiveDate ?? grpcResponse.effective_date ?? body.effectiveDate,
+        createdAt: grpcResponse.createdAt ?? grpcResponse.created_at ?? new Date().toISOString(),
+        createdBy: grpcResponse.createdBy ?? grpcResponse.created_by ?? createdByName,
+      }
+
+        return NextResponse.json(transformedResponse)
+    } catch (grpcError: unknown) {
+      const error = grpcError as { code?: number; message?: string; details?: string }
+      
+      console.error('[Schedule Config] gRPC error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        error: grpcError,
+      })
+      
+      // Handle UNAVAILABLE (14), UNIMPLEMENTED (12), or missing client method
+      if (
+        error.code === 14 ||
+        error.code === 12 ||
+        error.message?.includes('UNAVAILABLE') ||
+        error.message?.includes('not implemented') ||
+        error.message?.includes('call') ||
+        error.message?.includes('undefined')
+      ) {
+        console.warn('Ledger service unavailable or method not implemented for schedule config change')
+        return NextResponse.json(
+          {
+            error: 'Schedule config change service not available',
+            message: 'The scheduled config change service is not currently available. Please try again later.',
+          },
+          { status: 503 },
+        )
+      }
+      throw grpcError
+    }
   } catch (error) {
     console.error('Error scheduling config change:', error)
     return NextResponse.json(
