@@ -178,8 +178,29 @@ export const ServicingView: React.FC<ServicingViewProps> = ({ customerId }) => {
   // Only block if we have confirmed pending data; allow if error/loading (fail open for UX)
   const hasPendingWriteOff = !pendingWriteOffError && !!pendingWriteOff
 
-  // Auto-select single account
+  // Auto-select single account or account from URL query parameter
   useEffect(() => {
+    if (accounts.length === 0) return
+
+    // Check for account selection in URL query parameter
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const accountIdParam = urlParams.get('accountId')
+      if (accountIdParam) {
+        // Find account by loanAccountId
+        const account = accounts.find((a) => a.loanAccountId === accountIdParam)
+        if (account && !selectedAccountId) {
+          setSelectedAccountId(account.loanAccountId)
+          // Clean up URL by removing query parameter
+          urlParams.delete('accountId')
+          const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`
+          window.history.replaceState({}, '', newUrl)
+          return
+        }
+      }
+    }
+
+    // Auto-select if only one account
     if (accounts.length === 1 && !selectedAccountId) {
       setSelectedAccountId(accounts[0].loanAccountId)
     }

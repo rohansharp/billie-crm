@@ -10,10 +10,9 @@ import styles from './styles.module.css'
  */
 const BUCKET_CONFIG: Record<string, { label: string; className: string }> = {
   current: { label: 'Current', className: styles.bucketCurrent },
-  bucket_1: { label: 'Bucket 1', className: styles.bucket1 },
-  bucket_2: { label: 'Bucket 2', className: styles.bucket2 },
-  bucket_3: { label: 'Bucket 3', className: styles.bucket3 },
-  bucket_4: { label: 'Bucket 4', className: styles.bucket4 },
+  early_arrears: { label: 'Early Arrears', className: styles.bucketEarlyArrears },
+  late_arrears: { label: 'Late Arrears', className: styles.bucketLateArrears },
+  default: { label: 'Default', className: styles.bucketDefault },
 }
 
 /**
@@ -85,9 +84,14 @@ export function CollectionsView() {
   // Navigate to account servicing
   const handleRowClick = useCallback(
     (account: OverdueAccount) => {
-      // Navigate to servicing view - we'll need to look up the customer ID
-      // For now, navigate to loan accounts collection with the account ID
-      router.push(`/admin/collections/loan-accounts/${account.accountId}`)
+      // Navigate to servicing view with customer ID and account selection
+      if (account.customerIdString) {
+        // Include accountId in query parameter to auto-select the account
+        router.push(`/admin/servicing/${account.customerIdString}?accountId=${encodeURIComponent(account.accountId)}`)
+      } else {
+        // Fallback: if customer ID not available, show error
+        console.warn(`Customer ID not available for account ${account.accountId}`)
+      }
     },
     [router],
   )
@@ -107,9 +111,10 @@ export function CollectionsView() {
 
   // Export to CSV
   const handleExport = useCallback(() => {
-    const headers = ['Account ID', 'DPD', 'Bucket', 'Amount', 'Last Updated']
+    const headers = ['Account Number', 'Customer', 'DPD', 'Bucket', 'Amount', 'Last Updated']
     const rows = accounts.map((acc) => [
-      acc.accountId,
+      acc.accountNumber || acc.accountId,
+      acc.customerName || '—',
       acc.dpd.toString(),
       acc.bucket,
       acc.totalOverdueAmount,
@@ -163,10 +168,10 @@ export function CollectionsView() {
               }}
             >
               <option value="">All Buckets</option>
-              <option value="bucket_1">Bucket 1 (1-30 DPD)</option>
-              <option value="bucket_2">Bucket 2 (31-60 DPD)</option>
-              <option value="bucket_3">Bucket 3 (61-90 DPD)</option>
-              <option value="bucket_4">Bucket 4 (90+ DPD)</option>
+              <option value="current">Current (0 DPD)</option>
+              <option value="early_arrears">Early Arrears (1-14 DPD)</option>
+              <option value="late_arrears">Late Arrears (15-61 DPD)</option>
+              <option value="default">Default (62+ DPD)</option>
             </select>
           </div>
 
@@ -253,12 +258,16 @@ export function CollectionsView() {
                     className: '',
                   }
 
+                  // Use business account number if available, fallback to GUID
+                  const displayAccountId = account.accountNumber || account.accountId
+                  const customerName = account.customerName || '—'
+
                   return (
                     <tr key={account.accountId} onClick={() => handleRowClick(account)}>
                       <td>
-                        <span className={styles.accountLink}>{account.accountId}</span>
+                        <span className={styles.accountLink}>{displayAccountId}</span>
                       </td>
-                      <td>—</td>
+                      <td>{customerName}</td>
                       <td>
                         <span className={`${styles.dpdBadge} ${getDpdClass(account.dpd)}`}>
                           {account.dpd}
@@ -281,6 +290,8 @@ export function CollectionsView() {
                             e.stopPropagation()
                             handleRowClick(account)
                           }}
+                          disabled={!account.customerIdString}
+                          title={account.customerIdString ? 'View account' : 'Customer ID not available'}
                         >
                           →
                         </button>

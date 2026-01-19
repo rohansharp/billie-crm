@@ -148,22 +148,17 @@
   color: #166534;
 }
 
-.bucket1 {
+.bucketEarlyArrears {
   background: #fef3c7;
   color: #b45309;
 }
 
-.bucket2 {
+.bucketLateArrears {
   background: #fed7aa;
   color: #c2410c;
 }
 
-.bucket3 {
-  background: #fecaca;
-  color: #b91c1c;
-}
-
-.bucket4 {
+.bucketDefault {
   background: #dc2626;
   color: #ffffff;
 }

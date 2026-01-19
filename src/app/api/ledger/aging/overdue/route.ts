@@ -4,7 +4,7 @@
  * Get paginated list of overdue accounts with filtering.
  *
  * Query params:
- * - bucket: Filter by aging bucket (e.g., "bucket_1")
+ * - bucket: Filter by aging bucket (e.g., "current", "early_arrears", "late_arrears", "default")
  * - minDpd: Minimum days past due (default: 1)
  * - maxDpd: Maximum days past due
  * - pageSize: Results per page (default: 100, max: 1000)
@@ -13,6 +13,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getLedgerClient } from '@/server/grpc-client'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,7 +36,88 @@ export async function GET(request: NextRequest) {
         pageToken,
       })
 
-      return NextResponse.json(response)
+      // Transform gRPC response to ensure field mapping is correct
+      // Handle both camelCase (from proto loader with keepCase: false) and snake_case
+      const transformedAccounts = response.accounts.map((account: any) => {
+        // Extract fields handling both naming conventions
+        const accountId = account.accountId ?? account.account_id ?? ''
+        const dpd = account.dpd ?? 0
+        const bucketValue = account.bucket ?? 'current'
+        const daysUntilOverdue = account.daysUntilOverdue ?? account.days_until_overdue ?? 0
+        const totalOverdueAmount = account.totalOverdueAmount ?? account.total_overdue_amount ?? '0'
+        const lastUpdated = account.lastUpdated ?? account.last_updated ?? new Date().toISOString()
+
+        // Debug logging for first account to diagnose field mapping issues
+        if (accountId && (totalOverdueAmount === '0' || totalOverdueAmount === '')) {
+          console.log(`[Overdue Accounts] Account ${accountId} has zero/empty totalOverdueAmount. Raw fields:`, {
+            accountId,
+            totalOverdueAmount,
+            'account.totalOverdueAmount': account.totalOverdueAmount,
+            'account.total_overdue_amount': account.total_overdue_amount,
+            'account keys': Object.keys(account),
+            dpd,
+            bucket: bucketValue,
+          })
+        }
+
+        return {
+          accountId,
+          dpd,
+          bucket: bucketValue,
+          daysUntilOverdue,
+          totalOverdueAmount,
+          lastUpdated,
+        }
+      })
+
+      // Enrich accounts with loan account details from Payload
+      const payload = await getPayload({ config: configPromise })
+      const enrichedAccounts = await Promise.all(
+        transformedAccounts.map(async (account) => {
+          try {
+            // Look up loan account by loanAccountId (which matches accountId from gRPC)
+            const loanAccountResult = await payload.find({
+              collection: 'loan-accounts',
+              where: {
+                loanAccountId: { equals: account.accountId },
+              },
+              limit: 1,
+            })
+
+            if (loanAccountResult.docs.length > 0) {
+              const loanAccount = loanAccountResult.docs[0]
+              return {
+                ...account,
+                accountNumber: loanAccount.accountNumber,
+                customerIdString: loanAccount.customerIdString ?? null,
+                customerName: loanAccount.customerName ?? null,
+              }
+            }
+
+            // If not found, return account with nulls
+            return {
+              ...account,
+              accountNumber: null,
+              customerIdString: null,
+              customerName: null,
+            }
+          } catch (error) {
+            console.warn(`Failed to enrich account ${account.accountId}:`, error)
+            return {
+              ...account,
+              accountNumber: null,
+              customerIdString: null,
+              customerName: null,
+            }
+          }
+        })
+      )
+
+      return NextResponse.json({
+        accounts: enrichedAccounts,
+        totalCount: response.totalCount ?? response.total_count ?? enrichedAccounts.length,
+        nextPageToken: response.nextPageToken ?? response.next_page_token,
+      })
     } catch (grpcError: unknown) {
       const error = grpcError as { code?: number; message?: string }
       if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {

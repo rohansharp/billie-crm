@@ -58,7 +58,7 @@ export async function GET(
       // Default LGD rate (not in gRPC response, using standard 100% for now)
       const lgdRate = '1.0'
 
-      // Transform bucket name (gRPC uses "bucket_1", frontend expects "bucket_1" or "current")
+      // Transform bucket name (gRPC uses bucket names, frontend expects "current", "early_arrears", "late_arrears", or "default")
       const bucket = agingBucket.toLowerCase()
 
       // Build triggeredBy object if event ID exists

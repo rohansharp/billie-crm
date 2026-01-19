@@ -99,7 +99,7 @@ export function useAccountAging(options: UseAccountAgingOptions) {
   return {
     /** Days past due */
     dpd: query.data?.dpd ?? 0,
-    /** Current aging bucket (current, bucket_1, bucket_2, etc.) */
+    /** Current aging bucket (current, early_arrears, late_arrears, default) */
     bucket: query.data?.bucket ?? 'current',
     /** Days until account becomes overdue (negative if already overdue) */
     daysUntilOverdue: query.data?.daysUntilOverdue ?? 0,

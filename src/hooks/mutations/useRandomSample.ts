@@ -32,7 +32,7 @@ export interface RandomSampleResponse {
  * const handleSample = async () => {
  *   const result = await generateSample({
  *     sampleSize: 100,
- *     filters: { bucket: 'BUCKET_1' }
+ *     filters: { bucket: 'EARLY_ARREARS' }
  *   })
  *   // result.accountIds - array of sampled account IDs
  * }

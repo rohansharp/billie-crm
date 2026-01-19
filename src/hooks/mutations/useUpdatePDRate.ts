@@ -25,7 +25,7 @@ interface UpdatePDRateResponse {
  *
  * const handleUpdate = async () => {
  *   await updatePDRate({
- *     bucket: 'BUCKET_1',
+ *     bucket: 'EARLY_ARREARS',
  *     rate: 0.08,
  *     updatedBy: userId,
  *     reason: 'Annual review adjustment'

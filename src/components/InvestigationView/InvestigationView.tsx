@@ -724,11 +724,10 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({ userId: _u
                       onChange={(e) => setSampleBucket(e.target.value)}
                     >
                       <option value="">All Buckets</option>
-                      <option value="CURRENT">Current</option>
-                      <option value="BUCKET_1">Bucket 1 (1-30 DPD)</option>
-                      <option value="BUCKET_2">Bucket 2 (31-60 DPD)</option>
-                      <option value="BUCKET_3">Bucket 3 (61-90 DPD)</option>
-                      <option value="BUCKET_4">Bucket 4 (91+ DPD)</option>
+                      <option value="CURRENT">Current (0 DPD)</option>
+                      <option value="EARLY_ARREARS">Early Arrears (1-14 DPD)</option>
+                      <option value="LATE_ARREARS">Late Arrears (15-61 DPD)</option>
+                      <option value="DEFAULT">Default (62+ DPD)</option>
                     </select>
                   </div>
                   <div className={styles.fieldRow}>

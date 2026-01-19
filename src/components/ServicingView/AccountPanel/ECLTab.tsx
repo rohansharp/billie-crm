@@ -51,15 +51,13 @@ function formatDateTime(dateString: string | undefined): string {
 function getBucketDisplay(bucket: string): string {
   switch (bucket) {
     case 'current':
-      return 'Current (0 DPD)'
-    case 'bucket_1':
-      return 'Bucket 1 (1-30 DPD)'
-    case 'bucket_2':
-      return 'Bucket 2 (31-60 DPD)'
-    case 'bucket_3':
-      return 'Bucket 3 (61-90 DPD)'
-    case 'bucket_4':
-      return 'Bucket 4 (90+ DPD)'
+      return 'Current (0 DPD, Stage 1, 3% rate)'
+    case 'early_arrears':
+      return 'Early Arrears (1-14 DPD, Stage 1, 25% rate)'
+    case 'late_arrears':
+      return 'Late Arrears (15-61 DPD, Stage 2 / SICR, 55% rate)'
+    case 'default':
+      return 'Default (62+ DPD, Stage 3 / Credit-Impaired, 100% rate)'
     default:
       return bucket
   }

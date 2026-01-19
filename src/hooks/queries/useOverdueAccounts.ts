@@ -4,7 +4,10 @@ import { useQuery } from '@tanstack/react-query'
  * Overdue account from API response
  */
 export interface OverdueAccount {
-  accountId: string
+  accountId: string // GUID from ledger service
+  accountNumber: string | null // Business account number from Payload
+  customerIdString: string | null // Customer ID for navigation
+  customerName: string | null // Customer name for display
   dpd: number
   bucket: string
   daysUntilOverdue: number
@@ -26,7 +29,7 @@ export interface OverdueAccountsResponse {
  * Filter options for overdue accounts query
  */
 export interface OverdueAccountsFilters {
-  /** Filter by aging bucket (e.g., "bucket_1", "bucket_2") */
+  /** Filter by aging bucket (e.g., "current", "early_arrears", "late_arrears", "default") */
   bucket?: string
   /** Minimum days past due */
   minDpd?: number
@@ -89,7 +92,7 @@ export const overdueAccountsQueryKey = (filters: OverdueAccountsFilters) =>
  * @example
  * ```tsx
  * const { data, isLoading } = useOverdueAccounts({
- *   bucket: 'bucket_2',
+ *   bucket: 'late_arrears',
  *   minDpd: 30,
  *   pageSize: 50,
  * })

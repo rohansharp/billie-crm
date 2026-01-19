@@ -214,22 +214,17 @@
   color: var(--theme-success-600);
 }
 
-.bucket1 {
+.bucketEarlyArrears {
   background: var(--theme-warning-100);
   color: var(--theme-warning-600);
 }
 
-.bucket2 {
+.bucketLateArrears {
   background: var(--theme-error-100);
   color: var(--theme-error-500);
 }
 
-.bucket3 {
-  background: var(--theme-error-200);
-  color: var(--theme-error-600);
-}
-
-.bucket4 {
+.bucketDefault {
   background: var(--theme-error-500);
   color: white;
 }

@@ -84,10 +84,25 @@ export function ECLSummaryWidget() {
                 const width = totalAccounts > 0
                   ? (bucket.accountCount / totalAccounts) * 100
                   : 0
+                // Map bucket names to CSS classes
+                const getBucketClass = (bucketName: string): string => {
+                  switch (bucketName) {
+                    case 'current':
+                      return styles.bucketCurrent
+                    case 'early_arrears':
+                      return styles.bucketEarlyArrears
+                    case 'late_arrears':
+                      return styles.bucketLateArrears
+                    case 'default':
+                      return styles.bucketDefault
+                    default:
+                      return ''
+                  }
+                }
                 return (
                   <div
                     key={bucket.bucket}
-                    className={`${styles.bucketSegment} ${styles[`bucket${bucket.bucket.replace('bucket_', '').replace('current', '0')}`]}`}
+                    className={`${styles.bucketSegment} ${getBucketClass(bucket.bucket)}`}
                     style={{ width: `${Math.max(width, 2)}%` }}
                     title={`${bucket.bucket}: ${bucket.accountCount} accounts`}
                   />

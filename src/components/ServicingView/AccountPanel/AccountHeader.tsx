@@ -24,31 +24,25 @@ function getBucketConfig(bucket: string, dpd: number): { label: string; classNam
       return {
         label: 'Current',
         className: styles.bucketCurrent,
-        tooltip: 'Account is current - no overdue payments',
+        tooltip: 'Account is current - 0 DPD (Stage 1, 3% rate)',
       }
-    case 'bucket_1':
+    case 'early_arrears':
       return {
-        label: `Bucket 1 (${dpd} DPD)`,
-        className: styles.bucket1,
-        tooltip: `${dpd} days past due - 1-30 day delinquency`,
+        label: `Early Arrears (${dpd} DPD)`,
+        className: styles.bucketEarlyArrears,
+        tooltip: `${dpd} days past due - 1-14 DPD (Stage 1, 25% rate)`,
       }
-    case 'bucket_2':
+    case 'late_arrears':
       return {
-        label: `Bucket 2 (${dpd} DPD)`,
-        className: styles.bucket2,
-        tooltip: `${dpd} days past due - 31-60 day delinquency`,
+        label: `Late Arrears (${dpd} DPD)`,
+        className: styles.bucketLateArrears,
+        tooltip: `${dpd} days past due - 15-61 DPD (Stage 2 / SICR, 55% rate)`,
       }
-    case 'bucket_3':
+    case 'default':
       return {
-        label: `Bucket 3 (${dpd} DPD)`,
-        className: styles.bucket3,
-        tooltip: `${dpd} days past due - 61-90 day delinquency`,
-      }
-    case 'bucket_4':
-      return {
-        label: `Bucket 4 (${dpd} DPD)`,
-        className: styles.bucket4,
-        tooltip: `${dpd} days past due - 90+ day delinquency`,
+        label: `Default (${dpd} DPD)`,
+        className: styles.bucketDefault,
+        tooltip: `${dpd} days past due - 62+ DPD (Stage 3 / Credit-Impaired, 100% rate)`,
       }
     default:
       return {
