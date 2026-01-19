@@ -1187,9 +1187,28 @@ export class LedgerClient {
   async getEventProcessingStatus(
     request: GetEventProcessingStatusRequest,
   ): Promise<EventProcessingStatusResponse> {
-    return this.promisify<GetEventProcessingStatusRequest, EventProcessingStatusResponse>(
-      this.client.getEventProcessingStatus,
-    )(request)
+    // Proto loader with keepCase: false converts GetEventProcessingStatus to getEventProcessingStatus
+    // But might also convert to getEventProcessingStatus (should be fine, but check variations)
+    // Try both method names for robustness
+    const method = this.client.getEventProcessingStatus || 
+                   this.client.getEventProcessingstatus ||
+                   (this.client as any).GetEventProcessingStatus ||
+                   this.client.getEventProcessingStatus
+    
+    if (!method) {
+      // Debug: log available methods to help diagnose
+      const availableMethods = Object.keys(this.client).filter(k => 
+        k.toLowerCase().includes('event') || k.toLowerCase().includes('processing') || k.toLowerCase().includes('status')
+      )
+      console.error('[gRPC Client] getEventProcessingStatus method not found. Available event/processing/status methods:', availableMethods)
+      throw new Error(
+        'getEventProcessingStatus method not found on gRPC client. ' +
+        'The proto loader may have generated a different method name. ' +
+        `Available methods: ${availableMethods.join(', ')}`
+      )
+    }
+    
+    return this.promisify<GetEventProcessingStatusRequest, EventProcessingStatusResponse>(method)(request)
   }
 
   // ===========================================================================
