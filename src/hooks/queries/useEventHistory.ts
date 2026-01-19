@@ -10,6 +10,8 @@ export interface AccountEvent {
   eventType: string
   version: number
   data: Record<string, unknown>
+  triggered_by?: string
+  triggeredByName?: string
 }
 
 export interface EventHistoryResponse {

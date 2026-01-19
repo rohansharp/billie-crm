@@ -10,6 +10,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getLedgerClient } from '@/server/grpc-client'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 export async function GET(
   request: NextRequest,
@@ -34,7 +36,73 @@ export async function GET(
         cursor,
       })
 
-      return NextResponse.json(response)
+      // Enrich events with user names for triggered_by fields
+      const grpcResponse = response as any
+      const events = grpcResponse.events ?? []
+      
+      // Collect unique user IDs from triggered_by fields in event data
+      const userIds = new Set<string>()
+      events.forEach((event: any) => {
+        const eventData = event.data ?? {}
+        const triggeredBy = eventData.triggered_by ?? eventData.triggeredBy ?? event.triggered_by ?? event.triggeredBy
+        if (triggeredBy && typeof triggeredBy === 'string' && triggeredBy.length === 24) {
+          // MongoDB ObjectId format (24 hex characters)
+          userIds.add(triggeredBy)
+        }
+      })
+
+      // Fetch users in batch
+      const userMap = new Map<string, string>()
+      if (userIds.size > 0) {
+        try {
+          const payload = await getPayload({ config: configPromise })
+          const usersResult = await payload.find({
+            collection: 'users',
+            where: {
+              id: { in: Array.from(userIds) },
+            },
+            limit: userIds.size,
+          })
+
+          // Map user ID to display name
+          usersResult.docs.forEach((user) => {
+            const displayName = user.firstName && user.lastName
+              ? `${user.firstName} ${user.lastName}`
+              : user.email || user.id
+            userMap.set(user.id, displayName)
+          })
+        } catch (userError) {
+          console.warn('[Event History] Error fetching users:', userError)
+          // Continue without user names if lookup fails
+        }
+      }
+
+      // Enrich events with user names
+      const enrichedEvents = events.map((event: any) => {
+        const eventData = event.data ?? {}
+        const triggeredBy = eventData.triggered_by ?? eventData.triggeredBy ?? event.triggered_by ?? event.triggeredBy
+        
+        let triggeredByName: string | undefined
+        if (triggeredBy && typeof triggeredBy === 'string' && triggeredBy.length === 24) {
+          triggeredByName = userMap.get(triggeredBy)
+        }
+
+        return {
+          ...event,
+          data: {
+            ...eventData,
+            triggered_by: triggeredBy,
+            triggeredByName: triggeredByName || triggeredBy,
+          },
+          triggered_by: triggeredBy,
+          triggeredByName: triggeredByName || triggeredBy,
+        }
+      })
+
+      return NextResponse.json({
+        ...grpcResponse,
+        events: enrichedEvents,
+      })
     } catch (grpcError: unknown) {
       const error = grpcError as { code?: number; message?: string }
       if (error.code === 14 || error.message?.includes('UNAVAILABLE')) {

@@ -10,6 +10,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getLedgerClient } from '@/server/grpc-client'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 interface BulkRecalcBody {
   accountIds: string[]
@@ -32,11 +34,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Maximum 100 accounts per request' }, { status: 400 })
     }
 
+    // Look up username from user GUID
+    let triggeredByName = body.triggeredBy
+    if (body.triggeredBy && body.triggeredBy.length === 24) {
+      // Looks like a MongoDB ObjectId (user GUID), try to look up the username
+      try {
+        const payload = await getPayload({ config: configPromise })
+        const userResult = await payload.findByID({
+          collection: 'users',
+          id: body.triggeredBy,
+        })
+        
+        if (userResult) {
+          triggeredByName = userResult.firstName && userResult.lastName
+            ? `${userResult.firstName} ${userResult.lastName}`
+            : userResult.email || body.triggeredBy
+        }
+      } catch (userError) {
+        console.warn('[Bulk Recalc] Could not look up user, using GUID:', userError)
+        // Continue with GUID if lookup fails
+      }
+    }
+
     const client = getLedgerClient()
 
     const response = await client.triggerBulkECLRecalculation({
       accountIds: body.accountIds,
-      triggeredBy: body.triggeredBy,
+      triggeredBy: triggeredByName, // Send username instead of GUID
     })
 
     return NextResponse.json(response)
