@@ -1125,9 +1125,28 @@ export class LedgerClient {
   }
 
   async getPortfolioECL(request: GetPortfolioECLRequest): Promise<PortfolioECLResponse> {
-    return this.promisify<GetPortfolioECLRequest, PortfolioECLResponse>(
-      this.client.getPortfolioECL,
-    )(request)
+    // Proto loader with keepCase: false converts GetPortfolioECL to getPortfolioECL
+    // But might also convert to getPortfolioEcl (camelCase "Ecl")
+    // Try both method names for robustness
+    const method = this.client.getPortfolioECL || 
+                   this.client.getPortfolioEcl ||
+                   (this.client as any).GetPortfolioECL ||
+                   this.client.getPortfolioECL
+    
+    if (!method) {
+      // Debug: log available methods to help diagnose
+      const availableMethods = Object.keys(this.client).filter(k => 
+        k.toLowerCase().includes('portfolio') || k.toLowerCase().includes('ecl')
+      )
+      console.error('[gRPC Client] getPortfolioECL method not found. Available portfolio/ecl methods:', availableMethods)
+      throw new Error(
+        'getPortfolioECL method not found on gRPC client. ' +
+        'The proto loader may have generated a different method name. ' +
+        `Available methods: ${availableMethods.join(', ')}`
+      )
+    }
+    
+    return this.promisify<GetPortfolioECLRequest, PortfolioECLResponse>(method)(request)
   }
 
   async triggerPortfolioECLRecalculation(
