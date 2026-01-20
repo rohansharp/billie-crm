@@ -41,6 +41,12 @@ export default buildConfig({
       actions: ['@/components/Notifications/NotificationAction#NotificationAction'],
       // Custom views with Payload admin template (includes sidebar)
       views: {
+        // Root admin redirect - prevents redirect loop between /admin and /admin/login
+        rootRedirect: {
+          Component: '@/components/AdminRootRedirect/AdminRootRedirect#AdminRootRedirect',
+          path: '/',
+          exact: true,
+        },
         // Dashboard view (Story 6.2)
         dashboard: {
           Component: '@/components/DashboardView/DashboardViewWithTemplate#DashboardViewWithTemplate',
