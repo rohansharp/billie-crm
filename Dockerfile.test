@@ -41,8 +41,9 @@ COPY . .
 
 # Build Next.js for production
 RUN pnpm run build || (echo "Build failed!" && exit 1)
-# Verify standalone build was created (for standalone output mode)
-RUN test -d .next/standalone || test -f .next/BUILD_ID || (echo "Build output not found! Expected .next/standalone/ or .next/BUILD_ID" && exit 1)
+# Verify build was created (check for server directory which is always created)
+RUN test -d .next/server || (echo "Build output not found! Expected .next/server directory" && exit 1)
+RUN echo "Build verification: .next/server exists" && ls -la .next/server | head -5
 
 # Set Python path for event processor
 ENV PYTHONPATH=/app/event-processor/src

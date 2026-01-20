@@ -7,24 +7,24 @@ echo "=========================================="
 
 cd /app
 
-# Verify Next.js build exists (standalone mode)
-if [ ! -f ".next/standalone/server.js" ] && [ ! -f ".next/BUILD_ID" ] && [ ! -f "server.js" ]; then
-  echo "WARNING: Next.js build not found"
+# Verify Next.js build exists
+# Check for various build output formats
+if [ -f ".next/standalone/server.js" ]; then
+  echo "✓ Found standalone build"
+elif [ -f ".next/BUILD_ID" ]; then
+  echo "✓ Found regular Next.js build (BUILD_ID)"
+elif [ -f "server.js" ]; then
+  echo "✓ Found server.js in root (standalone copied)"
+elif [ -d ".next/server" ] && [ -d ".next/static" ]; then
+  echo "✓ Found Next.js build output (.next/server and .next/static exist)"
+  echo "  Build is ready - will use 'next start'"
+else
+  echo "ERROR: Next.js build not found!"
   echo "Checking .next directory contents:"
   ls -la .next/ 2>&1 || echo ".next directory does not exist"
-  echo "Checking for standalone directory:"
-  ls -la .next/standalone/ 2>&1 || echo ".next/standalone directory does not exist"
-  echo "Checking root for server.js:"
-  ls -la server.js 2>&1 || echo "server.js not found in root"
-  echo "Attempting to build now..."
-  pnpm run build
-  if [ ! -f ".next/standalone/server.js" ] && [ ! -f ".next/BUILD_ID" ] && [ ! -f "server.js" ]; then
-    echo "ERROR: Build failed. Cannot start Next.js server."
-    echo "Build output directory contents:"
-    ls -la .next/ 2>&1 || echo ".next directory still does not exist"
-    exit 1
-  fi
-  echo "Build completed successfully."
+  echo ""
+  echo "Build must be completed during Docker build. Cannot start server."
+  exit 1
 fi
 
 # Start the event processor in background
@@ -36,8 +36,6 @@ EVENT_PROCESSOR_PID=$!
 echo "Starting Next.js HTTP Server..."
 if [ -f ".next/standalone/server.js" ]; then
   # Use standalone server if available (standalone mode)
-  # The standalone server needs to be run from its directory
-  # Static files should be in .next/static relative to app root (symlinked by Next.js)
   echo "Using standalone server from .next/standalone/"
   cd .next/standalone
   HOSTNAME="0.0.0.0" PORT=3000 node server.js &
@@ -47,9 +45,10 @@ elif [ -f "server.js" ]; then
   echo "Using standalone server.js from root"
   HOSTNAME="0.0.0.0" PORT=3000 node server.js &
 else
-  # Fallback to pnpm start for non-standalone builds
-  echo "Using pnpm start (non-standalone mode)"
-  pnpm start &
+  # Use next start (works with both standalone and regular builds)
+  # This is the recommended way to start Next.js in production
+  echo "Using next start (production mode)"
+  HOSTNAME="0.0.0.0" PORT=3000 pnpm start &
 fi
 NEXTJS_PID=$!
 
