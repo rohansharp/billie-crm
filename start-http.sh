@@ -5,7 +5,8 @@ echo "=========================================="
 echo "Starting Billie Platform (HTTP Mode)"
 echo "=========================================="
 
-cd /app
+APP_DIR="${APP_DIR:-/app}"
+cd "$APP_DIR"
 
 # Verify Next.js build exists
 # Check for various build output formats
@@ -25,7 +26,7 @@ fi
 
 # Start the event processor in background
 echo "Starting Event Processor..."
-PYTHONPATH=/app/event-processor/src python3 -m billie_servicing.main &
+PYTHONPATH="${APP_DIR}/event-processor/src" python3 -m billie_servicing.main &
 EVENT_PROCESSOR_PID=$!
 
 # Start the Next.js server (HTTP mode - for use behind reverse proxy)
@@ -36,7 +37,7 @@ if [ -f ".next/standalone/server.js" ]; then
   echo "Using standalone server from .next/standalone/"
   cd .next/standalone
   HOSTNAME="0.0.0.0" PORT=3000 node server.js &
-  cd /app
+  cd "$APP_DIR"
 else
   # Use next start (production HTTP server)
   echo "Using 'next start' (production mode)"

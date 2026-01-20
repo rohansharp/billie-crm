@@ -52,8 +52,12 @@ RUN pnpm run build || (echo "Build failed!" && exit 1)
 RUN test -d .next/server || (echo "Build output not found! Expected .next/server directory" && exit 1)
 RUN echo "Build verification: .next/server exists" && ls -la .next/server | head -5
 
-# Set Python path for event processor
-ENV PYTHONPATH=/app/event-processor/src
+# Move built app to a runtime path that won't be overridden by bind mounts
+RUN mkdir -p /opt/app && cp -a /app/. /opt/app/
+
+# Runtime environment
+ENV APP_DIR=/opt/app
+ENV PYTHONPATH=/opt/app/event-processor/src
 ENV NODE_ENV=production
 
 EXPOSE 3000
