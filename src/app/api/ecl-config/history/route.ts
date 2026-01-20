@@ -88,7 +88,17 @@ export async function GET(request: NextRequest) {
       // Filter by parameter if specified
       let filteredEntries = transformedEntries
       if (parameter) {
-        filteredEntries = transformedEntries.filter((entry) => entry.parameter === parameter)
+        filteredEntries = transformedEntries.filter((entry: {
+          id: string
+          timestamp: string
+          parameter: 'overlay_multiplier' | 'pd_rate' | 'lgd'
+          bucket: string | undefined
+          oldValue: number
+          newValue: number
+          changedBy: string
+          changedByName: string | undefined
+          reason: undefined
+        }) => entry.parameter === parameter)
       }
 
       // Enrich changedBy GUIDs with user names from Payload
