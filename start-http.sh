@@ -8,13 +8,17 @@ echo "=========================================="
 cd /app
 
 # Verify Next.js build exists (standalone mode)
-if [ ! -f ".next/standalone/server.js" ] && [ ! -f ".next/BUILD_ID" ]; then
+if [ ! -f ".next/standalone/server.js" ] && [ ! -f ".next/BUILD_ID" ] && [ ! -f "server.js" ]; then
   echo "WARNING: Next.js build not found"
   echo "Checking .next directory contents:"
   ls -la .next/ 2>&1 || echo ".next directory does not exist"
+  echo "Checking for standalone directory:"
+  ls -la .next/standalone/ 2>&1 || echo ".next/standalone directory does not exist"
+  echo "Checking root for server.js:"
+  ls -la server.js 2>&1 || echo "server.js not found in root"
   echo "Attempting to build now..."
   pnpm run build
-  if [ ! -f ".next/standalone/server.js" ] && [ ! -f ".next/BUILD_ID" ]; then
+  if [ ! -f ".next/standalone/server.js" ] && [ ! -f ".next/BUILD_ID" ] && [ ! -f "server.js" ]; then
     echo "ERROR: Build failed. Cannot start Next.js server."
     echo "Build output directory contents:"
     ls -la .next/ 2>&1 || echo ".next directory still does not exist"
@@ -33,12 +37,18 @@ echo "Starting Next.js HTTP Server..."
 if [ -f ".next/standalone/server.js" ]; then
   # Use standalone server if available (standalone mode)
   # The standalone server needs to be run from its directory
-  # but static files should be in .next/static relative to app root
+  # Static files should be in .next/static relative to app root (symlinked by Next.js)
+  echo "Using standalone server from .next/standalone/"
   cd .next/standalone
   HOSTNAME="0.0.0.0" PORT=3000 node server.js &
   cd /app
+elif [ -f "server.js" ]; then
+  # Standalone mode - server.js is in root (copied from .next/standalone)
+  echo "Using standalone server.js from root"
+  HOSTNAME="0.0.0.0" PORT=3000 node server.js &
 else
   # Fallback to pnpm start for non-standalone builds
+  echo "Using pnpm start (non-standalone mode)"
   pnpm start &
 fi
 NEXTJS_PID=$!
