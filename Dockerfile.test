@@ -12,7 +12,8 @@ RUN apk add --no-cache \
 # Create app directory
 WORKDIR /app
 
-# Install pnpm
+# Install pnpm (disable strict mode to work around corepack signature verification bug in Node 22)
+ENV COREPACK_ENABLE_STRICT=0
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files for Node.js

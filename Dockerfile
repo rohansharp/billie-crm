@@ -3,6 +3,9 @@
 
 FROM node:22.12.0-alpine AS base
 
+# Disable corepack strict mode to work around signature verification bug in Node 22
+ENV COREPACK_ENABLE_STRICT=0
+
 # Install dependencies only when needed
 FROM base AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
