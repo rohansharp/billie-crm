@@ -34,10 +34,9 @@ EVENT_PROCESSOR_PID=$!
 echo "Starting Next.js HTTP Server..."
 if [ -f ".next/standalone/server.js" ]; then
   # Use standalone server (runs HTTP by default)
+  # Run from APP_DIR so static assets resolve from .next/static
   echo "Using standalone server from .next/standalone/"
-  cd .next/standalone
-  HOSTNAME="0.0.0.0" PORT=3000 node server.js &
-  cd "$APP_DIR"
+  HOSTNAME="0.0.0.0" PORT=3000 node .next/standalone/server.js &
 else
   # Use next start (production HTTP server)
   echo "Using 'next start' (production mode)"
