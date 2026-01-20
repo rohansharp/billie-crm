@@ -77,7 +77,7 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({
   // Fetch aging status from ledger
   const { dpd, bucket, isFallback: agingFallback, isLoading: agingLoading } = useAccountAging({
     accountId: account.loanAccountId,
-    enabled: account.accountStatus !== 'PAID_OFF' && account.accountStatus !== 'WRITTEN_OFF',
+    enabled: account.accountStatus !== 'paid_off' && account.accountStatus !== 'written_off',
   })
 
   const bucketConfig = getBucketConfig(bucket, dpd)

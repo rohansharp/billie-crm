@@ -36,6 +36,11 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json()
 
+    // Ensure body is defined
+    if (!body) {
+      return NextResponse.json({ error: 'Request body is required' }, { status: 400 })
+    }
+
     // Validation
     if (!body.loanAccountId) {
       return createValidationError('loanAccountId')

@@ -115,8 +115,8 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({
         accounts: enrichedAccounts,
-        totalCount: response.totalCount ?? response.total_count ?? enrichedAccounts.length,
-        nextPageToken: response.nextPageToken ?? response.next_page_token,
+        totalCount: response.totalCount ?? enrichedAccounts.length,
+        nextPageToken: response.nextPageToken,
       })
     } catch (grpcError: unknown) {
       const error = grpcError as { code?: number; message?: string }

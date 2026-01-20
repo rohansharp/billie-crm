@@ -39,8 +39,20 @@ export async function GET(request: NextRequest) {
         console.warn('[Pending Config Changes] Could not fetch current config:', configError)
       }
 
+      // Type for pending change entries
+      type PendingChange = {
+        id: string
+        parameter: 'overlay_multiplier' | 'pd_rate' | 'lgd'
+        bucket: string | undefined
+        currentValue: number
+        newValue: number
+        effectiveDate: string
+        createdBy: string
+        createdAt: string
+      }
+
       // Transform each pending change
-      const transformedChanges = pendingChanges.map((change: any) => {
+      const transformedChanges: PendingChange[] = pendingChanges.map((change: any) => {
         const fieldName = change.fieldName ?? change.field_name ?? ''
         const newValueStr = change.newValue ?? change.new_value ?? '0'
         const effectiveDate = change.effectiveDate ?? change.effective_date ?? ''
@@ -131,7 +143,7 @@ export async function GET(request: NextRequest) {
       })
 
       // Enrich with user names
-      const userIds = [...new Set(transformedChanges.map((c) => c.createdBy).filter((id) => id && id !== 'system' && id.length === 24))]
+      const userIds = [...new Set(transformedChanges.map((c: PendingChange) => c.createdBy).filter((id: string) => id && id !== 'system' && id.length === 24))]
       const userMap = new Map<string, string>()
       if (userIds.length > 0) {
         try {
@@ -155,7 +167,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const enrichedChanges = transformedChanges.map((change) => ({
+      const enrichedChanges = transformedChanges.map((change: PendingChange) => ({
         ...change,
         createdByName: change.createdBy === 'system'
           ? 'System Default'

@@ -62,23 +62,25 @@ export class AppError extends Error {
    * Check if this error is a system error (transient, may be retried).
    */
   isSystemError(): boolean {
-    return [
+    const systemErrorCodes: ErrorCodeType[] = [
       ERROR_CODES.LEDGER_UNAVAILABLE,
       ERROR_CODES.NETWORK_ERROR,
       ERROR_CODES.NETWORK_TIMEOUT,
       ERROR_CODES.UNKNOWN_ERROR,
-    ].includes(this.code)
+    ]
+    return systemErrorCodes.includes(this.code as ErrorCodeType)
   }
 
   /**
    * Check if this error should show a retry button.
    */
   isRetryable(): boolean {
-    return [
+    const retryableErrorCodes: ErrorCodeType[] = [
       ERROR_CODES.LEDGER_UNAVAILABLE,
       ERROR_CODES.NETWORK_ERROR,
       ERROR_CODES.NETWORK_TIMEOUT,
-    ].includes(this.code)
+    ]
+    return retryableErrorCodes.includes(this.code as ErrorCodeType)
   }
 }
 

@@ -37,9 +37,22 @@ export async function GET(request: NextRequest) {
       const events = grpcResponse.events ?? []
       const totalCount = grpcResponse.totalCount ?? grpcResponse.total_count ?? events.length
 
+      // Type for transformed history entries
+      type HistoryEntry = {
+        id: string
+        timestamp: string
+        parameter: 'overlay_multiplier' | 'pd_rate' | 'lgd'
+        bucket: string | undefined
+        oldValue: number
+        newValue: number
+        changedBy: string
+        changedByName: string | undefined
+        reason: undefined
+      }
+
       // Transform each event to match the frontend interface
       // Proto fields: timestamp, field_name, old_value, new_value, changed_by
-      const transformedEntries = events.map((event: any, index: number) => {
+      const transformedEntries: HistoryEntry[] = events.map((event: any, index: number) => {
         const timestamp = event.timestamp ?? new Date().toISOString()
         const fieldName = event.fieldName ?? event.field_name ?? 'unknown'
         const oldValueStr = event.oldValue ?? event.old_value ?? '0'
@@ -86,26 +99,16 @@ export async function GET(request: NextRequest) {
       })
 
       // Filter by parameter if specified
-      let filteredEntries = transformedEntries
+      let filteredEntries: HistoryEntry[] = transformedEntries
       if (parameter) {
-        filteredEntries = transformedEntries.filter((entry: {
-          id: string
-          timestamp: string
-          parameter: 'overlay_multiplier' | 'pd_rate' | 'lgd'
-          bucket: string | undefined
-          oldValue: number
-          newValue: number
-          changedBy: string
-          changedByName: string | undefined
-          reason: undefined
-        }) => entry.parameter === parameter)
+        filteredEntries = transformedEntries.filter((entry: HistoryEntry) => entry.parameter === parameter)
       }
 
       // Enrich changedBy GUIDs with user names from Payload
       const payload = await getPayload({ config: configPromise })
       
       // Collect unique user IDs
-      const userIds = [...new Set(filteredEntries.map((e) => e.changedBy).filter((id) => id && id !== 'system'))]
+      const userIds = [...new Set(filteredEntries.map((e: HistoryEntry) => e.changedBy).filter((id: string) => id && id !== 'system'))]
       
       // Fetch users in batch
       const userMap = new Map<string, string>()
@@ -133,7 +136,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Add changedByName to entries
-      const enrichedEntries = filteredEntries.map((entry) => ({
+      const enrichedEntries = filteredEntries.map((entry: HistoryEntry) => ({
         ...entry,
         changedByName: entry.changedBy === 'system'
           ? 'System Default'

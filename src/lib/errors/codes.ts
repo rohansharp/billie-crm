@@ -45,12 +45,13 @@ export const ERROR_STATUS_CODES: Record<ErrorCodeType, number> = {
  * System errors are transient issues not caused by user input.
  */
 export function isSystemErrorCode(code: string): boolean {
-  return [
+  const systemErrorCodes: ErrorCodeType[] = [
     ERROR_CODES.LEDGER_UNAVAILABLE,
     ERROR_CODES.NETWORK_ERROR,
     ERROR_CODES.NETWORK_TIMEOUT,
     ERROR_CODES.UNKNOWN_ERROR,
-  ].includes(code as ErrorCodeType)
+  ]
+  return systemErrorCodes.includes(code as ErrorCodeType)
 }
 
 /**
@@ -65,9 +66,10 @@ export function isValidationErrorCode(code: string): boolean {
  * Determines if an error code should show a retry button.
  */
 export function isRetryableErrorCode(code: string): boolean {
-  return [
+  const retryableErrorCodes: ErrorCodeType[] = [
     ERROR_CODES.LEDGER_UNAVAILABLE,
     ERROR_CODES.NETWORK_ERROR,
     ERROR_CODES.NETWORK_TIMEOUT,
-  ].includes(code as ErrorCodeType)
+  ]
+  return retryableErrorCodes.includes(code as ErrorCodeType)
 }
