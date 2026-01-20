@@ -10,13 +10,9 @@ cd /app
 # Verify Next.js build exists
 # Check for various build output formats
 if [ -f ".next/standalone/server.js" ]; then
-  echo "✓ Found standalone build"
-elif [ -f ".next/BUILD_ID" ]; then
-  echo "✓ Found regular Next.js build (BUILD_ID)"
-elif [ -f "server.js" ]; then
-  echo "✓ Found server.js in root (standalone copied)"
-elif [ -d ".next/server" ] && [ -d ".next/static" ]; then
-  echo "✓ Found Next.js build output (.next/server and .next/static exist)"
+  echo "✓ Found standalone build (.next/standalone/server.js)"
+elif [ -d ".next/server" ]; then
+  echo "✓ Found Next.js build output (.next/server exists)"
   echo "  Build is ready - will use 'next start'"
 else
   echo "ERROR: Next.js build not found!"
@@ -33,21 +29,17 @@ PYTHONPATH=/app/event-processor/src python3 -m billie_servicing.main &
 EVENT_PROCESSOR_PID=$!
 
 # Start the Next.js server (HTTP mode - for use behind reverse proxy)
+# NOTE: The root server.js is a custom HTTPS dev server - do NOT use it here
 echo "Starting Next.js HTTP Server..."
 if [ -f ".next/standalone/server.js" ]; then
-  # Use standalone server if available (standalone mode)
+  # Use standalone server (runs HTTP by default)
   echo "Using standalone server from .next/standalone/"
   cd .next/standalone
   HOSTNAME="0.0.0.0" PORT=3000 node server.js &
   cd /app
-elif [ -f "server.js" ]; then
-  # Standalone mode - server.js is in root (copied from .next/standalone)
-  echo "Using standalone server.js from root"
-  HOSTNAME="0.0.0.0" PORT=3000 node server.js &
 else
-  # Use next start (works with both standalone and regular builds)
-  # This is the recommended way to start Next.js in production
-  echo "Using next start (production mode)"
+  # Use next start (production HTTP server)
+  echo "Using 'next start' (production mode)"
   HOSTNAME="0.0.0.0" PORT=3000 pnpm start &
 fi
 NEXTJS_PID=$!
