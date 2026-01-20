@@ -30,18 +30,10 @@ PYTHONPATH="${APP_DIR}/event-processor/src" python3 -m billie_servicing.main &
 EVENT_PROCESSOR_PID=$!
 
 # Start the Next.js server (HTTP mode - for use behind reverse proxy)
-# NOTE: The root server.js is a custom HTTPS dev server - do NOT use it here
 echo "Starting Next.js HTTP Server..."
-if [ -f ".next/standalone/server.js" ]; then
-  # Use standalone server (runs HTTP by default)
-  # Run from APP_DIR so static assets resolve from .next/static
-  echo "Using standalone server from .next/standalone/"
-  HOSTNAME="0.0.0.0" PORT=3000 node .next/standalone/server.js &
-else
-  # Use next start (production HTTP server)
-  echo "Using 'next start' (production mode)"
-  HOSTNAME="0.0.0.0" PORT=3000 pnpm start &
-fi
+# Use next start (production HTTP server) to ensure static assets are served
+echo "Using 'next start' (production mode)"
+HOSTNAME="0.0.0.0" PORT=3000 pnpm start &
 NEXTJS_PID=$!
 
 echo "=========================================="
