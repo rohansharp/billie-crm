@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useOverdueAccounts } from '@/hooks/queries/useOverdueAccounts'
 import styles from './styles.module.css'
@@ -8,9 +9,6 @@ import styles from './styles.module.css'
 /**
  * Navigation link to the Collections Queue with overdue count badge.
  * Registered in Payload's beforeNavLinks to appear in the sidebar.
- *
- * Uses <a> tag instead of Next.js Link to force full page load,
- * ensuring Payload's admin template renders correctly with sidebar.
  *
  * Story E1-S1: Collections Queue View Shell
  */
@@ -23,7 +21,7 @@ export function NavCollectionsLink() {
   const isActive = pathname === '/admin/collections'
 
   return (
-    <a
+    <Link
       href="/admin/collections"
       className={`${styles.navLink} ${isActive ? styles.active : ''}`}
       aria-current={isActive ? 'page' : undefined}
@@ -37,7 +35,7 @@ export function NavCollectionsLink() {
           {totalCount > 99 ? '99+' : totalCount}
         </span>
       )}
-    </a>
+    </Link>
   )
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCustomer, type LoanAccountData } from '@/hooks/queries/useCustomer'
 import { transactionsQueryKey } from '@/hooks/queries/useTransactions'
@@ -48,9 +49,9 @@ const CustomerNotFound: React.FC = () => {
       <p className={styles.errorMessage}>
         The customer you&apos;re looking for doesn&apos;t exist or may have been removed.
       </p>
-      <a href="/admin/dashboard" className={styles.errorLink}>
+      <Link href="/admin/dashboard" className={styles.errorLink}>
         ← Back to Dashboard
-      </a>
+      </Link>
       <p className={styles.errorHint}>Press ⌘K to search for another customer</p>
     </div>
   )

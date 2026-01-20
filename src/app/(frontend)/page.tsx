@@ -1,6 +1,7 @@
 import { headers as getHeaders } from 'next/headers.js'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { getPayload } from 'payload'
 import React from 'react'
 
@@ -41,12 +42,12 @@ export default async function HomePage() {
         <h1>Welcome to Billie CRM</h1>
         <p className="subtitle">Customer servicing and support platform</p>
         <div className="links">
-          <a
+          <Link
             className="admin"
             href="/admin/login"
           >
             Sign In
-          </a>
+          </Link>
         </div>
       </div>
     </div>
